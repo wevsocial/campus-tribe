@@ -57,6 +57,39 @@ export const MOCK_USERS: User[] = [
     interests: ['Photography', 'Sustainability', 'Film'],
     joinedAt: '2023-09-05',
   },
+  {
+    id: 'user-teacher-1',
+    email: 'teacher@demo.com',
+    name: 'Prof. James Crawford',
+    role: 'teacher',
+    institutionId: 'inst-uoft',
+    avatarUrl: '',
+    bio: 'Professor of Computer Science. 15+ years of teaching experience.',
+    interests: ['Algorithms', 'AI', 'Teaching'],
+    joinedAt: '2020-08-15',
+  },
+  {
+    id: 'user-it-1',
+    email: 'it@demo.com',
+    name: 'Leon Okafor',
+    role: 'it_director',
+    institutionId: 'inst-uoft',
+    avatarUrl: '',
+    bio: 'IT Director. Responsible for all technology systems and integrations.',
+    interests: ['Security', 'Cloud', 'Automation'],
+    joinedAt: '2021-01-10',
+  },
+  {
+    id: 'user-parent-1',
+    email: 'parent@demo.com',
+    name: 'Jennifer Lawson',
+    role: 'parent',
+    institutionId: 'inst-uoft',
+    avatarUrl: '',
+    bio: 'Parent of Emma Lawson. Sunshine Preschool.',
+    interests: [],
+    joinedAt: '2025-09-01',
+  },
 ];
 
 export const MOCK_CLUBS: Club[] = [
@@ -500,4 +533,7 @@ export const MOCK_CREDENTIALS: Record<string, string> = {
   'admin@demo.com': 'admin',
   'coach@demo.com': 'coach',
   'club@demo.com': 'club',
+  'teacher@demo.com': 'teacher',
+  'it@demo.com': 'it',
+  'parent@demo.com': 'parent',
 };

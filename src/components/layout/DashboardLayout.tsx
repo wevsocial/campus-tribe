@@ -6,7 +6,7 @@ import type { UserRole } from '../../types';
 import {
   LayoutDashboard, Compass, Calendar, Users, Trophy, Heart, User,
   BarChart2, Building2, Settings, Flag, List, Wallet, LogOut,
-  ChevronRight
+  ChevronRight, BookOpen
 } from 'lucide-react';
 
 const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; path: string }[]> = {
@@ -51,8 +51,20 @@ const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; pat
     { label: 'Reports', icon: <Flag size={18} />, path: '/dashboard/admin#reports' },
   ],
   it_director: [
-    { label: 'Overview', icon: <LayoutDashboard size={18} />, path: '/dashboard/admin' },
-    { label: 'Settings', icon: <Settings size={18} />, path: '/dashboard/admin#settings' },
+    { label: 'Overview', icon: <LayoutDashboard size={18} />, path: '/dashboard/it' },
+    { label: 'Users', icon: <Users size={18} />, path: '/dashboard/it#users' },
+    { label: 'Settings', icon: <Settings size={18} />, path: '/dashboard/it#settings' },
+  ],
+  teacher: [
+    { label: 'Dashboard', icon: <LayoutDashboard size={18} />, path: '/dashboard/teacher' },
+    { label: 'Classes', icon: <BookOpen size={18} />, path: '/dashboard/teacher#classes' },
+    { label: 'Assignments', icon: <List size={18} />, path: '/dashboard/teacher#assignments' },
+    { label: 'Analytics', icon: <BarChart2 size={18} />, path: '/dashboard/teacher#analytics' },
+  ],
+  parent: [
+    { label: 'Dashboard', icon: <LayoutDashboard size={18} />, path: '/dashboard/parent' },
+    { label: 'Reports', icon: <Flag size={18} />, path: '/dashboard/parent#reports' },
+    { label: 'Messages', icon: <Calendar size={18} />, path: '/dashboard/parent#messages' },
   ],
 };
 
@@ -63,6 +75,8 @@ const roleBadgeColors: Record<UserRole, string> = {
   club_leader: 'bg-purple-100 text-purple-700',
   staff: 'bg-amber-100 text-amber-700',
   it_director: 'bg-gray-100 text-gray-600',
+  teacher: 'bg-blue-100 text-blue-700',
+  parent: 'bg-pink-100 text-pink-700',
 };
 
 const roleLabels: Record<UserRole, string> = {
@@ -72,6 +86,8 @@ const roleLabels: Record<UserRole, string> = {
   club_leader: 'Club Leader',
   staff: 'Staff',
   it_director: 'IT Director',
+  teacher: 'Teacher',
+  parent: 'Parent',
 };
 
 interface DashboardLayoutProps {
