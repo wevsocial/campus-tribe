@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@700;800;900&family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #F7F8FC;
+    color: #1A1D2E;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Lexend', sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white px-6 py-3 rounded-full text-sm font-bold hover:opacity-90 transition-all duration-200;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    box-shadow: 0 10px 40px rgba(26,29,46,0.06);
+  }
+  .btn-secondary {
+    @apply bg-secondary text-white px-6 py-3 rounded-full text-sm font-bold hover:opacity-90 transition-all duration-200;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .btn-outline {
+    @apply border-2 border-primary text-primary px-6 py-3 rounded-full text-sm font-bold hover:bg-primary hover:text-white transition-all duration-200;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .card {
+    @apply bg-white rounded-xl p-6;
+    box-shadow: 0 10px 40px rgba(26,29,46,0.06);
+  }
+  .sidebar-link {
+    @apply flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-150 text-sm font-bold;
+    color: #4A4E63;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .sidebar-link:hover {
+    background-color: rgba(0, 71, 171, 0.08);
+    color: #0047AB;
+  }
+  .sidebar-link.active {
+    background-color: rgba(0, 71, 171, 0.08);
+    color: #0047AB;
+  }
+  .font-label {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .font-headline {
+    font-family: 'Lexend', sans-serif;
+  }
+}
+
+/* Animations */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 6s ease infinite;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #F7F8FC; }
+::-webkit-scrollbar-thumb { background: rgba(0,71,171,0.3); border-radius: 9999px; }
