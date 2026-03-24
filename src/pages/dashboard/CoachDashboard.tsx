@@ -62,7 +62,7 @@ const CoachDashboard: React.FC = () => {
         <div className="lg:col-span-2">
           <Card padding="none" className="overflow-hidden">
             <div className="px-5 py-4 border-b border-outline-variant/30 flex items-center justify-between">
-              <h3 className="font-lexend font-800 text-base text-on-surface">Standings — {selectedLeague.name}</h3>
+              <h3 className="font-lexend font-800 text-base text-on-surface">Standings to {selectedLeague.name}</h3>
               <Button size="sm" variant="primary" onClick={() => setScoreModal(true)}>Enter Score</Button>
             </div>
             <table className="w-full">

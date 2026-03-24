@@ -5,7 +5,7 @@ const roles = [
     role: 'Student',
     icon: '🎓',
     headline: 'Your campus, your way.',
-    desc: 'Discover clubs, RSVP to events, track wellness, and compete in sports leagues — all in one app.',
+    desc: 'Discover clubs, RSVP to events, track wellness, and compete in sports leagues to all in one app.',
     gradient: 'linear-gradient(135deg, #0047AB 0%, #759eff 100%)',
   },
   {

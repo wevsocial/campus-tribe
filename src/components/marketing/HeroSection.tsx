@@ -38,7 +38,7 @@ export const HeroSection: React.FC = () => {
             <span className="text-primary italic">Life Connects</span>
           </h1>
           <p className="text-lg text-on-surface-variant leading-relaxed mb-8 max-w-lg">
-            The all-in-one student engagement platform. Smart matching, events, sports leagues, wellness tracking, and more — unified for your campus.
+            The all-in-one student engagement platform. Smart matching, events, sports leagues, wellness tracking, and more to unified for your campus.
           </p>
           <div className="flex flex-wrap gap-4">
             <Link to="/register">

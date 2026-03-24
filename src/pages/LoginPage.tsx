@@ -62,7 +62,7 @@ const LoginPage: React.FC = () => {
           <blockquote className="text-white text-2xl font-lexend font-800 leading-relaxed mb-6">
             "Campus Tribe transformed how our students connect. Engagement is up 47% since launch."
           </blockquote>
-          <p className="text-white/80 text-sm font-jakarta">— Dr. Sarah Patel, Dean of Student Life, University of Toronto</p>
+          <p className="text-white/80 text-sm font-jakarta">to Dr. Sarah Patel, Dean of Student Life, University of Toronto</p>
           <div className="mt-12 grid grid-cols-3 gap-6">
             {[
               { v: '19.9M', l: 'Students' },

@@ -4,7 +4,7 @@ const pillars = [
   { icon: 'diversity_3', title: 'Smart Matching', desc: 'AI-powered matching connects students with clubs, events, and peers.', gradient: 'linear-gradient(135deg, #0047AB 0%, #759eff 100%)' },
   { icon: 'calendar_month', title: 'Event Hub', desc: 'Create, discover, and RSVP to campus events with ease.', gradient: 'linear-gradient(135deg, #FF7F50 0%, #ffb08a 100%)' },
   { icon: 'sports_kabaddi', title: 'Sports Finder', desc: 'Find leagues, track standings, and join intramural teams.', gradient: 'linear-gradient(135deg, #00A86B 0%, #5de0b0 100%)' },
-  { icon: 'apartment', title: 'Venue Booking', desc: 'Book campus spaces in seconds — no more paperwork.', gradient: 'linear-gradient(135deg, #7B2D8B 0%, #c48fd4 100%)' },
+  { icon: 'apartment', title: 'Venue Booking', desc: 'Book campus spaces in seconds to no more paperwork.', gradient: 'linear-gradient(135deg, #7B2D8B 0%, #c48fd4 100%)' },
   { icon: 'volunteer_activism', title: 'Wellbeing', desc: 'Daily mood tracking, wellness resources, and peer support.', gradient: 'linear-gradient(135deg, #E91E63 0%, #f48fb1 100%)' },
   { icon: 'family_restroom', title: 'Parent Portal', desc: 'Keep families connected and informed with real-time updates.', gradient: 'linear-gradient(135deg, #1565C0 0%, #42A5F5 100%)' },
   { icon: 'groups', title: 'Group Activities', desc: 'Coordinate group projects, trips, and collaborative events.', gradient: 'linear-gradient(135deg, #FF9800 0%, #FFCC80 100%)' },
