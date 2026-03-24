@@ -3,7 +3,7 @@ services:
     name: campus-tribe
     runtime: static
     buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    staticPublishPath: public
     envVars:
       - key: VITE_SUPABASE_URL
         value: https://ncftkuuxfllyohixiusb.supabase.co
