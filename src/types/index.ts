@@ -1,143 +1,165 @@
-export type UserRole = 'student' | 'staff' | 'coach' | 'admin' | 'it_director' | 'club_leader'
-
-export interface CTUser {
-  id: string
-  email: string
-  full_name: string
-  role: UserRole
-  institution_id?: string
-  avatar_url?: string
-  created_at: string
+export interface Institution {
+  id: string;
+  name: string;
+  domain: string;
+  plan: 'starter' | 'growth' | 'enterprise';
+  studentCount: number;
+  logoUrl?: string;
 }
 
-export interface CTInstitution {
-  id: string
-  name: string
-  domain: string
-  logo_url?: string
-  plan: 'starter' | 'growth' | 'enterprise'
-  student_count: number
-  created_at: string
+export type UserRole = 'student' | 'admin' | 'coach' | 'club_leader' | 'staff' | 'it_director';
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  institutionId: string;
+  avatarUrl?: string;
+  bio?: string;
+  interests?: string[];
+  joinedAt: string;
 }
 
-export interface CTClub {
-  id: string
-  institution_id: string
-  name: string
-  description: string
-  category: string
-  logo_url?: string
-  banner_url?: string
-  member_count: number
-  is_active: boolean
-  is_approved: boolean
-  leader_id: string
-  created_at: string
+export interface Club {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  memberCount: number;
+  leaderId: string;
+  institutionId: string;
+  coverGradient: string;
+  iconBg: string;
+  tags: string[];
+  isActive: boolean;
+  createdAt: string;
 }
 
-export interface CTClubMembership {
-  id: string
-  club_id: string
-  user_id: string
-  role: 'member' | 'officer' | 'leader'
-  joined_at: string
+export interface Event {
+  id: string;
+  title: string;
+  description: string;
+  clubId?: string;
+  clubName?: string;
+  venueId?: string;
+  venueName?: string;
+  startTime: string;
+  endTime: string;
+  category: string;
+  capacity: number;
+  rsvpCount: number;
+  status: 'upcoming' | 'live' | 'past' | 'cancelled';
+  coverGradient: string;
+  institutionId: string;
 }
 
-export interface CTEvent {
-  id: string
-  institution_id: string
-  club_id?: string
-  title: string
-  description: string
-  start_time: string
-  end_time: string
-  venue_id?: string
-  location: string
-  max_capacity?: number
-  rsvp_count: number
-  image_url?: string
-  tags: string[]
-  created_by: string
-  created_at: string
+export interface Venue {
+  id: string;
+  name: string;
+  building: string;
+  capacity: number;
+  amenities: string[];
+  isBookable: boolean;
+  institutionId: string;
 }
 
-export interface CTEventRSVP {
-  id: string
-  event_id: string
-  user_id: string
-  status: 'going' | 'maybe' | 'not_going'
-  created_at: string
+export interface SportsLeague {
+  id: string;
+  name: string;
+  sport: string;
+  season: string;
+  status: 'active' | 'upcoming' | 'completed';
+  institutionId: string;
+  startDate: string;
+  endDate: string;
 }
 
-export interface CTVenue {
-  id: string
-  institution_id: string
-  name: string
-  capacity: number
-  location: string
-  amenities: string[]
-  image_url?: string
-  is_available: boolean
+export interface SportsTeam {
+  id: string;
+  name: string;
+  leagueId: string;
+  wins: number;
+  losses: number;
+  draws: number;
+  points: number;
+  goalsFor?: number;
+  goalsAgainst?: number;
 }
 
-export interface CTVenueBooking {
-  id: string
-  venue_id: string
-  booked_by: string
-  event_id?: string
-  start_time: string
-  end_time: string
-  purpose: string
-  status: 'pending' | 'approved' | 'rejected'
-  created_at: string
+export interface SportsGame {
+  id: string;
+  leagueId: string;
+  homeTeamId: string;
+  homeTeamName: string;
+  awayTeamId: string;
+  awayTeamName: string;
+  homeScore?: number;
+  awayScore?: number;
+  scheduledAt: string;
+  status: 'scheduled' | 'live' | 'completed';
+  venue?: string;
 }
 
-export interface CTSportsLeague {
-  id: string
-  institution_id: string
-  name: string
-  sport: string
-  season: string
-  status: 'registration' | 'active' | 'completed'
-  created_by: string
+export interface WellnessCheckin {
+  id: string;
+  userId: string;
+  date: string;
+  mood: number;
+  energy: number;
+  stress: number;
+  notes?: string;
 }
 
-export interface CTSportsTeam {
-  id: string
-  league_id: string
-  name: string
-  wins: number
-  losses: number
-  ties: number
-  points: number
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  body: string;
+  type: 'event' | 'club' | 'sports' | 'wellness' | 'system';
+  isRead: boolean;
+  createdAt: string;
+  link?: string;
 }
 
-export interface CTSportsGame {
-  id: string
-  league_id: string
-  home_team_id: string
-  away_team_id: string
-  home_score?: number
-  away_score?: number
-  scheduled_at: string
-  venue_id?: string
-  status: 'scheduled' | 'live' | 'completed'
+export interface WeeklyTrendPoint {
+  week: string;
+  activeUsers: number;
+  newSignups: number;
+  eventsCreated: number;
 }
 
-export interface CTWellnessCheckin {
-  id: string
-  user_id: string
-  mood: 1 | 2 | 3 | 4 | 5
-  notes?: string
-  created_at: string
+export interface ClubCategoryData {
+  category: string;
+  count: number;
+  color: string;
 }
 
-export interface CTNotification {
-  id: string
-  user_id: string
-  title: string
-  message: string
-  type: 'event' | 'club' | 'sports' | 'wellness' | 'system'
-  is_read: boolean
-  created_at: string
+export interface TopClubData {
+  id: string;
+  name: string;
+  members: number;
+  events: number;
+  growth: number;
+}
+
+export interface AnalyticsData {
+  totalStudents: number;
+  activeStudents: number;
+  atRiskStudents: number;
+  totalClubs: number;
+  totalEvents: number;
+  wellnessAvg: number;
+  weeklyTrend: WeeklyTrendPoint[];
+  clubsByCategory: ClubCategoryData[];
+  topClubs: TopClubData[];
+}
+
+export interface BudgetTransaction {
+  id: string;
+  description: string;
+  amount: number;
+  type: 'credit' | 'debit';
+  date: string;
+  category: string;
 }

@@ -86,7 +86,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const role = user?.role || 'student';
-  const navItems = roleNavItems[role] || roleNavItems.student;
+  const navItems = (roleNavItems[role as UserRole] || roleNavItems.student) as { label: string; icon: React.ReactNode; path: string }[];
 
   const handleLogout = () => {
     logout();
@@ -95,7 +95,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
 
   const initials = user?.name
     ?.split(' ')
-    .map((n) => n[0])
+    .map((n: string) => n[0])
     .join('')
     .toUpperCase() || 'U';
 
@@ -116,7 +116,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4 px-3">
-          {navItems.map((item) => {
+          {navItems.map((item: { label: string; icon: React.ReactNode; path: string }) => {
             const isActive = location.pathname === item.path.split('#')[0] &&
               (item.path === location.pathname || location.hash === `#${item.path.split('#')[1]}`);
             return (

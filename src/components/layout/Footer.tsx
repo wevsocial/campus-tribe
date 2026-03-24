@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Twitter, Linkedin, Instagram, Github } from 'lucide-react';
+
 
 const footerColumns = [
   {
@@ -36,17 +36,17 @@ export const Footer: React.FC = () => {
             </p>
             <div className="flex items-center gap-3">
               {[
-                { icon: <Twitter size={16} />, href: '#' },
-                { icon: <Linkedin size={16} />, href: '#' },
-                { icon: <Instagram size={16} />, href: '#' },
-                { icon: <Github size={16} />, href: '#' },
+                { label: 'X', href: '#' },
+                { label: 'Li', href: '#' },
+                { label: 'Ig', href: '#' },
+                { label: 'Gh', href: '#' },
               ].map((s, i) => (
                 <a
                   key={i}
                   href={s.href}
-                  className="w-8 h-8 rounded-full bg-surface-high flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-white transition-colors"
+                  className="w-8 h-8 rounded-full bg-surface-high flex items-center justify-center text-xs font-jakarta font-700 text-on-surface-variant hover:bg-primary hover:text-white transition-colors"
                 >
-                  {s.icon}
+                  {s.label}
                 </a>
               ))}
             </div>
