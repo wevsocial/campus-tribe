@@ -1,47 +1,75 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function PublicNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { dark, toggle } = useTheme();
+
   return (
-    <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-md shadow-sm">
+    <nav className="fixed top-0 w-full z-50 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md shadow-sm">
       <div className="flex justify-between items-center px-8 h-20 max-w-full mx-auto">
-        <Link to="/" className="text-2xl font-black text-[#0047AB] italic tracking-tighter" style={{fontFamily:'Lexend'}}>Campus Tribe</Link>
+        <Link to="/" className="text-2xl font-black text-primary italic tracking-tighter font-headline">Campus Tribe</Link>
         <div className="hidden md:flex gap-8 items-center">
-          <Link to="/" className="text-slate-600 hover:text-[#0047AB] font-medium transition-colors" style={{fontFamily:'Lexend'}}>University</Link>
-          <Link to="/school" className="text-slate-600 hover:text-[#0047AB] font-medium transition-colors" style={{fontFamily:'Lexend'}}>School</Link>
-          <Link to="/preschool" className="text-slate-600 hover:text-[#0047AB] font-medium transition-colors" style={{fontFamily:'Lexend'}}>Preschool</Link>
-          <Link to="/pricing" className="text-slate-600 hover:text-[#0047AB] font-medium transition-colors" style={{fontFamily:'Lexend'}}>Pricing</Link>
+          <Link to="/university" className="text-slate-600 dark:text-slate-300 hover:text-primary font-headline tracking-tight font-medium transition-colors duration-200">University</Link>
+          <Link to="/school" className="text-slate-600 dark:text-slate-300 hover:text-primary font-headline tracking-tight font-medium transition-colors duration-200">School</Link>
+          <Link to="/preschool" className="text-slate-600 dark:text-slate-300 hover:text-primary font-headline tracking-tight font-medium transition-colors duration-200">Preschool</Link>
+          <Link to="/pricing" className="text-slate-600 dark:text-slate-300 hover:text-primary font-headline tracking-tight font-medium transition-colors duration-200">Pricing</Link>
           <div className="relative group">
-            <button className="flex items-center gap-1 text-slate-600 hover:text-[#0047AB] font-medium" style={{fontFamily:'Lexend'}}>
-              Resources <span>&#9660;</span>
+            <button className="flex items-center gap-1 text-slate-600 dark:text-slate-300 hover:text-primary font-headline tracking-tight font-medium transition-colors duration-200">
+              Resources <span className="material-symbols-outlined text-sm">expand_more</span>
             </button>
-            <div className="absolute top-full left-0 hidden group-hover:block pt-2">
-              <div className="bg-white shadow-xl rounded-xl border border-slate-100 p-2 min-w-[200px]">
-                <Link to="/resources/docs" className="block px-4 py-2 hover:bg-slate-50 rounded-lg text-sm">Documentation</Link>
-                <Link to="/resources/webinars" className="block px-4 py-2 hover:bg-slate-50 rounded-lg text-sm">Webinars</Link>
-                <Link to="/resources/case-studies" className="block px-4 py-2 hover:bg-slate-50 rounded-lg text-sm">Case Studies</Link>
+            <div className="absolute top-full left-0 hidden group-hover:block pt-2 z-50">
+              <div className="bg-white dark:bg-zinc-800 shadow-xl rounded-xl border border-slate-100 dark:border-zinc-700 p-2 min-w-[200px]">
+                <Link to="/resources/features" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Features Guide</Link>
+                <Link to="/resources/wellbeing" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Wellbeing Whitepaper</Link>
+                <Link to="/resources/support" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Contact Support</Link>
               </div>
             </div>
           </div>
           <div className="relative group">
-            <button className="flex items-center gap-1 text-slate-600 hover:text-[#0047AB] font-medium" style={{fontFamily:'Lexend'}}>
-              About <span>&#9660;</span>
+            <button className="flex items-center gap-1 text-slate-600 dark:text-slate-300 hover:text-primary font-headline tracking-tight font-medium transition-colors duration-200">
+              About <span className="material-symbols-outlined text-sm">expand_more</span>
             </button>
-            <div className="absolute top-full left-0 hidden group-hover:block pt-2">
-              <div className="bg-white shadow-xl rounded-xl border border-slate-100 p-2 min-w-[200px]">
-                <Link to="/about" className="block px-4 py-2 hover:bg-slate-50 rounded-lg text-sm">About Us</Link>
-                <Link to="/careers" className="block px-4 py-2 hover:bg-slate-50 rounded-lg text-sm">Career</Link>
-                <Link to="/newsletter" className="block px-4 py-2 hover:bg-slate-50 rounded-lg text-sm">Newsletter</Link>
+            <div className="absolute top-full left-0 hidden group-hover:block pt-2 z-50">
+              <div className="bg-white dark:bg-zinc-800 shadow-xl rounded-xl border border-slate-100 dark:border-zinc-700 p-2 min-w-[200px]">
+                <Link to="/about" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">About Us</Link>
+                <Link to="/careers" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Careers</Link>
+                <Link to="/blog" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Blog</Link>
+                <Link to="/newsletter" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Newsletter</Link>
               </div>
             </div>
           </div>
         </div>
         <div className="flex gap-4 items-center">
-          <Link to="/login" className="text-slate-600 font-semibold px-4 py-2 hover:bg-[#0047AB]/10 rounded-full transition-all hidden lg:block" style={{fontFamily:'Lexend'}}>Login</Link>
-          <Link to="/register" className="bg-[#0047AB] text-white font-bold px-6 py-2.5 rounded-full shadow-lg transition-transform hover:scale-105" style={{fontFamily:'Lexend'}}>Get Started</Link>
+          <button
+            onClick={toggle}
+            className="p-2 rounded-full hover:bg-surface-container dark:hover:bg-slate-700 transition-colors"
+            title="Toggle dark mode"
+          >
+            <span className="material-symbols-outlined text-on-surface dark:text-slate-200">
+              {dark ? 'light_mode' : 'dark_mode'}
+            </span>
+          </button>
+          <Link to="/login" className="hidden lg:block text-slate-600 dark:text-slate-300 font-headline font-semibold px-4 py-2 hover:bg-primary/10 rounded-full transition-all">Login</Link>
+          <Link to="/register" className="bg-primary text-on-primary font-headline font-bold px-6 py-2.5 rounded-full shadow-lg shadow-primary/20 hover:scale-105 transition-transform">Get Started</Link>
         </div>
+        <button className="md:hidden p-2" onClick={() => setMobileOpen(!mobileOpen)}>
+          <span className="material-symbols-outlined dark:text-slate-200">{mobileOpen ? 'close' : 'menu'}</span>
+        </button>
       </div>
+      {mobileOpen && (
+        <div className="md:hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-700 px-8 py-4 space-y-3">
+          <Link to="/university" className="block py-2 text-slate-700 dark:text-slate-200 font-headline" onClick={() => setMobileOpen(false)}>University</Link>
+          <Link to="/school" className="block py-2 text-slate-700 dark:text-slate-200 font-headline" onClick={() => setMobileOpen(false)}>School</Link>
+          <Link to="/preschool" className="block py-2 text-slate-700 dark:text-slate-200 font-headline" onClick={() => setMobileOpen(false)}>Preschool</Link>
+          <Link to="/pricing" className="block py-2 text-slate-700 dark:text-slate-200 font-headline" onClick={() => setMobileOpen(false)}>Pricing</Link>
+          <Link to="/about" className="block py-2 text-slate-700 dark:text-slate-200 font-headline" onClick={() => setMobileOpen(false)}>About</Link>
+          <Link to="/blog" className="block py-2 text-slate-700 dark:text-slate-200 font-headline" onClick={() => setMobileOpen(false)}>Blog</Link>
+          <Link to="/login" className="block py-2 text-slate-700 dark:text-slate-200 font-headline" onClick={() => setMobileOpen(false)}>Login</Link>
+          <Link to="/register" className="block bg-primary text-white font-headline font-bold px-6 py-3 rounded-full text-center" onClick={() => setMobileOpen(false)}>Get Started</Link>
+        </div>
+      )}
     </nav>
   );
 }

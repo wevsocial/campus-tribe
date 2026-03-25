@@ -1,9 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
+        // Light mode tokens
         "surface-tint": "#0047AB",
         "surface-container": "#e7e8eb",
         "surface-container-high": "#e1e2e6",
@@ -33,6 +35,16 @@ export default {
         "on-background": "#2d2f31",
         "background": "#f6f6f9",
         "outline-variant": "#acadaf",
+        "error": "#b31b25",
+        "error-container": "#fb5151",
+        "on-error": "#ffefee",
+        "on-error-container": "#570008",
+        "inverse-primary": "#6995fd",
+        "inverse-surface": "#0c0e10",
+        "tertiary-fixed": "#7bfeb8",
+        "on-tertiary": "#caffdc",
+        "tertiary-dim": "#005c38",
+        "secondary-fixed-dim": "#ffb196",
       },
       fontFamily: {
         headline: ['Lexend', 'sans-serif'],

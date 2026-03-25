@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import LandingPage from './pages/LandingPage';
+import UniversityPage from './pages/UniversityPage';
 import SchoolPage from './pages/SchoolPage';
 import PreschoolPage from './pages/PreschoolPage';
 import DemoPage from './pages/DemoPage';
@@ -16,6 +17,13 @@ import ClubLeaderDashboard from './pages/dashboard/ClubLeaderDashboard';
 import CoachDashboard from './pages/dashboard/CoachDashboard';
 import ITDashboard from './pages/dashboard/ITDashboard';
 import ParentDashboard from './pages/dashboard/ParentDashboard';
+import AboutPage from './pages/static/AboutPage';
+import CareersPage from './pages/static/CareersPage';
+import BlogPage from './pages/static/BlogPage';
+import NewsletterPage from './pages/static/NewsletterPage';
+import FeaturesGuidePage from './pages/static/FeaturesGuidePage';
+import WellbeingPage from './pages/static/WellbeingPage';
+import SupportPage from './pages/static/SupportPage';
 
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactElement; allowedRoles?: string[] }) {
   const { isAuthenticated, user } = useAuthStore();
@@ -46,12 +54,22 @@ export default function App() {
       <Routes>
         {/* Public marketing pages */}
         <Route path="/" element={<LandingPage />} />
+        <Route path="/university" element={<UniversityPage />} />
         <Route path="/school" element={<SchoolPage />} />
         <Route path="/preschool" element={<PreschoolPage />} />
         <Route path="/demo" element={<DemoPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+
+        {/* Static pages */}
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/careers" element={<CareersPage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/newsletter" element={<NewsletterPage />} />
+        <Route path="/resources/features" element={<FeaturesGuidePage />} />
+        <Route path="/resources/wellbeing" element={<WellbeingPage />} />
+        <Route path="/resources/support" element={<SupportPage />} />
 
         {/* Dashboard routing */}
         <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
