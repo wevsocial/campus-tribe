@@ -1,293 +1,205 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Sun, Camera, Shield, Users, BarChart2, Star } from 'lucide-react';
-
-const features = [
-  {
-    icon: <BarChart2 size={28} className="text-[#FF8C42]" />,
-    title: 'Daily Reports',
-    desc: 'Parents get real-time updates on meals, nap times, and activities - right from their phone.',
-  },
-  {
-    icon: <Camera size={28} className="text-[#FF8C42]" />,
-    title: 'Parent Portal',
-    desc: 'Photo sharing, pickup authorization, secure messaging with teachers - all in one place.',
-  },
-  {
-    icon: <Users size={28} className="text-[#FF8C42]" />,
-    title: 'Staff Tools',
-    desc: 'Activity planning, child profiles, developmental milestone tracking built for teachers.',
-  },
-  {
-    icon: <Shield size={28} className="text-[#FF8C42]" />,
-    title: 'Safety First',
-    desc: 'Pickup authorization, emergency contacts, visitor logs - keeping children secure every moment.',
-  },
-];
-
-const roles = [
-  {
-    emoji: '👨‍👩‍👧',
-    title: 'Parents',
-    subtitle: 'Stay connected every moment',
-    points: ['Real-time daily reports', 'Photo updates throughout the day', 'Direct messaging with teachers', 'Pickup authorization management'],
-  },
-  {
-    emoji: '🧑‍🏫',
-    title: 'Teachers and Staff',
-    subtitle: 'Everything you need to nurture',
-    points: ['Child profile management', 'Developmental milestone tracking', 'Activity and lesson planning', 'Quick daily report submission'],
-  },
-  {
-    emoji: '🏫',
-    title: 'Directors and Admin',
-    subtitle: 'Run your center with confidence',
-    points: ['Full center overview dashboard', 'Staff scheduling and management', 'Enrollment and waitlist tracking', 'Compliance and reporting tools'],
-  },
-];
-
-const galleryPhotos = [
-  'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=400&q=80',
-  'https://images.unsplash.com/photo-1516627145497-ae6968895b24?w=400&q=80',
-  'https://images.unsplash.com/photo-1551966775-a4ddc8df052b?w=400&q=80',
-  'https://images.unsplash.com/photo-1564144006388-615f4a736e4f?w=400&q=80',
-  'https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=400&q=80',
-  'https://images.unsplash.com/photo-1566140967404-b8b3932483f5?w=400&q=80',
-];
-
-const plans = [
-  {
-    name: 'Starter',
-    price: '$0',
-    period: 'Free forever',
-    highlight: false,
-    features: ['Up to 30 children', 'Basic daily reports', 'Parent notifications', 'Staff profiles'],
-  },
-  {
-    name: 'Growth',
-    price: '$149',
-    period: 'per month',
-    highlight: true,
-    features: ['Up to 150 children', 'Full parent portal', 'Photo sharing', 'Daily reports', 'Milestone tracking', 'Priority support'],
-  },
-  {
-    name: 'Enterprise',
-    price: 'Custom',
-    period: 'tailored pricing',
-    highlight: false,
-    features: ['Multi-center management', 'Custom branding', 'SSO integration', 'Dedicated success manager', 'API access'],
-  },
-];
+import PublicNav from '../components/layout/PublicNav';
+import PublicFooter from '../components/layout/PublicFooter';
 
 export default function PreschoolPage() {
   return (
-    <div className="min-h-screen bg-white font-sans">
-      {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 bg-white/90 backdrop-blur-sm border-b border-orange-100">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #FFB347, #FF8C42)' }}>
-            <Sun size={18} className="text-white" />
-          </div>
-          <span className="font-bold text-lg text-gray-900">Campus Tribe <span className="text-[#FF8C42]">Preschool</span></span>
-        </Link>
-        <div className="flex items-center gap-6">
-          <a href="#features" className="text-sm text-gray-600 hover:text-[#FF8C42] transition-colors">Features</a>
-          <a href="#gallery" className="text-sm text-gray-600 hover:text-[#FF8C42] transition-colors">Gallery</a>
-          <a href="#pricing" className="text-sm text-gray-600 hover:text-[#FF8C42] transition-colors">Pricing</a>
-          <Link to="/login" className="text-sm font-medium text-white px-4 py-2 rounded-xl" style={{ background: 'linear-gradient(135deg, #FFB347, #FF8C42)' }}>
-            Get Started
-          </Link>
-        </div>
-      </nav>
-
-      {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center pt-20">
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1535572290543-960a8046f5af?w=1400&q=80"
-            alt="Preschool"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,140,66,0.88) 0%, rgba(255,179,71,0.75) 50%, rgba(255,140,66,0.55) 100%)' }} />
-        </div>
-        <div className="relative z-10 text-center max-w-3xl mx-auto px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-          >
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <span className="text-xl">🌟</span>
-              Trusted by 500+ childcare centers
-            </div>
-            <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6 leading-tight" style={{ fontFamily: 'Lexend, sans-serif' }}>
-              A Safe, Nurturing Space<br />for Little Learners
-            </h1>
-            <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Daily reports, parent updates, activity planning, and staff coordination - all in one warm, intuitive platform.
-            </p>
-            <div className="flex gap-4 justify-center flex-wrap">
-              <Link
-                to="/register"
-                className="px-8 py-4 rounded-2xl text-[#FF8C42] font-bold text-lg shadow-lg hover:shadow-xl transition-all bg-white"
-              >
-                Start Free Trial
-              </Link>
-              <a
-                href="#features"
-                className="px-8 py-4 rounded-2xl font-bold text-lg border-2 border-white text-white hover:bg-white/10 transition-all"
-              >
-                Book a Tour
-              </a>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="py-24 px-6 max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-extrabold text-gray-900 mb-4" style={{ fontFamily: 'Lexend, sans-serif' }}>
-            Everything a childcare center needs
-          </h2>
-          <p className="text-xl text-gray-500 max-w-2xl mx-auto">
-            Designed with warmth, built for trust. Every feature was shaped by real preschool teachers and parents.
-          </p>
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((f, i) => (
-            <motion.div
-              key={f.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              viewport={{ once: true }}
-              className="bg-orange-50 rounded-2xl p-6 border border-orange-100"
-            >
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(135deg, #FFB347, #FF8C42)' }}>
-                <span className="text-white">{f.icon}</span>
+    <div className="bg-surface text-on-surface font-body">
+      <PublicNav />
+      <main className="pt-24">
+        {/* Hero */}
+        <section className="relative px-8 py-20 max-w-7xl mx-auto overflow-hidden">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            <div className="lg:w-1/2 space-y-8 z-10">
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-tertiary-container text-on-tertiary-container font-label text-xs font-bold tracking-widest uppercase">
+                The Kinetic Academy for Early Years
               </div>
-              <h3 className="font-bold text-lg text-gray-900 mb-2">{f.title}</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">{f.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* Role Cards */}
-      <section className="py-20 px-6" style={{ background: 'linear-gradient(135deg, #FFF8F0, #FFF3E0)' }}>
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-gray-900 mb-4" style={{ fontFamily: 'Lexend, sans-serif' }}>Built for everyone in the village</h2>
-            <p className="text-xl text-gray-500">It takes a village to raise a child. Our platform supports every member.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {roles.map((r, i) => (
-              <motion.div
-                key={r.title}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.15 }}
-                viewport={{ once: true }}
-                className="bg-white rounded-3xl p-8 shadow-md border border-orange-100"
-              >
-                <div className="text-5xl mb-4">{r.emoji}</div>
-                <h3 className="font-bold text-xl text-gray-900 mb-1">{r.title}</h3>
-                <p className="text-[#FF8C42] font-medium text-sm mb-5">{r.subtitle}</p>
-                <ul className="space-y-2">
-                  {r.points.map(p => (
-                    <li key={p} className="flex items-center gap-2 text-sm text-gray-600">
-                      <Star size={14} className="text-[#FFB347] fill-[#FFB347] flex-shrink-0" />
-                      {p}
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Gallery */}
-      <section id="gallery" className="py-24 px-6 max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-extrabold text-gray-900 mb-4" style={{ fontFamily: 'Lexend, sans-serif' }}>A day in the life</h2>
-          <p className="text-xl text-gray-500">Every moment is worth capturing and sharing with families.</p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {galleryPhotos.map((src, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ delay: i * 0.08 }}
-              viewport={{ once: true }}
-              className="rounded-2xl overflow-hidden aspect-square"
-            >
-              <img src={src} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="pricing" className="py-24 px-6" style={{ background: 'linear-gradient(135deg, #FFF8F0, #FFF3E0)' }}>
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-gray-900 mb-4" style={{ fontFamily: 'Lexend, sans-serif' }}>Simple, transparent pricing</h2>
-            <p className="text-xl text-gray-500">Start for free. Grow at your own pace. No surprises.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {plans.map((plan, i) => (
-              <motion.div
-                key={plan.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                viewport={{ once: true }}
-                className={`rounded-3xl p-8 ${plan.highlight ? 'text-white shadow-2xl scale-105' : 'bg-white shadow-md border border-orange-100'}`}
-                style={plan.highlight ? { background: 'linear-gradient(135deg, #FFB347, #FF8C42)' } : {}}
-              >
-                <h3 className={`font-bold text-xl mb-2 ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>{plan.name}</h3>
-                <div className={`text-4xl font-extrabold mb-1 ${plan.highlight ? 'text-white' : 'text-gray-900'}`} style={{ fontFamily: 'Lexend, sans-serif' }}>{plan.price}</div>
-                <div className={`text-sm mb-6 ${plan.highlight ? 'text-white/80' : 'text-gray-400'}`}>{plan.period}</div>
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map(f => (
-                    <li key={f} className={`flex items-center gap-2 text-sm ${plan.highlight ? 'text-white' : 'text-gray-600'}`}>
-                      <span className={plan.highlight ? 'text-white' : 'text-[#FF8C42]'}>✓</span>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  to="/register"
-                  className={`block w-full text-center py-3 rounded-xl font-bold transition-all ${plan.highlight ? 'bg-white text-[#FF8C42] hover:bg-orange-50' : 'text-white hover:opacity-90'}`}
-                  style={!plan.highlight ? { background: 'linear-gradient(135deg, #FFB347, #FF8C42)' } : {}}
-                >
-                  {plan.price === '$0' ? 'Get Started Free' : plan.price === 'Custom' ? 'Contact Sales' : 'Start Free Trial'}
+              <h1 className="font-headline text-5xl md:text-7xl font-extrabold tracking-tighter leading-tight text-on-surface">
+                Early Years, <br />
+                <span className="text-primary italic">Better Connected.</span>
+              </h1>
+              <p className="font-body text-lg text-on-surface-variant max-w-lg leading-relaxed">
+                The premium digital ecosystem for modern preschools. Bridging the gap between developmental milestones and daily daycare management through editorial-grade technology.
+              </p>
+              <div className="flex flex-wrap gap-4 pt-4">
+                <Link to="/demo" className="bg-secondary text-white px-8 py-4 rounded-full font-headline font-bold text-lg hover:opacity-90 transition-all shadow-xl shadow-secondary/20">
+                  Book a Demo
                 </Link>
-              </motion.div>
-            ))}
+                <button className="bg-surface-container-highest text-on-surface px-8 py-4 rounded-full font-headline font-bold text-lg hover:opacity-80 transition-all">
+                  Explore Features
+                </button>
+              </div>
+            </div>
+            <div className="lg:w-1/2 relative">
+              <div className="absolute -top-12 -right-12 w-64 h-64 bg-tertiary-container/30 rounded-full blur-3xl"></div>
+              <div className="relative z-10 overflow-hidden shadow-2xl rounded-[4rem_1.5rem_6rem_2rem] transform rotate-2">
+                <img
+                  alt="Preschool children playing together"
+                  className="w-full h-[500px] object-cover"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9Rhk0U8uNfx5As3k3OpSRR0ogU2tlvQGvgZXf6Vz_MxutdZWfLeBiElGjppSimcedNzpdaNEkQ4u9OyMurX6vp8ubY8YgsBQHkGpxZ-hJpuDwvdni36A6R1gU-wx_lovfc5GDVsa0d5Yo5xdENPdJDRjNjuB4Zk9NOPpr9ptS6zL3rcrxwwifBATqR3EVqtvvyVs-N6gqcLmn-T6wGyJvHUb-vt9YN2_dvyEid37ytz2Y1lif4LtsnuIzaTdpE_T5yNfxf96fNBk"
+                />
+              </div>
+              <div className="absolute -bottom-8 -left-8 z-20 bg-surface-container-lowest p-6 rounded-xl shadow-xl flex items-center gap-4 border border-outline-variant/15">
+                <div className="w-12 h-12 bg-primary-container rounded-full flex items-center justify-center">
+                  <span className="material-symbols-outlined text-on-primary-container">favorite</span>
+                </div>
+                <div>
+                  <p className="font-headline font-bold text-sm text-on-surface">100% Secure</p>
+                  <p className="font-label text-xs text-on-surface-variant">Trusted by 2k+ Directors</p>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Footer */}
-      <footer className="py-12 px-6 bg-gray-900 text-center">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #FFB347, #FF8C42)' }}>
-            <Sun size={18} className="text-white" />
+        {/* Bento Features */}
+        <section className="bg-surface-container-low py-24 px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-16">
+              <h2 className="font-headline text-3xl font-bold tracking-tight mb-4">The Command Center</h2>
+              <p className="font-body text-on-surface-variant max-w-2xl">Streamlining daycare operations with precision-engineered tools for transparency and child safety.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 min-h-[600px]">
+              <div className="md:col-span-8 bg-surface-container-lowest rounded-xl p-8 relative overflow-hidden group border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all">
+                <div className="flex flex-col h-full justify-between">
+                  <div>
+                    <span className="material-symbols-outlined text-primary text-4xl mb-4">hub</span>
+                    <h3 className="font-headline text-2xl font-bold mb-4">Parent Engagement Portal</h3>
+                    <p className="font-body text-on-surface-variant max-w-md">Real-time updates, community threads, and secure event scheduling in one centralized hub.</p>
+                  </div>
+                  <div className="mt-8 rounded-lg overflow-hidden border border-outline-variant/10">
+                    <img alt="Parent engagement interface" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDj45gwaeXgkzYEEcqDjCitnk4eJaJgWPqtThkcyIjP1A24IttTaMPlR9d0lpSeVLVLLMIRsVNLX4RD3hIzTp9laSZsOt31lCYMEiYPlH061_HMyTgYGFVRsecjdnnfkcP1FuRJB5MoA70sU5rqx3ppI-yF1W2FHFNCT4qL2NodHHR7bBoZOlaHFj2oqTxfgRpCJx7UZdDjuVZMBDySIaOsv7aV_0rG9V8rZxDfaoLP5lGAjEpRrLAexJ4gZD0iAHuyqKyAiirYYg" />
+                  </div>
+                </div>
+              </div>
+              <div className="md:col-span-4 bg-primary text-on-primary rounded-xl p-8 flex flex-col justify-center text-center">
+                <span className="material-symbols-outlined text-5xl mb-6">edit_note</span>
+                <h3 className="font-headline text-2xl font-bold mb-2">Daily Logs</h3>
+                <p className="opacity-80">Naps, meals, and activities logged with clinical precision.</p>
+              </div>
+              <div className="md:col-span-4 bg-tertiary text-on-tertiary rounded-xl p-8 flex flex-col justify-center text-center" style={{color:'#caffdc'}}>
+                <span className="material-symbols-outlined text-5xl mb-6">trending_up</span>
+                <h3 className="font-headline text-2xl font-bold mb-2">Milestones</h3>
+                <p className="opacity-80 text-sm">Automated child development tracking against global standards.</p>
+              </div>
+              <div className="md:col-span-8 bg-surface-container-lowest rounded-xl p-8 flex flex-col md:flex-row items-center gap-8 border border-outline-variant/10 shadow-sm">
+                <div className="flex-1">
+                  <h3 className="font-headline text-2xl font-bold mb-4">Encrypted Moments</h3>
+                  <p className="font-body text-on-surface-variant">Instant photo sharing with end-to-end encryption. Only verified guardians can view the gallery.</p>
+                  <div className="flex gap-2 mt-6">
+                    {['bg-secondary-container', 'bg-primary-container', 'bg-tertiary-container'].map((c, i) => (
+                      <div key={i} className={`w-10 h-10 rounded-full ${c}`}></div>
+                    ))}
+                    <div className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center font-bold text-xs">+12</div>
+                  </div>
+                </div>
+                <div className="flex-1 w-full bg-surface-container-low rounded-xl p-4 flex flex-col gap-3">
+                  <div className="bg-surface-container-lowest p-3 rounded-lg flex items-center gap-3 shadow-sm">
+                    <span className="material-symbols-outlined text-tertiary">verified_user</span>
+                    <span className="text-xs font-label">Photo Uploaded: Outdoor Play</span>
+                  </div>
+                  <div className="bg-surface-container-lowest p-3 rounded-lg flex items-center gap-3 shadow-sm">
+                    <span className="material-symbols-outlined text-primary">mark_chat_unread</span>
+                    <span className="text-xs font-label">New Message from Lead Teacher</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <span className="font-bold text-white">Campus Tribe Preschool</span>
-        </div>
-        <p className="text-gray-400 text-sm">2026 Campus Tribe Inc. All rights reserved.</p>
-        <div className="flex justify-center gap-6 mt-4">
-          <Link to="/" className="text-gray-400 hover:text-white text-sm transition-colors">Home</Link>
-          <Link to="/school" className="text-gray-400 hover:text-white text-sm transition-colors">K-12</Link>
-          <Link to="/pricing" className="text-gray-400 hover:text-white text-sm transition-colors">Pricing</Link>
-        </div>
-      </footer>
+        </section>
+
+        {/* Persona Trust */}
+        <section className="py-24 px-8">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="space-y-6 p-8 rounded-xl bg-surface-container-lowest border border-outline-variant/5">
+              <div className="w-14 h-14 bg-primary/10 text-primary flex items-center justify-center rounded-xl">
+                <span className="material-symbols-outlined text-3xl">corporate_fare</span>
+              </div>
+              <h4 className="font-headline text-2xl font-extrabold text-on-surface">For Directors</h4>
+              <p className="font-body text-on-surface-variant leading-relaxed">Scale your operations with administrative clarity. Manage staffing ratios, billing, and parent communications in a single, high-performance interface.</p>
+              <ul className="space-y-3 font-label text-sm font-bold text-primary">
+                {['Automated Billing', 'Staff Scheduling', 'Compliance Tracking'].map(f => (
+                  <li key={f} className="flex items-center gap-2"><span className="material-symbols-outlined text-sm">check_circle</span> {f}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="space-y-6 p-8 rounded-xl bg-surface-container-lowest border border-outline-variant/5">
+              <div className="w-14 h-14 bg-secondary-container/30 text-secondary flex items-center justify-center rounded-xl">
+                <span className="material-symbols-outlined text-3xl">family_restroom</span>
+              </div>
+              <h4 className="font-headline text-2xl font-extrabold text-on-surface">For Parents</h4>
+              <p className="font-body text-on-surface-variant leading-relaxed">Eliminate "drop-off anxiety." Receive high-fidelity photos and real-time alerts. Watch your child develop through beautiful, data-driven milestone maps.</p>
+              <ul className="space-y-3 font-label text-sm font-bold text-secondary">
+                {['Live Daily Feed', 'Milestone Charts', 'Direct Messenger'].map(f => (
+                  <li key={f} className="flex items-center gap-2"><span className="material-symbols-outlined text-sm">check_circle</span> {f}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="space-y-6 p-8 rounded-xl bg-on-surface text-surface-container-lowest">
+              <div className="w-14 h-14 bg-tertiary-container text-on-tertiary-container flex items-center justify-center rounded-xl">
+                <span className="material-symbols-outlined text-3xl">security</span>
+              </div>
+              <h4 className="font-headline text-2xl font-extrabold">Safety Infrastructure</h4>
+              <div className="space-y-4">
+                {[['Data Security', 'AES-256'], ['Cloud Backup', '99.9%'], ['Identity Verify', 'MFA']].map(([label, val]) => (
+                  <div key={label} className="flex items-center justify-between border-b border-white/20 pb-2">
+                    <span className="font-label text-xs uppercase tracking-widest opacity-70">{label}</span>
+                    <span className="font-headline font-bold text-lg">{val}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="font-body text-sm opacity-60 italic">Your child's privacy is our kinetic priority.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Gallery */}
+        <section className="py-24 bg-surface-container-high/30">
+          <div className="max-w-7xl mx-auto px-8">
+            <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+              <div className="max-w-xl">
+                <h2 className="font-headline text-4xl font-black tracking-tighter text-on-surface leading-none mb-6">Momentum in Action</h2>
+                <p className="font-body text-on-surface-variant text-lg">Experience the vibrant life of Campus Tribe preschools through our kinetic gallery.</p>
+              </div>
+              <button className="font-headline font-bold text-primary flex items-center gap-2 hover:gap-4 transition-all">
+                View Success Stories <span className="material-symbols-outlined">arrow_forward</span>
+              </button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="aspect-square bg-surface-container-highest rounded-xl overflow-hidden shadow-lg">
+                <img alt="Child painting" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEgs-1-CMbfk4m6_8X02mdYi5XLBOrcMeM1zy589pQ6M5p-gnp0ztyHcjzsC_DzgRNJnpX5Nr6TXlDekh8c2Iny3Xsk4jlNg3t-S3OqdA7Y_LnAgRn4ok7jWh6GiSYYNHZFkCn_FmHO98yft7vM1DgFVmQd6MR7_AydQqkZrOMaTxsIGfejk-c2_QXUU07oGyfwG562abclRsko9dOfhHJOStJJoLK7O_Dc7nE7f-Yk7IWk61eLtUv84eBehKlEdnNlw0VOEjXl84" />
+              </div>
+              <div className="aspect-[3/4] bg-surface-container-highest rounded-xl overflow-hidden shadow-lg md:mt-12">
+                <img alt="Reading time" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFliN5TBEozW_sgJXVNfl6OeLkr1EDBGQkZ_NV9WUsobmzzWLVJGSwhP1bsh1ubu-gCoVXo7RLdMAgEQVlqta2LNfzKodi6QiNEIRjnblosy-jfI5lq6_wTt-cXX3KY53g6NAZ6Md4w497s8JkvOWdZ6EqxXViqNY-ZfDtfVkJC7MD5O03So0yA2ImDuEW46_VBBThhJURMlFq5-yfNN2C6ih2SyVi_Dv-jNP-zWBsukaLpJsxh3YxLtROL8OwlZaGEQui3wyZ3m4" />
+              </div>
+              <div className="aspect-square bg-surface-container-highest rounded-xl overflow-hidden shadow-lg">
+                <img alt="Playground fun" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6UvQ4BlX3fTp-kKJgXzX-kfBOarI0zLwFp5vqcsmkCDYaHM0qOJGndxfGvpfHWbuBpjCDCOW3YaOT8XXeJZZrud18lqqm1RQUX0DaA0BfhqAxxdYxG5ROBa-tYrZLLBBwcRC0CxmooSUQmq9q98hMhi-rVYINmlzCVskiC7oPy4izpZ1RRAMCJ2ltBy6m1FU57AaNEJ10TfY1g0aK31DbzBvIyrfTlC9gi5vlR_bnBgHs4ij8Ioh5vLgQHmWjGpxpb-lO4Hk2uPc" />
+              </div>
+              <div className="aspect-[3/4] bg-surface-container-highest rounded-xl overflow-hidden shadow-lg md:-mt-12">
+                <img alt="Science experiment" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFMJHVRKqanj8crhX2mpqOX5caS7LqGkjPMHNyPhEs6llW8jw6VatvJrVVznrJyQi7jVzXzEk6NViR9DBbJSYBnxXhNLSayEH-MGmKvr3oXLLBASDnh96HuUAAR9aJxVjpx4DbkoQGKu_-ufLP_dbpeNMb3jaYcTmzEDgW6Obh_20sKoSDd-c7HymLpsvMyG0ZzArCvWbA9gaThFudlJoRKRmFZwpBxXbrdoF6PR0zWLN2dqRP2tcCvFMcpMu2-wywvP53Ho54iHE" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-24 px-8">
+          <div className="max-w-5xl mx-auto bg-primary rounded-3xl p-12 md:p-20 text-center relative overflow-hidden shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary-container opacity-90"></div>
+            <div className="relative z-10 space-y-8">
+              <h2 className="font-headline text-4xl md:text-5xl font-extrabold text-on-primary tracking-tighter">Ready to Elevate Your Academy?</h2>
+              <p className="font-body text-on-primary/80 text-lg max-w-2xl mx-auto">Join the tribe of elite preschools defining the future of early childhood education.</p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <input className="px-6 py-4 rounded-full bg-white/10 border-none text-white placeholder:text-white/50 focus:ring-2 focus:ring-white/50 w-full sm:w-80" placeholder="Enter your work email" type="email" />
+                <button className="bg-secondary text-white px-8 py-4 rounded-full font-headline font-bold text-lg hover:opacity-90 transition-all">
+                  Get Started
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+      <PublicFooter />
     </div>
   );
 }

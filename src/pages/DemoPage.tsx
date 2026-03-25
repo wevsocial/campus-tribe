@@ -1,356 +1,215 @@
-import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
-import { Play, ChevronRight, ChevronLeft, Users, Calendar, Activity, BarChart2, Award, Shield } from 'lucide-react';
-
-const steps = [
-  {
-    id: 1,
-    title: 'Student Discovery',
-    subtitle: 'Smart matching finds your tribe',
-    icon: Users,
-    color: '#0047AB',
-    description: 'Students take a quick interest survey and our AI instantly surfaces the clubs, events, and activities that match them best. No more endless scrolling -- relevant recommendations, right away.',
-    mockup: 'student-discovery',
-    highlights: ['AI-powered club matching', 'Interest-based filtering', 'One-tap RSVP and join'],
-  },
-  {
-    id: 2,
-    title: 'Event Management',
-    subtitle: 'From planning to attendance in minutes',
-    icon: Calendar,
-    color: '#FF7F50',
-    description: 'Club leaders and admins create events with rich details, capacity controls, and venue booking all in one flow. Students RSVP, get reminders, and check in with a QR code.',
-    mockup: 'event-management',
-    highlights: ['Integrated venue booking', 'QR code check-in', 'Automated reminders'],
-  },
-  {
-    id: 3,
-    title: 'Attendance and Grades',
-    subtitle: 'Teachers save 3 hours per week',
-    icon: Activity,
-    color: '#00A86B',
-    description: 'Teachers mark attendance in seconds with a single tap per student. Grades sync with the GPA calculator. Parents get instant alerts when a student is absent.',
-    mockup: 'attendance',
-    highlights: ['One-tap attendance marking', 'Parent instant alerts', 'GPA auto-calculation'],
-  },
-  {
-    id: 4,
-    title: 'Analytics Dashboard',
-    subtitle: 'Data that drives better decisions',
-    icon: BarChart2,
-    color: '#7B2D8B',
-    description: 'Deans and admins see engagement trends, club growth, enrollment numbers, and at-risk student flags -- all in a visual dashboard that updates in real time.',
-    mockup: 'analytics',
-    highlights: ['Real-time engagement metrics', 'At-risk student detection', 'Exportable reports'],
-  },
-  {
-    id: 5,
-    title: 'Leaderboards and Rewards',
-    subtitle: 'Recognition that motivates',
-    icon: Award,
-    color: '#E65100',
-    description: 'Students earn points for attending events, joining clubs, and maintaining wellness streaks. Public leaderboards and achievement badges create healthy, fun competition across campus.',
-    mockup: 'leaderboard',
-    highlights: ['Engagement point system', 'Custom badge creation', 'Institution-wide leaderboards'],
-  },
-  {
-    id: 6,
-    title: 'Security and IT Control',
-    subtitle: 'Enterprise-grade from day one',
-    icon: Shield,
-    color: '#1565C0',
-    description: 'IT admins control RBAC permissions, manage SSO integration (Google, Microsoft, SAML), audit all system actions, and generate API keys for custom integrations.',
-    mockup: 'security',
-    highlights: ['SAML / SSO integration', 'Full audit logging', 'RBAC permission matrix'],
-  },
-];
-
-const MockupContent: React.FC<{ mockup: string; color: string }> = ({ mockup, color }) => {
-  const mockups: Record<string, React.ReactNode> = {
-    'student-discovery': (
-      <div className="space-y-3">
-        <div className="text-sm text-gray-500 mb-4">Recommended for Alex Kim based on interests</div>
-        {[
-          { name: 'Robotics Club', match: '98% match', members: 67, tag: 'STEM' },
-          { name: 'Photography Society', match: '94% match', members: 142, tag: 'Arts' },
-          { name: 'Basketball League', match: '91% match', members: 89, tag: 'Sports' },
-        ].map((club) => (
-          <div key={club.name} className="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl" style={{ background: color + '20' }} />
-              <div>
-                <div className="font-medium text-gray-900 text-sm">{club.name}</div>
-                <div className="text-xs text-gray-400">{club.members} members</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">{club.match}</span>
-              <button className="text-xs font-semibold px-3 py-1.5 rounded-full text-white" style={{ background: color }}>Join</button>
-            </div>
-          </div>
-        ))}
-      </div>
-    ),
-    'event-management': (
-      <div className="space-y-3">
-        {[
-          { title: 'Photography Exhibition', date: 'Apr 3, 2:00 PM', rsvp: 47, cap: 60, status: 'Open' },
-          { title: 'Robotics Demo Night', date: 'Apr 7, 6:00 PM', rsvp: 55, cap: 60, status: 'Almost Full' },
-          { title: 'Campus Sustainability Fair', date: 'Apr 12, 10:00 AM', rsvp: 23, cap: 200, status: 'Open' },
-        ].map((e) => (
-          <div key={e.title} className="p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
-            <div className="flex justify-between items-start mb-2">
-              <div className="font-medium text-gray-900 text-sm">{e.title}</div>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${e.status === 'Open' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{e.status}</span>
-            </div>
-            <div className="text-xs text-gray-400 mb-2">{e.date}</div>
-            <div className="w-full bg-gray-100 rounded-full h-1.5">
-              <div className="h-1.5 rounded-full" style={{ width: `${(e.rsvp / e.cap) * 100}%`, background: color }} />
-            </div>
-            <div className="text-xs text-gray-400 mt-1">{e.rsvp} / {e.cap} RSVPs</div>
-          </div>
-        ))}
-      </div>
-    ),
-    'attendance': (
-      <div className="space-y-3">
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          {[
-            { label: 'Present', value: 28, color: '#00A86B' },
-            { label: 'Absent', value: 2, color: '#EF4444' },
-            { label: 'Late', value: 1, color: '#F59E0B' },
-          ].map((s) => (
-            <div key={s.label} className="text-center p-2 rounded-xl" style={{ background: s.color + '15' }}>
-              <div className="text-xl font-bold" style={{ color: s.color }}>{s.value}</div>
-              <div className="text-xs text-gray-500">{s.label}</div>
-            </div>
-          ))}
-        </div>
-        {[
-          { name: 'Alex Kim', status: 'present' },
-          { name: 'Sarah Chen', status: 'late' },
-          { name: 'Marcus Thorne', status: 'absent' },
-          { name: 'Priya Sharma', status: 'present' },
-        ].map((s) => (
-          <div key={s.name} className="flex items-center justify-between p-2.5 bg-white rounded-xl border border-gray-100">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm">{s.name[0]}</div>
-              <span className="text-sm font-medium text-gray-800">{s.name}</span>
-            </div>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-              s.status === 'present' ? 'bg-green-100 text-green-700' :
-              s.status === 'late' ? 'bg-yellow-100 text-yellow-700' :
-              'bg-red-100 text-red-700'
-            }`}>{s.status}</span>
-          </div>
-        ))}
-      </div>
-    ),
-    'analytics': (
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { label: 'Active Students', value: '2,847', change: '+12%' },
-            { label: 'Club Participation', value: '78%', change: '+5%' },
-            { label: 'Event RSVPs', value: '1,204', change: '+23%' },
-            { label: 'Wellness Score', value: '8.2/10', change: '+0.4' },
-          ].map((m) => (
-            <div key={m.label} className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm">
-              <div className="text-xl font-bold text-gray-900">{m.value}</div>
-              <div className="text-xs text-gray-400">{m.label}</div>
-              <div className="text-xs text-green-600 font-medium mt-1">{m.change} this month</div>
-            </div>
-          ))}
-        </div>
-        <div className="bg-white rounded-xl p-3 border border-gray-100">
-          <div className="text-sm font-medium text-gray-700 mb-2">Engagement Trend (Last 7 Days)</div>
-          <div className="flex items-end gap-1 h-16">
-            {[40, 55, 48, 70, 62, 80, 75].map((h, i) => (
-              <div key={i} className="flex-1 rounded-t-sm" style={{ height: `${h}%`, background: color }} />
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
-    'leaderboard': (
-      <div className="space-y-3">
-        <div className="text-sm font-medium text-gray-600 mb-2">Top Engaged Students -- March 2026</div>
-        {[
-          { rank: 1, name: 'Elias Vance', points: 2840, badge: '🥇', avatar: 'E' },
-          { rank: 2, name: 'Priya Sharma', points: 2650, badge: '🥈', avatar: 'P' },
-          { rank: 3, name: 'Sarah Chen', points: 2420, badge: '🥉', avatar: 'S' },
-          { rank: 4, name: 'Marcus Thorne', points: 2110, badge: '⭐', avatar: 'M' },
-          { rank: 5, name: 'Alex Kim', points: 1980, badge: '⭐', avatar: 'A' },
-        ].map((s) => (
-          <div key={s.rank} className="flex items-center gap-3 p-2.5 bg-white rounded-xl border border-gray-100">
-            <span className="text-lg">{s.badge}</span>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ background: color }}>{s.avatar}</div>
-            <div className="flex-1">
-              <div className="text-sm font-medium text-gray-800">{s.name}</div>
-            </div>
-            <div className="text-sm font-bold" style={{ color }}>{s.points.toLocaleString()} pts</div>
-          </div>
-        ))}
-      </div>
-    ),
-    'security': (
-      <div className="space-y-3">
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { label: 'Users', value: '4,291', icon: '👤' },
-            { label: 'Roles', value: '8', icon: '🔑' },
-            { label: 'Audit Logs', value: '12,847', icon: '📋' },
-          ].map((s) => (
-            <div key={s.label} className="bg-white rounded-xl p-3 text-center border border-gray-100">
-              <div className="text-xl">{s.icon}</div>
-              <div className="text-lg font-bold text-gray-900">{s.value}</div>
-              <div className="text-xs text-gray-400">{s.label}</div>
-            </div>
-          ))}
-        </div>
-        <div className="bg-white rounded-xl p-3 border border-gray-100">
-          <div className="text-sm font-medium text-gray-700 mb-3">Recent Audit Events</div>
-          <div className="space-y-2">
-            {[
-              { action: 'User login', user: 'admin@demo.com', time: '2m ago', type: 'info' },
-              { action: 'Role updated', user: 'it@demo.com', time: '15m ago', type: 'warning' },
-              { action: 'API key generated', user: 'dev@demo.com', time: '1h ago', type: 'info' },
-            ].map((log) => (
-              <div key={log.action} className="flex items-center justify-between text-xs">
-                <span className="text-gray-600">{log.action}</span>
-                <span className="text-gray-400">{log.time}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
-  };
-  return <>{mockups[mockup] || null}</>;
-};
+import PublicNav from '../components/layout/PublicNav';
+import PublicFooter from '../components/layout/PublicFooter';
 
 export default function DemoPage() {
-  const [activeStep, setActiveStep] = useState(0);
-  const step = steps[activeStep];
-
   return (
-    <div className="min-h-screen bg-[#f6f6f9]">
-      <Navbar />
-
-      {/* Hero */}
-      <section className="pt-32 pb-16 text-center">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
-            <Play size={14} />
-            Interactive Demo
-          </div>
-          <h1 className="font-lexend font-extrabold text-5xl text-gray-900 mb-4">See Campus Tribe in Action</h1>
-          <p className="text-xl text-gray-500 max-w-2xl mx-auto">Walk through the key features that 500,000+ students, teachers, and admins use every day. No signup required.</p>
-        </div>
-      </section>
-
-      {/* Step tabs */}
-      <section className="pb-24">
-        <div className="max-w-7xl mx-auto px-6">
-          {/* Tab nav */}
-          <div className="flex gap-2 overflow-x-auto pb-4 mb-8">
-            {steps.map((s, i) => (
-              <button
-                key={s.id}
-                onClick={() => setActiveStep(i)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
-                  activeStep === i ? 'text-white shadow-md' : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-300'
-                }`}
-                style={activeStep === i ? { background: s.color } : {}}
-              >
-                <s.icon size={14} />
-                {s.title}
-              </button>
-            ))}
+    <div className="bg-surface text-on-surface font-body">
+      <PublicNav />
+      <main className="pt-24 pb-20 overflow-x-hidden">
+        {/* Hero: How Campus Tribe Works */}
+        <section className="max-w-7xl mx-auto px-8 py-16">
+          <div className="mb-16">
+            <span className="font-label text-xs tracking-widest uppercase text-secondary font-bold bg-secondary-container px-3 py-1 rounded-full">Process Discovery</span>
+            <h1 className="font-headline text-5xl md:text-7xl font-black tracking-tight mt-6 leading-none">
+              How Campus <br />
+              <span style={{background:'linear-gradient(135deg, #0047AB 0%, #759eff 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent'}}>Tribe Works</span>
+            </h1>
           </div>
 
-          {/* Main content */}
-          <div className="grid lg:grid-cols-2 gap-8 items-start">
-            {/* Left: info */}
-            <div className="bg-white rounded-2xl p-8 border border-black/5 shadow-sm">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: step.color + '15' }}>
-                <step.icon size={24} style={{ color: step.color }} />
+          {/* Bento Grid Steps */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+            {/* Step 01 */}
+            <div className="md:col-span-4 bg-surface-container-lowest p-8 rounded-xl flex flex-col justify-between group hover:scale-[1.02] transition-all duration-500 border border-outline-variant/10 shadow-sm">
+              <div>
+                <div className="font-headline text-6xl font-black text-primary/10 mb-6">01</div>
+                <h3 className="font-headline text-2xl font-bold text-on-surface mb-4">Campus Signs Up</h3>
+                <p className="text-on-surface-variant leading-relaxed">Admin creates a high-performance institution profile. Seamlessly integrate your existing database via CSV or SSO secure import.</p>
               </div>
-              <div className="text-sm font-semibold uppercase tracking-wider mb-2" style={{ color: step.color }}>Step {step.id} of {steps.length}</div>
-              <h2 className="font-lexend font-extrabold text-3xl text-gray-900 mb-2">{step.title}</h2>
-              <p className="text-gray-500 text-sm mb-4">{step.subtitle}</p>
-              <p className="text-gray-600 leading-relaxed mb-6">{step.description}</p>
-              <div className="space-y-2">
-                {step.highlights.map((h) => (
-                  <div key={h} className="flex items-center gap-2 text-sm text-gray-600">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: step.color }}>
-                      <ChevronRight size={12} className="text-white" />
+              <div className="mt-12 flex items-center text-primary font-bold gap-2 group-hover:gap-4 transition-all">
+                <span className="font-label text-sm uppercase tracking-wider">Institution Setup</span>
+                <span className="material-symbols-outlined">arrow_forward</span>
+              </div>
+            </div>
+
+            {/* Step 02 */}
+            <div className="md:col-span-5 bg-primary-container p-8 rounded-xl flex flex-col justify-between text-on-primary-container group hover:scale-[1.02] transition-all duration-500">
+              <div>
+                <div className="font-headline text-6xl font-black text-on-primary-container/20 mb-6">02</div>
+                <h3 className="font-headline text-3xl font-bold mb-4">Students Onboard</h3>
+                <p className="leading-relaxed font-medium">Verified .edu join process. Using our Kinetic matching engine, students map interests to discover their personal campus ecosystem immediately.</p>
+              </div>
+              <div className="mt-12">
+                <div className="flex -space-x-4">
+                  {[
+                    'https://lh3.googleusercontent.com/aida-public/AB6AXuBtE8WhO7R3fxdOrkYWgUEZTHPhynrZFeTyjQC8VjVmLwqeSti_D60OrfX-T9YYiBTp-0JGkFc_Jk8HQ8bD1WgrbkboFe5qpJY4bkcNz8AotNskZkgDUISlvZqJuv6f_e2zryoL8mMYlhbgsjz7HXEYIUzyaogWcgsBx3Bk4JMNOOGve1vm3B-9xVMWHVg986GWfz2fTFpOguKejaZkoQLcS4DHxll5wdrHS8Yo4mSiFpXEj2ooRlZytFAHQPNPGL_2fm7V5caF8zo',
+                    'https://lh3.googleusercontent.com/aida-public/AB6AXuAhm8vufZny214URpwOu_pnHtP3rgCSFT_e8-1J8z2g2WiItjJcpeqSfzKh4LJ_Q5FPiCZ1TYqnOjZBrKmjF36yBMM72JI0OWeleziRK7UegduyWMCWUpOl6EW_557hY8j66M3-Vp7n1ADboE_ApUPSsqksQGDdlLXMNDliRB5tpWdl1dOypK2MRs_Kjmk5NNaiwbd5bBRweViHPcAzNrFcytrWcC0TYtEXWjenODYj4zE_J8EwKmms9Q0_Skfv2i14gewH7GyG7fk',
+                    'https://lh3.googleusercontent.com/aida-public/AB6AXuD_bQqNcnIbOsa3JasG2ERDW3lDAfOr5zy7pZguVmVK_Oh3-W5TPm3UxwsFI3ru0LsF7AviPz5ItafEglPMIJbQ-_CUO6sHdq64uHGcpjitFl-9oFprLdp4MwNd9v7wCLreYmyKc8fX1YW5M19iMp8Za9SlRFVsfSyse94whJnreVSr7vHkq_y6Vu3xfU9q99Q7TwY90_TwOLTzptChJf39xLaOdPC8-hNg8NjAOhopNKuKwDDkHUZgG0pYKn3Thqs1O2WvAKsSFv8',
+                  ].map((src, i) => (
+                    <div key={i} className="w-12 h-12 rounded-full border-2 border-primary bg-slate-200 overflow-hidden">
+                      <img alt="User" src={src} className="w-full h-full object-cover" />
                     </div>
-                    {h}
+                  ))}
+                  <div className="w-12 h-12 rounded-full border-2 border-primary bg-primary flex items-center justify-center font-bold text-xs text-on-primary">+4k</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 03 */}
+            <div className="md:col-span-3 bg-tertiary-container p-8 rounded-xl flex flex-col justify-between group hover:scale-[1.02] transition-all duration-500">
+              <div>
+                <div className="font-headline text-6xl font-black text-on-tertiary-container/20 mb-6">03</div>
+                <h3 className="font-headline text-2xl font-bold text-on-tertiary-container mb-4">Campus Thrives</h3>
+                <p className="text-on-tertiary-container/80 leading-relaxed">Events fill to capacity, connections multiply, and institutional wellbeing metrics show measurable growth.</p>
+              </div>
+              <div className="mt-8 bg-on-tertiary-container/10 p-4 rounded-lg flex items-center gap-4">
+                <span className="material-symbols-outlined text-on-tertiary-container">insights</span>
+                <div className="font-label text-xs text-on-tertiary-container font-bold">+24% Engagement</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Stakeholders */}
+        <section className="bg-surface-container-low py-24">
+          <div className="max-w-7xl mx-auto px-8">
+            <div className="text-center mb-16">
+              <h2 className="font-headline text-4xl md:text-5xl font-black text-on-surface mb-4">Built for Every <span className="text-primary italic">Stakeholder</span></h2>
+              <p className="text-on-surface-variant max-w-2xl mx-auto font-medium">A specialized interface for every member of the academic community, ensuring privacy, engagement, and operational excellence.</p>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-7 bg-surface-container-lowest rounded-xl p-8 shadow-sm border border-outline-variant/10">
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-on-primary">
+                    <span className="material-symbols-outlined">admin_panel_settings</span>
                   </div>
-                ))}
+                  <h4 className="font-headline text-2xl font-bold uppercase tracking-tight">Institution Admin</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <ul className="space-y-4">
+                    {[['dashboard', 'Engagement Dashboard'], ['edit_calendar', 'CRUD Events & Venues'], ['heat', 'Wellbeing Heat-maps']].map(([icon, label]) => (
+                      <li key={label} className="flex items-start gap-3">
+                        <span className="material-symbols-outlined text-primary mt-1">{icon}</span>
+                        <span className="text-on-surface-variant font-medium">{label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <ul className="space-y-4">
+                    {[['file_download', 'Exportable PDF Reports'], ['groups', 'Manage Group Activities'], ['poll', 'Run Real-time Surveys']].map(([icon, label]) => (
+                      <li key={label} className="flex items-start gap-3">
+                        <span className="material-symbols-outlined text-primary mt-1">{icon}</span>
+                        <span className="text-on-surface-variant font-medium">{label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-10 rounded-xl overflow-hidden bg-surface-container h-48 relative border border-outline-variant/10">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 right-4 h-24 flex items-end gap-2">
+                    {[40, 60, 85, 55, 45].map((h, i) => (
+                      <div key={i} className="w-full rounded-t-lg" style={{height:`${h}%`, background:`rgba(0,71,171,${0.2 + i*0.1})`}}></div>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-3 mt-8">
-                <button
-                  onClick={() => setActiveStep(Math.max(0, activeStep - 1))}
-                  disabled={activeStep === 0}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium disabled:opacity-40 hover:bg-gray-50 transition-colors"
-                >
-                  <ChevronLeft size={16} /> Previous
-                </button>
-                {activeStep < steps.length - 1 ? (
-                  <button
-                    onClick={() => setActiveStep(activeStep + 1)}
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition-colors"
-                    style={{ background: step.color }}
-                  >
-                    Next Feature <ChevronRight size={16} />
-                  </button>
-                ) : (
-                  <Link to="/register">
-                    <button className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-semibold" style={{ background: step.color }}>
-                      Get Started Free <ChevronRight size={16} />
-                    </button>
-                  </Link>
-                )}
-              </div>
-            </div>
 
-            {/* Right: mockup */}
-            <div className="bg-gray-50 rounded-2xl p-6 border border-black/5">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-3 h-3 rounded-full bg-red-400" />
-                <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                <div className="w-3 h-3 rounded-full bg-green-400" />
-                <div className="flex-1 bg-white rounded-full px-3 py-1 text-xs text-gray-400 ml-2">campus-tribe.app</div>
+              <div className="lg:col-span-5 flex flex-col gap-8">
+                <div className="bg-surface-container-lowest rounded-xl p-8 flex-1 border border-outline-variant/10">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center text-on-secondary">
+                      <span className="material-symbols-outlined">family_restroom</span>
+                    </div>
+                    <h4 className="font-headline text-2xl font-bold uppercase tracking-tight">Parent Portal</h4>
+                  </div>
+                  <ul className="space-y-4 mb-8">
+                    {[['visibility', 'Read-only activity view'], ['trending_up', 'Wellbeing trend graphs'], ['lock', 'Privacy-first data protection']].map(([icon, label]) => (
+                      <li key={label} className="flex items-center gap-3 text-on-surface-variant font-medium">
+                        <span className="material-symbols-outlined text-secondary">{icon}</span> {label}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="bg-secondary-container/30 p-4 rounded-lg flex items-center gap-4 border border-secondary/10">
+                    <span className="material-symbols-outlined text-secondary">security</span>
+                    <span className="font-label text-xs font-bold text-secondary">ENCRYPTED READ-ONLY ACCESS</span>
+                  </div>
+                </div>
+                <div className="bg-primary p-8 rounded-xl text-on-primary">
+                  <h4 className="font-headline text-xl font-bold mb-2">Student Experience</h4>
+                  <p className="text-sm opacity-80 mb-6">Tailored for mobile-first engagement and rapid matching.</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {['Study Partners', 'Daily Mood Log', 'Venue Booking'].map(tag => (
+                      <span key={tag} className="bg-on-primary/10 px-3 py-1 rounded-full text-xs font-bold">{tag}</span>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <MockupContent mockup={step.mockup} color={step.color} />
             </div>
           </div>
+        </section>
 
-          {/* CTA */}
-          <div className="mt-12 text-center bg-gradient-to-br from-[#0047AB] to-[#2056ba] rounded-2xl p-10 text-white">
-            <h3 className="font-lexend font-extrabold text-3xl mb-3">Ready to Transform Your Campus?</h3>
-            <p className="text-white/80 text-lg mb-6">Join 500+ institutions already using Campus Tribe.</p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link to="/register">
-                <button className="bg-white text-[#0047AB] font-semibold px-8 py-3 rounded-full hover:bg-white/90 transition-colors">
-                  Start Free Trial
-                </button>
-              </Link>
-              <Link to="/pricing">
-                <button className="border border-white/40 text-white font-semibold px-8 py-3 rounded-full hover:bg-white/10 transition-colors">
-                  View Pricing
-                </button>
-              </Link>
+        {/* Stats */}
+        <section className="max-w-7xl mx-auto px-8 py-24">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-16">
+            <div className="lg:w-1/2">
+              <span className="font-label text-sm text-primary font-bold tracking-widest">METRIC DRIVEN</span>
+              <h2 className="font-headline text-4xl md:text-5xl font-black mt-4 mb-6">Real-Time <br />Performance Tracking</h2>
+              <p className="text-on-surface-variant text-lg font-medium leading-relaxed">Our platform isn't just a social hub; it's a diagnostic tool for campus health. Monitor atmospheric data in real-time to prevent student isolation and optimize resources.</p>
+              <div className="mt-12 grid grid-cols-2 gap-8">
+                <div>
+                  <div className="font-headline text-5xl font-black text-primary leading-none">94%</div>
+                  <div className="font-label text-xs uppercase tracking-wider text-outline mt-2 font-bold">Student Satisfaction</div>
+                </div>
+                <div>
+                  <div className="font-headline text-5xl font-black text-secondary leading-none">12ms</div>
+                  <div className="font-label text-xs uppercase tracking-wider text-outline mt-2 font-bold">Matching Latency</div>
+                </div>
+              </div>
+            </div>
+            <div className="lg:w-1/2 w-full">
+              <div className="bg-surface-container-lowest rounded-2xl p-8 shadow-inner overflow-hidden border border-outline-variant/10">
+                <div className="flex flex-col gap-3">
+                  {[
+                    { rank: '#1', name: 'Elias Vance', sport: 'Tennis', uni: '1st', intra: '2nd', nat: '15th', rankColor: 'text-primary' },
+                    { rank: '#2', name: 'Sarah Jenkins', sport: 'Swimming', uni: '2nd', intra: '1st', nat: '42nd', rankColor: 'text-primary' },
+                    { rank: '#3', name: 'Marcus Thorne', sport: 'Basketball', uni: '4th', intra: '3rd', nat: '102nd', rankColor: 'text-primary' },
+                    { rank: '#4', name: 'Elena Rossi', sport: 'Volleyball', uni: '1st', intra: '1st', nat: '5th', rankColor: 'text-primary' },
+                  ].map((r) => (
+                    <div key={r.name} className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg border border-outline-variant/10">
+                      <div className="flex items-center gap-3">
+                        <span className={`font-headline font-bold ${r.rankColor}`}>{r.rank}</span>
+                        <div>
+                          <div className="font-bold text-sm text-on-surface">{r.name}</div>
+                          <div className="text-[10px] text-on-surface-variant uppercase tracking-wider font-bold">{r.sport}</div>
+                        </div>
+                      </div>
+                      <div className="flex gap-4 text-center">
+                        <div><div className="text-[10px] font-bold text-primary">{r.uni}</div><div className="text-[8px] text-outline uppercase">Uni</div></div>
+                        <div><div className="text-[10px] font-bold text-secondary">{r.intra}</div><div className="text-[8px] text-outline uppercase">Intra</div></div>
+                        <div><div className="text-[10px] font-bold text-tertiary">{r.nat}</div><div className="text-[8px] text-outline uppercase">Nat</div></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <Footer />
+        {/* CTA */}
+        <section className="max-w-7xl mx-auto px-8 py-12">
+          <div className="bg-on-background rounded-[2rem] p-12 text-center overflow-hidden relative group">
+            <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+            <h2 className="font-headline text-4xl md:text-6xl font-black text-surface-container-lowest relative z-10">
+              Ready to transform your <br /><span className="text-primary-fixed">Campus Tribe?</span>
+            </h2>
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-6 relative z-10">
+              <Link to="/register" className="bg-primary text-on-primary px-10 py-4 rounded-full font-black font-headline text-lg hover:bg-primary-dim transition-all shadow-2xl shadow-primary/40">Request Access</Link>
+              <button className="text-surface-container-lowest font-bold font-label tracking-widest hover:text-primary-fixed transition-colors">WATCH FULL PRODUCT FILM</button>
+            </div>
+          </div>
+        </section>
+      </main>
+      <PublicFooter />
     </div>
   );
 }

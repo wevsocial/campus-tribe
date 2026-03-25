@@ -1,190 +1,164 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
-import { Button } from '../components/ui/Button';
-import { CheckCircle, Users, BookOpen, Activity, Bell, Calendar, Award, ChevronRight } from 'lucide-react';
-
-const features = [
-  { icon: BookOpen, title: 'Class Management', desc: 'Teachers manage rosters, assignments, and grades in one place. Parents stay informed automatically.' },
-  { icon: Users, title: 'Student Clubs & Activities', desc: 'From debate to drama, students discover and join school clubs with a swipe.' },
-  { icon: Activity, title: 'Attendance Tracking', desc: 'Digital attendance with instant parent notifications and trend reports for counselors.' },
-  { icon: Bell, title: 'Parent Communication', desc: 'Two-way messaging, permission slips, and event RSVPs -- parents never miss a beat.' },
-  { icon: Calendar, title: 'Event Scheduling', desc: 'School-wide calendar with sports days, fairs, and performances all in one view.' },
-  { icon: Award, title: 'Student Recognition', desc: 'Leaderboards, badges, and achievement tracking to motivate every learner.' },
-];
-
-const testimonials = [
-  { name: 'Principal Rivera', school: 'Westwood Middle School', quote: 'Campus Tribe cut our admin overhead by 60%. Teachers focus on teaching, not paperwork.' },
-  { name: 'Ms. Chen', school: 'Lakeview High School', quote: 'Parent engagement doubled in our first semester. The messaging tools are a game changer.' },
-  { name: 'Coach Davis', school: 'Ridgeline Academy', quote: 'Managing sports schedules and rosters used to take hours. Now it takes minutes.' },
-];
-
-const stats = [
-  { value: '94%', label: 'Parent engagement rate' },
-  { value: '3x', label: 'Faster attendance processing' },
-  { value: '40%', label: 'Reduction in admin workload' },
-  { value: '500+', label: 'K-12 schools enrolled' },
-];
+import PublicNav from '../components/layout/PublicNav';
+import PublicFooter from '../components/layout/PublicFooter';
 
 export default function SchoolPage() {
   return (
-    <div className="min-h-screen bg-[#f6f6f9]">
-      <Navbar />
-
-      {/* Hero */}
-      <section className="pt-32 pb-20 bg-[#FF6B35] relative overflow-hidden">
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80&auto=format"
-            alt="School"
-            className="w-full h-full object-cover opacity-20"
-          />
-        </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center text-white">
-          <div>
-            <div className="inline-flex items-center gap-2 bg-white/20 text-white px-4 py-2 rounded-full text-sm font-semibold mb-6">
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-              For K-12 Schools
-            </div>
-            <h1 className="font-lexend font-extrabold text-5xl lg:text-6xl leading-tight mb-6">
-              Every Student Thrives.
-              <br />
-              Every Parent Connected.
-            </h1>
-            <p className="text-xl text-white/90 leading-relaxed mb-8 max-w-lg">
-              Campus Tribe for Schools brings together attendance, clubs, sports, parent messaging, and academic tools into one beautifully simple platform designed for grades 6-12.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link to="/register">
-                <Button variant="primary" size="lg" className="bg-white text-[#FF7F50] hover:bg-white/90">Book a Demo</Button>
-              </Link>
-              <Link to="/pricing">
-                <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10">View Pricing</Button>
-              </Link>
-            </div>
-          </div>
-          <div className="hidden lg:block">
-            <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 space-y-4">
-              {[
-                { icon: '📊', title: 'Class Average: 87%', sub: 'Grade 10A - Math', change: '+4% this month', color: 'text-green-300' },
-                { icon: '📅', title: 'Science Fair', sub: 'Tomorrow, 9:00 AM', change: '47 students registered', color: 'text-yellow-300' },
-                { icon: '🏆', title: 'Basketball Finals', sub: 'Westwood vs Lakeview', change: 'Friday 4:00 PM', color: 'text-blue-300' },
-              ].map((card) => (
-                <div key={card.title} className="bg-white/10 rounded-xl p-4 flex items-center gap-4">
-                  <div className="text-3xl">{card.icon}</div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-white">{card.title}</div>
-                    <div className="text-white/70 text-sm">{card.sub}</div>
-                  </div>
-                  <div className={`text-sm font-medium ${card.color}`}>{card.change}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="py-12 bg-white border-b border-black/5">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {stats.map((s) => (
-            <div key={s.label}>
-              <div className="font-lexend font-extrabold text-4xl text-[#FF7F50]">{s.value}</div>
-              <div className="text-gray-500 mt-1 text-sm">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="font-lexend font-extrabold text-4xl text-gray-900 mb-4">Everything Your School Needs</h2>
-            <p className="text-gray-500 text-lg max-w-2xl mx-auto">One platform connecting students, teachers, parents, and administrators with the tools they need every day.</p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((f) => (
-              <div key={f.title} className="bg-white rounded-2xl p-6 border border-black/5 shadow-sm hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center mb-4">
-                  <f.icon size={24} className="text-[#FF7F50]" />
-                </div>
-                <h3 className="font-semibold text-gray-900 text-lg mb-2">{f.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
+    <div className="bg-surface text-on-surface font-body">
+      <PublicNav />
+      <main className="pt-24">
+        {/* Hero */}
+        <section className="relative px-8 py-20 max-w-7xl mx-auto overflow-hidden">
+          <div className="flex flex-col lg:flex-row items-center gap-16">
+            <div className="lg:w-1/2 space-y-8 z-10">
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-secondary-container text-on-secondary-container font-label text-xs font-bold tracking-widest uppercase">
+                The Connected School
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Role breakdown */}
-      <section className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="font-lexend font-extrabold text-4xl text-gray-900 text-center mb-16">Built for Every Role</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { role: 'Students', emoji: '🎒', color: 'bg-blue-50 border-blue-100', perks: ['Join clubs and teams', 'Track grades and assignments', 'RSVP to school events', 'Earn badges and rewards'] },
-              { role: 'Teachers', emoji: '📚', color: 'bg-orange-50 border-orange-100', perks: ['Digital attendance', 'Assignment management', 'Parent communication', 'Performance analytics'] },
-              { role: 'Parents', emoji: '👨‍👩‍👧', color: 'bg-green-50 border-green-100', perks: ['Real-time notifications', 'Attendance visibility', 'Permission slip signing', 'Direct teacher messaging'] },
-              { role: 'Principals', emoji: '🏫', color: 'bg-purple-50 border-purple-100', perks: ['School-wide analytics', 'Staff management', 'Event oversight', 'Budget tracking'] },
-            ].map((r) => (
-              <div key={r.role} className={`rounded-2xl p-6 border ${r.color}`}>
-                <div className="text-4xl mb-3">{r.emoji}</div>
-                <h3 className="font-semibold text-gray-900 text-lg mb-3">{r.role}</h3>
-                <ul className="space-y-2">
-                  {r.perks.map((p) => (
-                    <li key={p} className="flex items-center gap-2 text-sm text-gray-600">
-                      <CheckCircle size={14} className="text-[#00A86B] flex-shrink-0" />
-                      {p}
-                    </li>
-                  ))}
-                </ul>
+              <h1 className="font-headline text-5xl md:text-7xl font-extrabold tracking-tighter leading-tight text-on-surface">
+                Connect, Engage <br />
+                <span className="text-secondary italic">&amp; Thrive Together</span>
+              </h1>
+              <p className="font-body text-lg text-on-surface-variant max-w-lg leading-relaxed">
+                Campus Tribe brings the modern school community together. From sports tournaments to study groups, manage every dimension of school life in one powerful platform.
+              </p>
+              <div className="flex flex-wrap gap-4 pt-4">
+                <Link to="/demo" className="bg-secondary text-white px-8 py-4 rounded-full font-headline font-bold text-lg hover:opacity-90 transition-all shadow-xl shadow-secondary/20">
+                  Book a Demo
+                </Link>
+                <button className="bg-surface-container-highest text-on-surface px-8 py-4 rounded-full font-headline font-bold text-lg hover:opacity-80 transition-all">
+                  Explore Features
+                </button>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-24 bg-[#f6f6f9]">
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="font-lexend font-extrabold text-4xl text-gray-900 text-center mb-16">Trusted by School Leaders</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t) => (
-              <div key={t.name} className="bg-white rounded-2xl p-6 border border-black/5 shadow-sm">
-                <p className="text-gray-600 text-base leading-relaxed mb-6 italic">"{t.quote}"</p>
+            </div>
+            <div className="lg:w-1/2 relative">
+              <div className="absolute -top-12 -right-12 w-64 h-64 bg-secondary-container/30 rounded-full blur-3xl"></div>
+              <div className="relative z-10 overflow-hidden shadow-2xl rounded-3xl transform -rotate-1">
+                <img
+                  alt="School students engaged in activities"
+                  className="w-full h-[500px] object-cover"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7AcdfpRQpzzQyjP5fKEFGdMuEnoe9ck082BroDD5SlMUd64HcbNHuXLvDYZ7Pg0sl4RNyOvpUooC5Q2vHC0h8GBx-xXC1QAXeDtA9V7zzmtPmwI4zRr2Mz8Es6SG5-x2WssT52jVNloPyGBHiO0ha6sYcfB_rSbJ1M_IOZ4Vb_3WXLtblH6sSG0SXAXA36hjrOGUg738o-a-83v70YAdoCVGCTt0_z2eBpETzKOyuLbaD8_beTvkn1ijuFcrm4nzygty44eloVMs"
+                />
+              </div>
+              <div className="absolute -bottom-8 -left-8 z-20 bg-surface-container-lowest p-6 rounded-xl shadow-xl flex items-center gap-4 border border-outline-variant/15">
+                <div className="w-12 h-12 bg-secondary-container rounded-full flex items-center justify-center">
+                  <span className="material-symbols-outlined text-secondary">school</span>
+                </div>
                 <div>
-                  <div className="font-semibold text-gray-900">{t.name}</div>
-                  <div className="text-gray-400 text-sm">{t.school}</div>
+                  <p className="font-headline font-bold text-sm text-on-surface">Trusted Platform</p>
+                  <p className="font-label text-xs text-on-surface-variant">500+ Schools Enrolled</p>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* CTA */}
-      <section className="py-24 bg-gradient-to-br from-[#FF7F50] to-[#e05a25] text-white text-center">
-        <div className="max-w-3xl mx-auto px-6">
-          <h2 className="font-lexend font-extrabold text-4xl mb-4">Ready to Transform Your School?</h2>
-          <p className="text-xl text-white/90 mb-8">Join 500+ K-12 schools using Campus Tribe to engage students and connect communities.</p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/register">
-              <button className="bg-white text-[#FF7F50] font-semibold px-8 py-3 rounded-full hover:bg-white/90 transition-colors flex items-center gap-2">
-                Start Free Trial <ChevronRight size={18} />
-              </button>
-            </Link>
-            <Link to="/pricing">
-              <button className="border border-white/50 text-white font-semibold px-8 py-3 rounded-full hover:bg-white/10 transition-colors">
-                See Pricing
-              </button>
-            </Link>
+        {/* Features Bento Grid */}
+        <section className="bg-surface-container-low py-24 px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-16">
+              <h2 className="font-headline text-3xl font-bold tracking-tight mb-4">School Features</h2>
+              <p className="font-body text-on-surface-variant max-w-2xl">Everything a modern school needs to keep students engaged, safe, and thriving.</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+              <div className="md:col-span-8 bg-surface-container-lowest rounded-xl p-8 relative overflow-hidden group border border-outline-variant/10 shadow-sm hover:shadow-xl transition-all">
+                <span className="material-symbols-outlined text-secondary text-4xl mb-4">how_to_reg</span>
+                <h3 className="font-headline text-2xl font-bold mb-4">Secure Attendance Tracking</h3>
+                <p className="font-body text-on-surface-variant max-w-md">Real-time attendance with biometric-ready check-in. Automate absence notifications to parents instantly.</p>
+                <div className="mt-8 rounded-lg overflow-hidden border border-outline-variant/10">
+                  <img alt="School sports" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCM2UVLIZCIrUz3ENLRBXzBVWI4I5cLklFHfhHoRaHY-oMRXJwsB9oitQh0N2qdGK_mAn-3KlOIwsvnxepNvTrmGKA3Z-Qcr7nn3nmrhXeqMo8BCkhUpKzGr6Fpb-JAtPTrhgxcm-PdHsoUKGJ0rhhFJ7RGaq-uQ-qKq3tpDDjjRy1BURYjief0_q5eHGqFMj8m5E2pnz_Iku-JLnK_U2HVW7Sic22oDGdde599LvSi2s55Payh4LecFLJW81IQaHhpYoDWa2Os-Y" />
+                </div>
+              </div>
+              <div className="md:col-span-4 bg-secondary text-white rounded-xl p-8 flex flex-col justify-center text-center">
+                <span className="material-symbols-outlined text-5xl mb-6">groups</span>
+                <h3 className="font-headline text-2xl font-bold mb-2">Study Groups</h3>
+                <p className="opacity-80">Match students by subject, learning style, and schedule.</p>
+              </div>
+              <div className="md:col-span-4 bg-tertiary-container text-on-tertiary-container rounded-xl p-8 flex flex-col justify-center text-center">
+                <span className="material-symbols-outlined text-5xl mb-6">family_restroom</span>
+                <h3 className="font-headline text-2xl font-bold mb-2">Parent Portals</h3>
+                <p className="opacity-80 text-sm">Give parents a real-time window into their child's school life.</p>
+              </div>
+              <div className="md:col-span-8 bg-surface-container-lowest rounded-xl p-8 flex flex-col md:flex-row items-center gap-8 border border-outline-variant/10 shadow-sm">
+                <div className="flex-1">
+                  <h3 className="font-headline text-2xl font-bold mb-4">Gamified Achievements</h3>
+                  <p className="font-body text-on-surface-variant">Drive engagement with house points, badges, and leaderboards that celebrate every student's success.</p>
+                  <div className="flex gap-2 mt-6">
+                    {['bg-secondary-container', 'bg-primary-container', 'bg-tertiary-container', 'bg-surface-container-highest'].map((c, i) => (
+                      <div key={i} className={`w-10 h-10 rounded-full ${c} flex items-center justify-center font-bold text-xs`}>{i === 3 ? '+8' : ''}</div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex-1 w-full bg-surface-container-low rounded-xl p-4 flex flex-col gap-3">
+                  <div className="bg-surface-container-lowest p-3 rounded-lg flex items-center gap-3 shadow-sm">
+                    <span className="material-symbols-outlined text-secondary">emoji_events</span>
+                    <span className="text-xs font-label">House Championship - Team A leads with 2,450 pts</span>
+                  </div>
+                  <div className="bg-surface-container-lowest p-3 rounded-lg flex items-center gap-3 shadow-sm">
+                    <span className="material-symbols-outlined text-primary">stars</span>
+                    <span className="text-xs font-label">New badge unlocked: Perfect Attendance</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <Footer />
+        {/* Testimonial */}
+        <section className="py-24 px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <div className="space-y-8">
+                <span className="font-label text-xs tracking-widest uppercase text-secondary font-bold">Success Story</span>
+                <blockquote className="font-headline text-3xl font-bold text-on-surface leading-snug">
+                  "Campus Tribe transformed how our students connect. Engagement is up 40% and parents actually feel part of the school community."
+                </blockquote>
+                <div className="flex items-center gap-4">
+                  <img
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIlUl6z2MIkCMBSPrsucAo80DhcOyJ5GT-EE4GFA3irQNxkZCceMDl1PPCdbEzmYUvd6HaEZ2KqOQJVwah9c8O8mCnPA2HmCKmUND7Yehj8TGEoi2EsEKtyNJYepwC4ARnHWsiQCn_usY2qyRIBNjVeEWmlpSJLznKdbidoez0gg7gpRByPPtX587WgMJ091xDmCTLS9kXi7tO8kFw9WGfUmVFJgojKgeDwEHKp-2kzc7o__X7fVz1NkzGCV5eBo"
+                    alt="Principal testimonial"
+                    className="w-14 h-14 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="font-headline font-bold text-sm">Dr. Sarah Mitchell</p>
+                    <p className="font-label text-xs text-on-surface-variant">Principal, Westfield Academy</p>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-6">
+                {[
+                  { n: '40%', label: 'Engagement Increase' },
+                  { n: '500+', label: 'Schools Enrolled' },
+                  { n: '98%', label: 'Parent Satisfaction' },
+                  { n: '24/7', label: 'Platform Uptime' },
+                ].map((s) => (
+                  <div key={s.label} className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/10 shadow-sm text-center">
+                    <div className="font-headline text-4xl font-black text-secondary">{s.n}</div>
+                    <div className="font-label text-xs uppercase tracking-wider text-outline mt-2 font-bold">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-24 px-8">
+          <div className="max-w-5xl mx-auto bg-secondary rounded-3xl p-12 md:p-20 text-center relative overflow-hidden shadow-2xl">
+            <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none select-none">
+              <span className="font-headline font-black text-[14rem] text-white leading-none">SCHOOL</span>
+            </div>
+            <div className="relative z-10 space-y-8">
+              <h2 className="font-headline text-4xl md:text-5xl font-extrabold text-white tracking-tighter">Ready to transform your school?</h2>
+              <p className="text-white/80 text-lg max-w-2xl mx-auto">Join hundreds of forward-thinking schools already using Campus Tribe.</p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <Link to="/demo" className="bg-white text-secondary font-headline font-bold px-10 py-4 rounded-full text-lg hover:opacity-90 transition-all shadow-2xl">Book a Demo</Link>
+                <Link to="/pricing" className="border-2 border-white text-white font-headline font-bold px-10 py-4 rounded-full text-lg hover:bg-white/10 transition-all">View Pricing</Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+      <PublicFooter />
     </div>
   );
 }
