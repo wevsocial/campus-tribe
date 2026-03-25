@@ -90,6 +90,17 @@ export const MOCK_USERS: User[] = [
     interests: [],
     joinedAt: '2025-09-01',
   },
+  {
+    id: 'user-studentrep-1',
+    email: 'srep@demo.com',
+    name: 'Jordan Park',
+    role: 'student_rep',
+    institutionId: 'inst-uoft',
+    avatarUrl: '',
+    bio: 'Student Representative - manages clubs and events on behalf of students.',
+    interests: ['Leadership', 'Events', 'Photography', 'Coding'],
+    joinedAt: '2024-09-05',
+  },
 ];
 
 export const MOCK_CLUBS: Club[] = [
@@ -529,6 +540,7 @@ export const MOCK_WELLNESS: WellnessCheckin[] = [
 ];
 
 export const MOCK_CREDENTIALS: Record<string, string> = {
+  'srep@demo.com': 'student_rep',
   'student@demo.com': 'student',
   'admin@demo.com': 'admin',
   'coach@demo.com': 'coach',

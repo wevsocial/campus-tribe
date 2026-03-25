@@ -7,7 +7,7 @@ import { Button } from '../../components/ui/Button';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { BookOpen, Plus } from 'lucide-react';
+import { BookOpen, Plus, AlertTriangle, Download, ChevronDown, ChevronRight } from 'lucide-react';
 
 const classes = [
   { id: 'cs101', name: 'Introduction to Computer Science', code: 'CS 101', students: 32, room: 'BA 2175', time: 'Mon/Wed/Fri 9:00-10:00 AM', avg: 84 },
@@ -54,7 +54,43 @@ const attendanceToday = [
   { name: 'Tobias Wells', status: 'present' },
 ];
 
-const tabs = ['My Classes', 'Attendance', 'Assignments', 'Grading', 'Students', 'Analytics', 'Announcements'];
+const courseModules = [
+  {
+    id: 1, course: 'CS 101', title: 'Introduction to Programming', lessons: [
+      { id: 1, title: 'What is a Computer?', type: 'Video', duration: '12 min' },
+      { id: 2, title: 'Variables and Types', type: 'Reading', duration: '20 min' },
+      { id: 3, title: 'Basic Syntax Quiz', type: 'Quiz', duration: '15 min' },
+    ]
+  },
+  {
+    id: 2, course: 'CS 101', title: 'Control Flow', lessons: [
+      { id: 4, title: 'If/Else Statements', type: 'Video', duration: '18 min' },
+      { id: 5, title: 'Loops Lab', type: 'Assignment', duration: '45 min' },
+    ]
+  },
+  {
+    id: 3, course: 'CS 201', title: 'Arrays and Lists', lessons: [
+      { id: 6, title: 'Array Fundamentals', type: 'Video', duration: '22 min' },
+      { id: 7, title: 'Linked Lists', type: 'Reading', duration: '35 min' },
+    ]
+  },
+];
+
+const gradebookStudents = [
+  { id: 1, name: 'Alex Kim', avatar: 1, a1: 88, a2: 92, midterm: 85, final: null },
+  { id: 2, name: 'Sarah Chen', avatar: 2, a1: 76, a2: 85, midterm: 80, final: null },
+  { id: 3, name: 'Marcus Thorne', avatar: 3, a1: 65, a2: 70, midterm: 58, final: null },
+  { id: 4, name: 'Priya Sharma', avatar: 4, a1: 96, a2: 98, midterm: 94, final: null },
+  { id: 5, name: 'Elias Vance', avatar: 5, a1: 82, a2: 79, midterm: 77, final: null },
+  { id: 6, name: 'Jordan Lee', avatar: 6, a1: 55, a2: 60, midterm: 52, final: null },
+];
+
+const atRiskStudents = [
+  { id: 1, name: 'Marcus Thorne', reason: 'Grade below 60%', detail: 'Current average: 57%. Missing 2 assignments.', avatar: 3 },
+  { id: 2, name: 'Jordan Lee', reason: 'Missed 3+ classes', detail: 'Absent 4 times in last 3 weeks. Grade: 55%.', avatar: 6 },
+];
+
+const tabs = ['My Classes', 'Attendance', 'Assignments', 'Course Builder', 'Gradebook', 'At-Risk Students', 'Grading', 'Students', 'Analytics', 'Announcements'];
 
 export default function TeacherDashboard() {
   const { user } = useAuthStore();
@@ -63,6 +99,8 @@ export default function TeacherDashboard() {
   const [attendance, setAttendance] = useState<Record<string, string>>(
     Object.fromEntries(attendanceToday.map((s) => [s.name, s.status]))
   );
+  const [expandedModules, setExpandedModules] = useState<Record<number, boolean>>({});
+  const [grades, setGrades] = useState<Record<string, Record<string, string>>>({});
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
@@ -399,6 +437,149 @@ export default function TeacherDashboard() {
               ))}
             </div>
           </Card>
+        </div>
+      )}
+
+      {/* Course Builder Tab */}
+      {activeTab === 'Course Builder' && (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-semibold text-gray-900 text-lg">Course Builder</h2>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" icon={<Plus size={14} />}>Add Module</Button>
+              <Button variant="primary" size="sm" icon={<Plus size={14} />}>Add Lesson</Button>
+            </div>
+          </div>
+          <div className="space-y-4">
+            {courseModules.map(mod => (
+              <Card key={mod.id}>
+                <button
+                  className="w-full flex items-center justify-between"
+                  onClick={() => setExpandedModules(prev => ({ ...prev, [mod.id]: !prev[mod.id] }))}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                      <BookOpen size={16} className="text-[#0047AB]" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold text-gray-900">{mod.title}</div>
+                      <div className="text-xs text-gray-400">{mod.course} - {mod.lessons.length} lessons</div>
+                    </div>
+                  </div>
+                  {expandedModules[mod.id] ? <ChevronDown size={16} className="text-gray-400" /> : <ChevronRight size={16} className="text-gray-400" />}
+                </button>
+                {expandedModules[mod.id] && (
+                  <div className="mt-4 pl-11 space-y-2 border-t border-gray-50 pt-4">
+                    {mod.lessons.map(lesson => (
+                      <div key={lesson.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                          lesson.type === 'Video' ? 'bg-blue-50 text-blue-700' :
+                          lesson.type === 'Quiz' ? 'bg-purple-50 text-purple-700' :
+                          lesson.type === 'Assignment' ? 'bg-orange-50 text-orange-700' :
+                          'bg-gray-50 text-gray-600'
+                        }`}>{lesson.type}</span>
+                        <span className="font-medium text-gray-800 text-sm flex-1">{lesson.title}</span>
+                        <span className="text-xs text-gray-400">{lesson.duration}</span>
+                        <button className="text-xs text-[#0047AB] hover:underline">Edit</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Gradebook Tab */}
+      {activeTab === 'Gradebook' && (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-semibold text-gray-900 text-lg">Gradebook - {selectedClass.code}</h2>
+            <Button variant="outline" size="sm" icon={<Download size={14} />}>Export CSV</Button>
+          </div>
+          <Card padding="none" className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-100">
+                  <th className="text-left py-3 px-4 font-medium text-gray-500">Student</th>
+                  <th className="text-center py-3 px-4 font-medium text-gray-500">Assignment 1</th>
+                  <th className="text-center py-3 px-4 font-medium text-gray-500">Assignment 2</th>
+                  <th className="text-center py-3 px-4 font-medium text-gray-500">Midterm</th>
+                  <th className="text-center py-3 px-4 font-medium text-gray-500">Final</th>
+                  <th className="text-center py-3 px-4 font-medium text-gray-500">Overall %</th>
+                </tr>
+              </thead>
+              <tbody>
+                {gradebookStudents.map((s, i) => {
+                  const overall = Math.round((s.a1 + s.a2 + s.midterm) / 3);
+                  return (
+                    <tr key={s.id} className={`border-b border-gray-50 last:border-0 ${i % 2 === 0 ? '' : 'bg-gray-50/50'}`}>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-3">
+                          <img src={`https://i.pravatar.cc/32?img=${s.avatar}`} alt={s.name} className="w-8 h-8 rounded-full object-cover" />
+                          <span className="font-medium text-gray-900">{s.name}</span>
+                        </div>
+                      </td>
+                      {['a1', 'a2', 'midterm'].map(field => (
+                        <td key={field} className="py-3 px-4 text-center">
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={grades[s.id]?.[field] ?? (s as Record<string, number | null | string>)[field] ?? ''}
+                            onChange={e => setGrades(prev => ({ ...prev, [s.id]: { ...prev[s.id], [field]: e.target.value } }))}
+                            className="w-16 text-center border border-gray-200 rounded-lg px-2 py-1 text-sm focus:outline-none focus:border-[#0047AB]"
+                          />
+                        </td>
+                      ))}
+                      <td className="py-3 px-4 text-center text-gray-400">--</td>
+                      <td className="py-3 px-4 text-center">
+                        <span className={`font-bold ${overall >= 70 ? 'text-[#00A86B]' : 'text-red-500'}`}>{overall}%</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </Card>
+        </div>
+      )}
+
+      {/* At-Risk Students Tab */}
+      {activeTab === 'At-Risk Students' && (
+        <div>
+          <div className="flex items-center gap-3 mb-6">
+            <AlertTriangle size={20} className="text-red-500" />
+            <h2 className="font-semibold text-gray-900 text-lg">At-Risk Students</h2>
+            <Badge variant="danger" label={`${atRiskStudents.length} flagged`} />
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            {atRiskStudents.map(s => (
+              <Card key={s.id}>
+                <div className="flex items-start gap-4">
+                  <img src={`https://i.pravatar.cc/48?img=${s.avatar}`} alt={s.name} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold text-gray-900">{s.name}</span>
+                      <Badge variant="danger" label={s.reason} />
+                    </div>
+                    <p className="text-sm text-gray-500 mb-4">{s.detail}</p>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline">Send Message</Button>
+                      <Button size="sm" variant="primary">Schedule Meeting</Button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+          {atRiskStudents.length === 0 && (
+            <div className="text-center py-12 text-gray-400">
+              <AlertTriangle size={40} className="mx-auto mb-3 opacity-30" />
+              <p>No at-risk students flagged at this time.</p>
+            </div>
+          )}
         </div>
       )}
 

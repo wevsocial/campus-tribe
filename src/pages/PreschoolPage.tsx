@@ -1,210 +1,293 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
-import { Heart, Star, Users, Camera, MessageCircle, Calendar, Shield, Smile, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Sun, Camera, Shield, Users, BarChart2, Star } from 'lucide-react';
 
 const features = [
-  { icon: Heart, title: 'Daily Reports', desc: 'Parents receive beautiful daily summaries of their child\'s mood, meals, naps, and activities -- with photos.', color: 'bg-pink-50', iconColor: 'text-pink-500' },
-  { icon: Camera, title: 'Photo Gallery', desc: 'Secure, private photo sharing. Staff upload moments from the day; parents view and download from their phone.', color: 'bg-yellow-50', iconColor: 'text-yellow-500' },
-  { icon: MessageCircle, title: 'Parent Messaging', desc: 'Direct two-way messaging between parents and teachers. Real-time, secure, and organized by child.', color: 'bg-blue-50', iconColor: 'text-blue-500' },
-  { icon: Calendar, title: 'Activity Scheduling', desc: 'Storytime, art class, music -- all scheduled and shared. Parents know exactly what their child is doing.', color: 'bg-purple-50', iconColor: 'text-purple-500' },
-  { icon: Users, title: 'Staff Management', desc: 'Director tools for staff scheduling, certifications, and performance tracking. All in one dashboard.', color: 'bg-green-50', iconColor: 'text-green-500' },
-  { icon: Shield, title: 'Safe & Secure', desc: 'FERPA-compliant, SOC 2 certified. Your child\'s data is encrypted and never shared with third parties.', color: 'bg-orange-50', iconColor: 'text-orange-500' },
+  {
+    icon: <BarChart2 size={28} className="text-[#FF8C42]" />,
+    title: 'Daily Reports',
+    desc: 'Parents get real-time updates on meals, nap times, and activities - right from their phone.',
+  },
+  {
+    icon: <Camera size={28} className="text-[#FF8C42]" />,
+    title: 'Parent Portal',
+    desc: 'Photo sharing, pickup authorization, secure messaging with teachers - all in one place.',
+  },
+  {
+    icon: <Users size={28} className="text-[#FF8C42]" />,
+    title: 'Staff Tools',
+    desc: 'Activity planning, child profiles, developmental milestone tracking built for teachers.',
+  },
+  {
+    icon: <Shield size={28} className="text-[#FF8C42]" />,
+    title: 'Safety First',
+    desc: 'Pickup authorization, emergency contacts, visitor logs - keeping children secure every moment.',
+  },
 ];
 
-const activities = [
-  { time: '8:00 AM', activity: 'Arrival and Free Play', emoji: '🧸' },
-  { time: '9:00 AM', activity: 'Circle Time and Morning Song', emoji: '🎵' },
-  { time: '9:30 AM', activity: 'Art and Craft Workshop', emoji: '🎨' },
-  { time: '10:30 AM', activity: 'Snack Time', emoji: '🍎' },
-  { time: '11:00 AM', activity: 'Outdoor Play and Exploration', emoji: '🌳' },
-  { time: '12:00 PM', activity: 'Lunch', emoji: '🥗' },
-  { time: '1:00 PM', activity: 'Naptime', emoji: '😴' },
-  { time: '3:00 PM', activity: 'Story Reading and Pickup', emoji: '📚' },
+const roles = [
+  {
+    emoji: '👨‍👩‍👧',
+    title: 'Parents',
+    subtitle: 'Stay connected every moment',
+    points: ['Real-time daily reports', 'Photo updates throughout the day', 'Direct messaging with teachers', 'Pickup authorization management'],
+  },
+  {
+    emoji: '🧑‍🏫',
+    title: 'Teachers and Staff',
+    subtitle: 'Everything you need to nurture',
+    points: ['Child profile management', 'Developmental milestone tracking', 'Activity and lesson planning', 'Quick daily report submission'],
+  },
+  {
+    emoji: '🏫',
+    title: 'Directors and Admin',
+    subtitle: 'Run your center with confidence',
+    points: ['Full center overview dashboard', 'Staff scheduling and management', 'Enrollment and waitlist tracking', 'Compliance and reporting tools'],
+  },
 ];
 
-const testimonials = [
-  { name: 'Jennifer Lawson', role: 'Parent, Sunshine Preschool', quote: 'I love getting the daily photo updates. It feels like I\'m there with my daughter even when I\'m at work.' },
-  { name: 'Director Kim', role: 'Little Stars Learning Center', quote: 'Campus Tribe helped us cut down on paperwork by 80%. Our teachers spend more time with children now.' },
-  { name: 'Maria Santos', role: 'Parent, Bright Minds Academy', quote: 'The messaging feature is amazing. I can reach Ms. Thompson instantly if I have a concern about Lily.' },
+const galleryPhotos = [
+  'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=400&q=80',
+  'https://images.unsplash.com/photo-1516627145497-ae6968895b24?w=400&q=80',
+  'https://images.unsplash.com/photo-1551966775-a4ddc8df052b?w=400&q=80',
+  'https://images.unsplash.com/photo-1564144006388-615f4a736e4f?w=400&q=80',
+  'https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=400&q=80',
+  'https://images.unsplash.com/photo-1566140967404-b8b3932483f5?w=400&q=80',
+];
+
+const plans = [
+  {
+    name: 'Starter',
+    price: '$0',
+    period: 'Free forever',
+    highlight: false,
+    features: ['Up to 30 children', 'Basic daily reports', 'Parent notifications', 'Staff profiles'],
+  },
+  {
+    name: 'Growth',
+    price: '$149',
+    period: 'per month',
+    highlight: true,
+    features: ['Up to 150 children', 'Full parent portal', 'Photo sharing', 'Daily reports', 'Milestone tracking', 'Priority support'],
+  },
+  {
+    name: 'Enterprise',
+    price: 'Custom',
+    period: 'tailored pricing',
+    highlight: false,
+    features: ['Multi-center management', 'Custom branding', 'SSO integration', 'Dedicated success manager', 'API access'],
+  },
 ];
 
 export default function PreschoolPage() {
   return (
-    <div className="min-h-screen bg-[#fffbf7]">
-      <Navbar />
+    <div className="min-h-screen bg-white font-sans">
+      {/* Nav */}
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 bg-white/90 backdrop-blur-sm border-b border-orange-100">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #FFB347, #FF8C42)' }}>
+            <Sun size={18} className="text-white" />
+          </div>
+          <span className="font-bold text-lg text-gray-900">Campus Tribe <span className="text-[#FF8C42]">Preschool</span></span>
+        </Link>
+        <div className="flex items-center gap-6">
+          <a href="#features" className="text-sm text-gray-600 hover:text-[#FF8C42] transition-colors">Features</a>
+          <a href="#gallery" className="text-sm text-gray-600 hover:text-[#FF8C42] transition-colors">Gallery</a>
+          <a href="#pricing" className="text-sm text-gray-600 hover:text-[#FF8C42] transition-colors">Pricing</a>
+          <Link to="/login" className="text-sm font-medium text-white px-4 py-2 rounded-xl" style={{ background: 'linear-gradient(135deg, #FFB347, #FF8C42)' }}>
+            Get Started
+          </Link>
+        </div>
+      </nav>
 
       {/* Hero */}
-      <section className="pt-32 pb-20" style={{ background: 'linear-gradient(135deg, #FFE4D9 0%, #FFF0E8 50%, #E8F5E9 100%)' }}>
-        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 bg-white text-orange-500 px-4 py-2 rounded-full text-sm font-semibold mb-6 shadow-sm">
-              <Smile size={16} className="text-orange-400" />
-              For Preschools and Early Learning
-            </div>
-            <h1 className="font-lexend font-extrabold text-5xl lg:text-6xl leading-tight text-gray-900 mb-6">
-              Little Ones.
-              <br />
-              <span className="text-orange-400">Big Connections.</span>
-            </h1>
-            <p className="text-xl text-gray-600 leading-relaxed mb-8 max-w-lg">
-              Campus Tribe for Preschools keeps parents in the loop and staff organized. Daily reports, photo sharing, messaging, and activity tracking -- all in one joyful platform.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link to="/register">
-                <button className="bg-orange-400 text-white font-semibold px-8 py-3 rounded-full hover:bg-orange-500 transition-colors flex items-center gap-2 shadow-md">
-                  Start Free Trial <ChevronRight size={18} />
-                </button>
-              </Link>
-              <Link to="/pricing">
-                <button className="border border-orange-200 text-orange-500 font-semibold px-8 py-3 rounded-full hover:bg-orange-50 transition-colors">
-                  See Pricing
-                </button>
-              </Link>
-            </div>
-          </div>
-          <div className="hidden lg:block space-y-3">
-            {/* Daily report card mock */}
-            <div className="bg-white rounded-2xl p-5 shadow-lg border border-orange-100">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-2xl">🌟</div>
-                <div>
-                  <div className="font-semibold text-gray-900">Daily Report - Emma</div>
-                  <div className="text-gray-400 text-sm">Tuesday, March 24</div>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: 'Mood', value: 'Happy', emoji: '😊' },
-                  { label: 'Lunch', value: 'Finished', emoji: '🍱' },
-                  { label: 'Nap', value: '2 hrs', emoji: '😴' },
-                ].map((item) => (
-                  <div key={item.label} className="bg-orange-50 rounded-xl p-3 text-center">
-                    <div className="text-2xl mb-1">{item.emoji}</div>
-                    <div className="text-xs text-gray-500">{item.label}</div>
-                    <div className="text-sm font-medium text-gray-800">{item.value}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 text-sm text-gray-500 bg-gray-50 rounded-xl p-3">
-                Ms. Rodriguez: Emma had a wonderful day! She loved the finger painting activity and made a beautiful butterfly. 🦋
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl p-4 shadow-md border border-green-100">
-              <div className="flex items-center gap-3">
-                <Camera size={20} className="text-green-500" />
-                <div className="font-medium text-gray-800">3 new photos from today</div>
-              </div>
-              <div className="flex gap-2 mt-3">
-                {['🖼', '🖼', '🖼'].map((_, i) => (
-                  <div key={i} className="flex-1 h-16 rounded-xl" style={{ background: ['#DBEAFE', '#DCFCE7', '#FEF3C7'][i] }} />
-                ))}
-              </div>
-            </div>
-          </div>
+      <section className="relative min-h-screen flex items-center justify-center pt-20">
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1535572290543-960a8046f5af?w=1400&q=80"
+            alt="Preschool"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(255,140,66,0.88) 0%, rgba(255,179,71,0.75) 50%, rgba(255,140,66,0.55) 100%)' }} />
         </div>
-      </section>
-
-      {/* Stats */}
-      <section className="py-12 bg-white border-b border-black/5">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {[
-            { value: '98%', label: 'Parent satisfaction rate' },
-            { value: '5 min', label: 'Daily report creation' },
-            { value: '2,000+', label: 'Preschools enrolled' },
-            { value: '500k+', label: 'Happy families' },
-          ].map((s) => (
-            <div key={s.label}>
-              <div className="font-lexend font-extrabold text-4xl text-orange-400">{s.value}</div>
-              <div className="text-gray-500 mt-1 text-sm">{s.label}</div>
+        <div className="relative z-10 text-center max-w-3xl mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <span className="text-xl">🌟</span>
+              Trusted by 500+ childcare centers
             </div>
-          ))}
+            <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6 leading-tight" style={{ fontFamily: 'Lexend, sans-serif' }}>
+              A Safe, Nurturing Space<br />for Little Learners
+            </h1>
+            <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto leading-relaxed">
+              Daily reports, parent updates, activity planning, and staff coordination - all in one warm, intuitive platform.
+            </p>
+            <div className="flex gap-4 justify-center flex-wrap">
+              <Link
+                to="/register"
+                className="px-8 py-4 rounded-2xl text-[#FF8C42] font-bold text-lg shadow-lg hover:shadow-xl transition-all bg-white"
+              >
+                Start Free Trial
+              </Link>
+              <a
+                href="#features"
+                className="px-8 py-4 rounded-2xl font-bold text-lg border-2 border-white text-white hover:bg-white/10 transition-all"
+              >
+                Book a Tour
+              </a>
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-6">
+      <section id="features" className="py-24 px-6 max-w-6xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-extrabold text-gray-900 mb-4" style={{ fontFamily: 'Lexend, sans-serif' }}>
+            Everything a childcare center needs
+          </h2>
+          <p className="text-xl text-gray-500 max-w-2xl mx-auto">
+            Designed with warmth, built for trust. Every feature was shaped by real preschool teachers and parents.
+          </p>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {features.map((f, i) => (
+            <motion.div
+              key={f.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              viewport={{ once: true }}
+              className="bg-orange-50 rounded-2xl p-6 border border-orange-100"
+            >
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(135deg, #FFB347, #FF8C42)' }}>
+                <span className="text-white">{f.icon}</span>
+              </div>
+              <h3 className="font-bold text-lg text-gray-900 mb-2">{f.title}</h3>
+              <p className="text-gray-600 text-sm leading-relaxed">{f.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Role Cards */}
+      <section className="py-20 px-6" style={{ background: 'linear-gradient(135deg, #FFF8F0, #FFF3E0)' }}>
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-lexend font-extrabold text-4xl text-gray-900 mb-4">Everything You Need to Care and Connect</h2>
-            <p className="text-gray-500 text-lg max-w-2xl mx-auto">Purpose-built for early childhood education. Simple enough for busy parents, powerful enough for directors.</p>
+            <h2 className="text-4xl font-extrabold text-gray-900 mb-4" style={{ fontFamily: 'Lexend, sans-serif' }}>Built for everyone in the village</h2>
+            <p className="text-xl text-gray-500">It takes a village to raise a child. Our platform supports every member.</p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((f) => (
-              <div key={f.title} className="bg-white rounded-2xl p-6 border border-black/5 shadow-sm hover:shadow-md transition-shadow">
-                <div className={`w-12 h-12 ${f.color} rounded-xl flex items-center justify-center mb-4`}>
-                  <f.icon size={24} className={f.iconColor} />
-                </div>
-                <h3 className="font-semibold text-gray-900 text-lg mb-2">{f.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
-              </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {roles.map((r, i) => (
+              <motion.div
+                key={r.title}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.15 }}
+                viewport={{ once: true }}
+                className="bg-white rounded-3xl p-8 shadow-md border border-orange-100"
+              >
+                <div className="text-5xl mb-4">{r.emoji}</div>
+                <h3 className="font-bold text-xl text-gray-900 mb-1">{r.title}</h3>
+                <p className="text-[#FF8C42] font-medium text-sm mb-5">{r.subtitle}</p>
+                <ul className="space-y-2">
+                  {r.points.map(p => (
+                    <li key={p} className="flex items-center gap-2 text-sm text-gray-600">
+                      <Star size={14} className="text-[#FFB347] fill-[#FFB347] flex-shrink-0" />
+                      {p}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Sample Daily Schedule */}
-      <section className="py-24 bg-white">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="font-lexend font-extrabold text-4xl text-gray-900 mb-4">Share the Whole Day, Effortlessly</h2>
-            <p className="text-gray-500 text-lg">Staff log activities as they happen. Parents see a beautiful timeline in their app.</p>
-          </div>
-          <div className="space-y-3">
-            {activities.map((a) => (
-              <div key={a.time} className="flex items-center gap-4 bg-gradient-to-r from-orange-50 to-white rounded-xl p-4 border border-orange-100">
-                <div className="text-2xl">{a.emoji}</div>
-                <div className="w-20 text-sm font-medium text-orange-400 flex-shrink-0">{a.time}</div>
-                <div className="text-gray-700 font-medium">{a.activity}</div>
-              </div>
-            ))}
-          </div>
+      {/* Gallery */}
+      <section id="gallery" className="py-24 px-6 max-w-6xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-extrabold text-gray-900 mb-4" style={{ fontFamily: 'Lexend, sans-serif' }}>A day in the life</h2>
+          <p className="text-xl text-gray-500">Every moment is worth capturing and sharing with families.</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {galleryPhotos.map((src, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: i * 0.08 }}
+              viewport={{ once: true }}
+              className="rounded-2xl overflow-hidden aspect-square"
+            >
+              <img src={src} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+            </motion.div>
+          ))}
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-24" style={{ background: 'linear-gradient(135deg, #FFF7F3 0%, #F0FAF5 100%)' }}>
-        <div className="max-w-7xl mx-auto px-6">
-          <h2 className="font-lexend font-extrabold text-4xl text-gray-900 text-center mb-16">Parents and Directors Love Us</h2>
+      {/* Pricing */}
+      <section id="pricing" className="py-24 px-6" style={{ background: 'linear-gradient(135deg, #FFF8F0, #FFF3E0)' }}>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-extrabold text-gray-900 mb-4" style={{ fontFamily: 'Lexend, sans-serif' }}>Simple, transparent pricing</h2>
+            <p className="text-xl text-gray-500">Start for free. Grow at your own pace. No surprises.</p>
+          </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t) => (
-              <div key={t.name} className="bg-white rounded-2xl p-6 border border-orange-100 shadow-sm">
-                <div className="flex gap-1 mb-4">
-                  {Array(5).fill(0).map((_, i) => <Star key={i} size={16} className="text-yellow-400 fill-yellow-400" />)}
-                </div>
-                <p className="text-gray-600 text-base leading-relaxed mb-6">"{t.quote}"</p>
-                <div>
-                  <div className="font-semibold text-gray-900">{t.name}</div>
-                  <div className="text-gray-400 text-sm">{t.role}</div>
-                </div>
-              </div>
+            {plans.map((plan, i) => (
+              <motion.div
+                key={plan.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+                className={`rounded-3xl p-8 ${plan.highlight ? 'text-white shadow-2xl scale-105' : 'bg-white shadow-md border border-orange-100'}`}
+                style={plan.highlight ? { background: 'linear-gradient(135deg, #FFB347, #FF8C42)' } : {}}
+              >
+                <h3 className={`font-bold text-xl mb-2 ${plan.highlight ? 'text-white' : 'text-gray-900'}`}>{plan.name}</h3>
+                <div className={`text-4xl font-extrabold mb-1 ${plan.highlight ? 'text-white' : 'text-gray-900'}`} style={{ fontFamily: 'Lexend, sans-serif' }}>{plan.price}</div>
+                <div className={`text-sm mb-6 ${plan.highlight ? 'text-white/80' : 'text-gray-400'}`}>{plan.period}</div>
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map(f => (
+                    <li key={f} className={`flex items-center gap-2 text-sm ${plan.highlight ? 'text-white' : 'text-gray-600'}`}>
+                      <span className={plan.highlight ? 'text-white' : 'text-[#FF8C42]'}>✓</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  to="/register"
+                  className={`block w-full text-center py-3 rounded-xl font-bold transition-all ${plan.highlight ? 'bg-white text-[#FF8C42] hover:bg-orange-50' : 'text-white hover:opacity-90'}`}
+                  style={!plan.highlight ? { background: 'linear-gradient(135deg, #FFB347, #FF8C42)' } : {}}
+                >
+                  {plan.price === '$0' ? 'Get Started Free' : plan.price === 'Custom' ? 'Contact Sales' : 'Start Free Trial'}
+                </Link>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-24 text-center" style={{ background: 'linear-gradient(135deg, #FF7F50, #FFA07A)' }}>
-        <div className="max-w-3xl mx-auto px-6 text-white">
-          <h2 className="font-lexend font-extrabold text-4xl mb-4">Connect Your Preschool Community Today</h2>
-          <p className="text-xl text-white/90 mb-8">Join 2,000+ preschools building stronger bonds between families and educators.</p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/register">
-              <button className="bg-white text-orange-500 font-semibold px-8 py-3 rounded-full hover:bg-white/90 transition-colors shadow-md">
-                Start for Free
-              </button>
-            </Link>
-            <Link to="/demo">
-              <button className="border border-white/50 text-white font-semibold px-8 py-3 rounded-full hover:bg-white/10 transition-colors">
-                Watch a Demo
-              </button>
-            </Link>
+      {/* Footer */}
+      <footer className="py-12 px-6 bg-gray-900 text-center">
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #FFB347, #FF8C42)' }}>
+            <Sun size={18} className="text-white" />
           </div>
+          <span className="font-bold text-white">Campus Tribe Preschool</span>
         </div>
-      </section>
-
-      <Footer />
+        <p className="text-gray-400 text-sm">2026 Campus Tribe Inc. All rights reserved.</p>
+        <div className="flex justify-center gap-6 mt-4">
+          <Link to="/" className="text-gray-400 hover:text-white text-sm transition-colors">Home</Link>
+          <Link to="/school" className="text-gray-400 hover:text-white text-sm transition-colors">K-12</Link>
+          <Link to="/pricing" className="text-gray-400 hover:text-white text-sm transition-colors">Pricing</Link>
+        </div>
+      </footer>
     </div>
   );
 }

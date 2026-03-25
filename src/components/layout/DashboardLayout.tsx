@@ -19,6 +19,14 @@ const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; pat
     { label: 'Wellness', icon: <Heart size={18} />, path: '/dashboard/student#wellness' },
     { label: 'Profile', icon: <User size={18} />, path: '/dashboard/student#profile' },
   ],
+  student_rep: [
+    { label: 'Dashboard', icon: <LayoutDashboard size={18} />, path: '/dashboard/student-rep' },
+    { label: 'Venue Booking', icon: <Building2 size={18} />, path: '/dashboard/student-rep#venues' },
+    { label: 'Event Planning', icon: <Calendar size={18} />, path: '/dashboard/student-rep#events' },
+    { label: 'Clubs', icon: <Users size={18} />, path: '/dashboard/student-rep#clubs' },
+    { label: 'Budget', icon: <Wallet size={18} />, path: '/dashboard/student-rep#budget' },
+    { label: 'Applications', icon: <List size={18} />, path: '/dashboard/student-rep#applications' },
+  ],
   admin: [
     { label: 'Overview', icon: <LayoutDashboard size={18} />, path: '/dashboard/admin' },
     { label: 'Engagement', icon: <BarChart2 size={18} />, path: '/dashboard/admin#engagement' },
@@ -70,6 +78,7 @@ const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; pat
 
 const roleBadgeColors: Record<UserRole, string> = {
   student: 'bg-primary-container text-primary',
+  student_rep: 'bg-indigo-100 text-indigo-700',
   admin: 'bg-secondary-container text-secondary-dim',
   coach: 'bg-tertiary-container text-tertiary-dim',
   club_leader: 'bg-purple-100 text-purple-700',
@@ -81,6 +90,7 @@ const roleBadgeColors: Record<UserRole, string> = {
 
 const roleLabels: Record<UserRole, string> = {
   student: 'Student',
+  student_rep: 'Student Rep',
   admin: 'Administrator',
   coach: 'Coach',
   club_leader: 'Club Leader',

@@ -7,7 +7,7 @@ export interface Institution {
   logoUrl?: string;
 }
 
-export type UserRole = 'student' | 'admin' | 'coach' | 'club_leader' | 'staff' | 'it_director' | 'teacher' | 'parent';
+export type UserRole = 'student' | 'student_rep' | 'admin' | 'coach' | 'club_leader' | 'staff' | 'it_director' | 'teacher' | 'parent';
 
 export interface User {
   id: string;

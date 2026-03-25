@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import PricingPage from './pages/PricingPage';
 import StudentDashboard from './pages/dashboard/StudentDashboard';
+import StudentRepDashboard from './pages/dashboard/StudentRepDashboard';
 import TeacherDashboard from './pages/dashboard/TeacherDashboard';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
 import ClubLeaderDashboard from './pages/dashboard/ClubLeaderDashboard';
@@ -27,6 +28,7 @@ function DashboardRedirect() {
   const { user } = useAuthStore();
   const roleMap: Record<string, string> = {
     student: '/dashboard/student',
+    student_rep: '/dashboard/student-rep',
     admin: '/dashboard/admin',
     coach: '/dashboard/coach',
     club_leader: '/dashboard/club',
@@ -54,6 +56,7 @@ export default function App() {
         {/* Dashboard routing */}
         <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
         <Route path="/dashboard/student" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
+        <Route path="/dashboard/student-rep" element={<ProtectedRoute allowedRoles={['student_rep']}><StudentRepDashboard /></ProtectedRoute>} />
         <Route path="/dashboard/teacher" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherDashboard /></ProtectedRoute>} />
         <Route path="/dashboard/admin" element={<ProtectedRoute allowedRoles={['admin', 'staff']}><AdminDashboard /></ProtectedRoute>} />
         <Route path="/dashboard/club" element={<ProtectedRoute allowedRoles={['club_leader']}><ClubLeaderDashboard /></ProtectedRoute>} />
