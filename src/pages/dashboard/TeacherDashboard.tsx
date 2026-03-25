@@ -69,10 +69,21 @@ export default function TeacherDashboard() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="font-lexend font-bold text-3xl text-gray-900">{greeting}, {user?.name?.split(' ')[0] || 'Professor'} 👩‍🏫</h1>
-        <p className="text-gray-500 mt-1">Here is your teaching overview for today.</p>
+      {/* Hero Banner */}
+      <div className="relative rounded-2xl overflow-hidden mb-8" style={{ height: 200 }}>
+        <img
+          src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=800&q=80&auto=format"
+          alt="Classroom"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0047AB]/85 via-[#0047AB]/60 to-transparent" />
+        <div className="relative z-10 h-full flex flex-col justify-center px-8">
+          <p className="text-blue-200 text-sm mb-1">{greeting}</p>
+          <h1 className="font-bold text-3xl text-white mb-1" style={{ fontFamily: 'Lexend, sans-serif' }}>
+            {user?.name?.split(' ')[0] || 'Professor'} Crawford 👩‍🏫
+          </h1>
+          <p className="text-blue-100 text-sm">Here is your teaching overview for today.</p>
+        </div>
       </div>
 
       {/* Stats */}
@@ -180,12 +191,14 @@ export default function TeacherDashboard() {
           </div>
           <Card>
             <div className="space-y-3">
-              {attendanceToday.map((student) => (
+              {attendanceToday.map((student, idx) => (
                 <div key={student.name} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center font-medium text-gray-600">
-                      {student.name[0]}
-                    </div>
+                    <img
+                      src={`https://i.pravatar.cc/40?img=${idx + 1}`}
+                      alt={student.name}
+                      className="w-9 h-9 rounded-full object-cover"
+                    />
                     <span className="font-medium text-gray-800">{student.name}</span>
                   </div>
                   <div className="flex gap-2">

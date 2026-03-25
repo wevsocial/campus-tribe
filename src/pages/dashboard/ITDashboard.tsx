@@ -75,9 +75,18 @@ export default function ITDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
-        <h1 className="font-lexend font-bold text-3xl text-gray-900">IT Administration 🖥</h1>
-        <p className="text-gray-500 mt-1">System management, security, and integrations.</p>
+      {/* Hero Banner */}
+      <div className="relative rounded-2xl overflow-hidden mb-8" style={{ height: 180 }}>
+        <img
+          src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80&auto=format"
+          alt="IT"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-900/90 via-gray-800/70 to-transparent" />
+        <div className="relative z-10 h-full flex flex-col justify-center px-8">
+          <h1 className="font-bold text-3xl text-white mb-1" style={{ fontFamily: 'Lexend, sans-serif' }}>IT Administration</h1>
+          <p className="text-gray-300 text-sm">System management, security, and integrations.</p>
+        </div>
       </div>
 
       {/* Stats */}

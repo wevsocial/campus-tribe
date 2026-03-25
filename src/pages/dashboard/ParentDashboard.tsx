@@ -101,6 +101,20 @@ export default function ParentDashboard() {
 
   return (
     <DashboardLayout>
+      {/* Hero Banner */}
+      <div className="relative rounded-2xl overflow-hidden mb-8" style={{ height: 180 }}>
+        <img
+          src="https://images.unsplash.com/photo-1484665754804-74b091211472?w=800&q=80&auto=format"
+          alt="Parent"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#FFB347]/90 via-[#FF9800]/70 to-transparent" />
+        <div className="relative z-10 h-full flex flex-col justify-center px-8">
+          <h1 className="font-bold text-3xl text-white mb-1" style={{ fontFamily: 'Lexend, sans-serif' }}>Parent Portal</h1>
+          <p className="text-orange-100 text-sm">Stay connected with Emma's school day.</p>
+        </div>
+      </div>
+
       <div className="mb-8">
         {/* Child profile header */}
         <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-2xl p-6 border border-orange-100 mb-6">

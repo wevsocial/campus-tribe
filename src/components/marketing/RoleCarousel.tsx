@@ -5,29 +5,43 @@ const roles = [
     role: 'Student',
     icon: '🎓',
     headline: 'Your campus, your way.',
-    desc: 'Discover clubs, RSVP to events, track wellness, and compete in sports leagues to all in one app.',
-    gradient: 'linear-gradient(135deg, #0047AB 0%, #759eff 100%)',
-  },
-  {
-    role: 'Administrator',
-    icon: '🏛️',
-    headline: 'Insight at your fingertips.',
-    desc: 'Monitor engagement, identify at-risk students, and manage events across your entire campus.',
-    gradient: 'linear-gradient(135deg, #FF7F50 0%, #ffb08a 100%)',
+    desc: 'Discover clubs, RSVP to events, track wellness, and compete in sports leagues - all in one app.',
+    photo: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=80&auto=format',
   },
   {
     role: 'Coach',
     icon: '🏆',
     headline: 'Run your leagues, effortlessly.',
     desc: 'Schedule games, track standings, enter scores, and keep athletes in the loop.',
-    gradient: 'linear-gradient(135deg, #00A86B 0%, #5de0b0 100%)',
+    photo: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&q=80&auto=format',
   },
   {
     role: 'Club Leader',
     icon: '🎯',
     headline: 'Grow your club.',
-    desc: 'Manage members, book venues, plan events, and track your club\'s budget and impact.',
-    gradient: 'linear-gradient(135deg, #7B2D8B 0%, #c48fd4 100%)',
+    desc: 'Manage members, book venues, plan events, and track your club budget and impact.',
+    photo: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=80&auto=format',
+  },
+  {
+    role: 'Teacher',
+    icon: '📚',
+    headline: 'Empower every learner.',
+    desc: 'Track attendance, manage assignments, communicate with parents, and monitor student wellbeing.',
+    photo: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=400&q=80&auto=format',
+  },
+  {
+    role: 'IT Admin',
+    icon: '💻',
+    headline: 'Control at your fingertips.',
+    desc: 'Manage integrations, SSO, API keys, and platform-wide settings from a clean admin console.',
+    photo: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&q=80&auto=format',
+  },
+  {
+    role: 'Parent',
+    icon: '👨‍👩‍👧',
+    headline: 'Stay close, always.',
+    desc: 'See daily reports, event updates, grades, and message teachers directly from your phone.',
+    photo: 'https://images.unsplash.com/photo-1484665754804-74b091211472?w=400&q=80&auto=format',
   },
 ];
 
@@ -35,28 +49,36 @@ export const RoleCarousel: React.FC = () => {
   const doubled = [...roles, ...roles];
 
   return (
-    <section className="py-24 bg-surface overflow-hidden">
+    <section className="py-24 bg-[#f6f6f9] overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 mb-12 text-center">
-        <p className="text-sm font-jakarta font-700 text-primary mb-3">Roles</p>
-        <h2 className="font-lexend font-900 text-4xl text-on-surface">
-          Built for <span className="text-primary italic">Every Role</span>
+        <p className="text-sm font-semibold text-[#0047AB] mb-3 uppercase tracking-wider">Roles</p>
+        <h2 className="text-4xl font-bold text-gray-900" style={{ fontFamily: 'Lexend, sans-serif' }}>
+          Built for <span className="text-[#0047AB] italic">Every Role</span>
         </h2>
       </div>
 
       <div className="relative overflow-hidden">
-        <div className="flex gap-6 w-max animate-role-carousel" style={{ paddingLeft: '1.5rem' }}>
+        <div className="flex gap-6 animate-scroll-slow" style={{ width: 'max-content' }}>
           {doubled.map((role, i) => (
             <div
               key={i}
-              className="flex-shrink-0 w-80 rounded-2xl overflow-hidden shadow-float"
+              className="flex-shrink-0 w-80 rounded-2xl overflow-hidden relative group cursor-pointer"
+              style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.15)', height: 380 }}
             >
-              <div className="h-48 flex items-center justify-center" style={{ background: role.gradient }}>
-                <span className="text-7xl">{role.icon}</span>
-              </div>
-              <div className="bg-surface-lowest p-6">
-                <span className="text-xs font-jakarta font-700 text-primary uppercase tracking-wider">{role.role}</span>
-                <h3 className="font-lexend font-800 text-xl text-on-surface mt-1 mb-2">{role.headline}</h3>
-                <p className="text-sm text-on-surface-variant leading-relaxed">{role.desc}</p>
+              {/* Background photo */}
+              <img
+                src={role.photo}
+                alt={role.role}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              {/* Dark gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
+              {/* Content */}
+              <div className="absolute inset-0 flex flex-col justify-end p-6">
+                <div className="text-4xl mb-2">{role.icon}</div>
+                <span className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-1">{role.role}</span>
+                <h3 className="text-xl font-bold text-white mb-2" style={{ fontFamily: 'Lexend, sans-serif' }}>{role.headline}</h3>
+                <p className="text-sm text-white/80 leading-relaxed">{role.desc}</p>
               </div>
             </div>
           ))}

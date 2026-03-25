@@ -27,9 +27,18 @@ const CoachDashboard: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
-        <h1 className="font-lexend font-900 text-3xl text-on-surface">Coach Dashboard</h1>
-        <p className="text-on-surface-variant mt-1">Intramural Sports Coordinator</p>
+      {/* Hero Banner */}
+      <div className="relative rounded-2xl overflow-hidden mb-8" style={{ height: 200 }}>
+        <img
+          src="https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&q=80&auto=format"
+          alt="Sports"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+        <div className="relative z-10 h-full flex flex-col justify-center px-8">
+          <h1 className="font-bold text-3xl text-white mb-1" style={{ fontFamily: 'Lexend, sans-serif' }}>Coach Dashboard</h1>
+          <p className="text-gray-300 text-sm">Intramural Sports Coordinator</p>
+        </div>
       </div>
 
       {/* Leagues */}

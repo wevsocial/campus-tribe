@@ -16,9 +16,25 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="mb-8">
-        <h1 className="font-lexend font-900 text-3xl text-on-surface">Admin Overview</h1>
-        <p className="text-on-surface-variant mt-1">University of Toronto · Spring 2026</p>
+      {/* Hero Banner */}
+      <div className="relative rounded-2xl overflow-hidden mb-8" style={{ height: 200 }}>
+        <img
+          src="https://images.unsplash.com/photo-1562774053-701939374585?w=800&q=80&auto=format"
+          alt="Campus"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#001a4d]/90 via-[#0047AB]/70 to-transparent" />
+        <div className="relative z-10 h-full flex flex-col justify-center px-8">
+          <h1 className="font-bold text-3xl text-white mb-1" style={{ fontFamily: 'Lexend, sans-serif' }}>Admin Overview</h1>
+          <p className="text-blue-200 text-sm">University of Toronto - Spring 2026</p>
+          <div className="flex gap-4 mt-4">
+            {[{ label: '12,847 Students', icon: '🎓' }, { label: '342 Staff', icon: '👥' }, { label: '98.2% Uptime', icon: '✅' }].map(s => (
+              <div key={s.label} className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-white text-xs font-semibold">
+                <span>{s.icon}</span><span>{s.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Alert */}

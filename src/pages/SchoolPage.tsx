@@ -33,8 +33,15 @@ export default function SchoolPage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="pt-32 pb-20 bg-gradient-to-br from-[#FF7F50] to-[#e05a25] text-white">
-        <div className="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+      <section className="pt-32 pb-20 bg-[#FF6B35] relative overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80&auto=format"
+            alt="School"
+            className="w-full h-full object-cover opacity-20"
+          />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center text-white">
           <div>
             <div className="inline-flex items-center gap-2 bg-white/20 text-white px-4 py-2 rounded-full text-sm font-semibold mb-6">
               <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
