@@ -549,3 +549,47 @@ export const MOCK_CREDENTIALS: Record<string, string> = {
   'it@demo.com': 'it',
   'parent@demo.com': 'parent',
 };
+
+// ── PRD v2.0 additions ──────────────────────────────────────
+
+export const MOCK_PEERS = [
+  { id: 'peer-1', name: 'Jordan Lee', major: 'Computer Science', year: 2, interests: ['Robotics', 'Gaming', 'Coding'], lookingFor: 'study_buddy', avatarColor: '#0047AB' },
+  { id: 'peer-2', name: 'Sofia Martinez', major: 'Biology', year: 3, interests: ['Fitness', 'Photography', 'Travel'], lookingFor: 'friend', avatarColor: '#7C3AED' },
+  { id: 'peer-3', name: 'Chris Wong', major: 'Business', year: 1, interests: ['Basketball', 'Music', 'Finance'], lookingFor: 'teammate', avatarColor: '#FF7F50' },
+  { id: 'peer-4', name: 'Emma Davis', major: 'Psychology', year: 4, interests: ['Art', 'Cooking', 'Reading'], lookingFor: 'mentor', avatarColor: '#00A86B' },
+  { id: 'peer-5', name: 'Liam Park', major: 'Engineering', year: 2, interests: ['3D Printing', 'Soccer', 'Chess'], lookingFor: 'study_buddy', avatarColor: '#0047AB' },
+  { id: 'peer-6', name: 'Aisha Johnson', major: 'Political Science', year: 3, interests: ['Debate', 'Film', 'Dance'], lookingFor: 'friend', avatarColor: '#7C3AED' },
+];
+
+export const MOCK_CLUB_POSTS = [
+  { id: 'cp-1', clubName: 'Robotics Club', author: 'Alex Kim', content: 'Our team just won the regional championship! 🏆 Huge thanks to everyone who stayed late last week. Next stop — nationals!', type: 'achievement', likes: 42, time: '2h ago' },
+  { id: 'cp-2', clubName: 'Photography Society', author: 'Priya Sharma', content: 'Exhibition submissions due Friday — upload your best shots to the shared drive by 11:59 PM. Theme this year: "Belonging."', type: 'event', likes: 18, time: '5h ago' },
+  { id: 'cp-3', clubName: 'Basketball Team', author: 'Marcus Thompson', content: 'Practice moved to Thursday this week. Court B, 6PM sharp. Coach says attendance is mandatory for tournament squad. 🏀', type: 'update', likes: 9, time: '1d ago' },
+  { id: 'cp-4', clubName: 'Film Society', author: 'Jamie Chen', content: 'Parasite screening this Thursday, 7PM — Room 204. Free popcorn for members. Non-members $3 at the door. 🎬', type: 'event', likes: 31, time: '1d ago' },
+];
+
+export const MOCK_TOURNAMENTS = [
+  { id: 't-1', name: 'Spring Basketball Championship', sport: 'Basketball', format: 'Single Elimination', status: 'Active', teams: 8, maxTeams: 16, startDate: '2026-04-01', endDate: '2026-04-20' },
+  { id: 't-2', name: 'Intramural Soccer League', sport: 'Soccer', format: 'Round Robin', status: 'Registration', teams: 6, maxTeams: 12, startDate: '2026-04-15', endDate: '2026-05-30' },
+  { id: 't-3', name: 'Tennis Open', sport: 'Tennis', format: 'Single Elimination', status: 'Completed', teams: 16, maxTeams: 16, startDate: '2026-03-01', endDate: '2026-03-20' },
+  { id: 't-4', name: 'Badminton Doubles Cup', sport: 'Badminton', format: 'Round Robin', status: 'Registration', teams: 4, maxTeams: 8, startDate: '2026-05-01', endDate: '2026-05-15' },
+];
+
+export const MOCK_AI_INSIGHTS = [
+  { id: 'ai-1', type: 'at_risk', severity: 'alert', title: '3 students showing low wellbeing', desc: 'Average mood score below 2.5 over the past 7 days. Consider proactive outreach from student services.', icon: '🚨', time: '2h ago', read: false },
+  { id: 'ai-2', type: 'engagement', severity: 'warning', title: '4 events have zero RSVPs', desc: 'Spring Gala, Study Marathon, Club Showcase, and Debate Night have no sign-ups yet. Consider targeted announcements.', icon: '⚠️', time: '5h ago', read: false },
+  { id: 'ai-3', type: 'trend', severity: 'info', title: '"Robotics Club" is the fastest-growing club', desc: '24 new members joined this week — the highest campus growth rate. Consider featuring them in the weekly digest.', icon: '💡', time: '1d ago', read: true },
+  { id: 'ai-4', type: 'engagement', severity: 'info', title: 'Campus engagement score: 78%', desc: 'Up 12% from last month. Wellbeing check-ins are driving the improvement. Keep the momentum!', icon: '📈', time: '1d ago', read: true },
+];
+
+export const MOCK_CLUB_RECOGNITIONS = [
+  { id: 'cr-1', clubName: 'Sustainability Action Network', category: 'Environment', contactName: 'Maya Rodriguez', contactEmail: 'maya@demo.com', advisorName: 'Prof. Green', status: 'pending', desc: 'Focused on campus sustainability initiatives, composting, and eco-awareness campaigns.', date: '2026-03-25' },
+  { id: 'cr-2', clubName: 'Tabletop Gaming Society', category: 'Recreation', contactName: 'Ben Turner', contactEmail: 'ben@demo.com', advisorName: 'Prof. White', status: 'pending', desc: 'Weekly D&D sessions, board game tournaments, and RPG campaigns for all skill levels.', date: '2026-03-26' },
+  { id: 'cr-3', clubName: 'Pre-Med Alliance', category: 'Academic', contactName: 'Sarah Kim', contactEmail: 'sarah@demo.com', advisorName: 'Dr. Patel', status: 'approved', desc: 'Study groups, MCAT prep, and hospital volunteer coordination.', date: '2026-03-20' },
+];
+
+export const MOCK_ELECTIONS = [
+  { id: 'el-1', clubName: 'Student Council', title: 'President 2026-27', status: 'open', endsAt: '2026-04-05', candidates: [{ name: 'Alex Kim', votes: 142, position: 'President' }, { name: 'Sofia Martinez', votes: 98, position: 'President' }, { name: 'Jordan Lee', votes: 76, position: 'President' }] },
+  { id: 'el-2', clubName: 'Photography Society', title: 'Club President', status: 'open', endsAt: '2026-04-10', candidates: [{ name: 'Priya Sharma', votes: 34, position: 'President' }, { name: 'Chris Wong', votes: 28, position: 'President' }] },
+  { id: 'el-3', clubName: 'Robotics Club', title: 'Treasurer', status: 'closed', endsAt: '2026-03-20', candidates: [{ name: 'Emma Davis', votes: 67, position: 'Treasurer' }, { name: 'Liam Park', votes: 45, position: 'Treasurer' }] },
+];

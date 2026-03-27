@@ -50,7 +50,7 @@ export default function UniversityPage() {
                   <img
                     alt="Student Library"
                     className="w-full h-full object-cover"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6u6jXcsb6GjO-4c3-37keHTqRwvgDCilsUxUJml-rFY3-pOy4Dzy_wgznLxPiQ6RH8dgCw4r8EW3L15v5X4dptUTdxkWPlojSJ_EaxZ62ltJKfc5nY83fOHofhQzvekrsmPhoAA1DWh3Uo1XsG0qoxOeZXCL_66H48tLooE6BrmSnM_Ilcg4KlsLRiLFfU1Tbr3BTgy1u-lrg90xgfPPaxnmfH0QkROOHwVtYOIPoZLtj4c6X7d3LpIXLbttoyw0wELSgQEvQccQ"
+                    src="/assets/campus-hero.jpg"
                   />
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-xl flex items-center gap-4">
@@ -68,7 +68,7 @@ export default function UniversityPage() {
                   <img
                     alt="Students Group"
                     className="w-full h-full object-cover"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQ7_mCfL4lA0_RkYGcW7wkEAOzGBYg0YymhGWD6CwQf-Mh6Fsdd7E3dlMnVtuPgMuAAjxqG7MV2nWeYSA94rB6sfOKCy3DhNPqp8h6K2jzGC5pj8pEwdhnnL1MRznZtBX-f2_6VmpJpfbPuow3s-Y-LzNKwcg3yEAfFD6_Ptcjl064GVoayStw5oXp7yxKrf7tbSsmfuyXAvo2y3X4AgxuNEpCrtVyYDV-tR0O1fQZhFdvZSDodz6tIHBu7Ln6Fi26YHFv8Hejolo"
+                    src="/assets/campus-students.jpg"
                   />
                 </div>
                 <div className="bg-secondary p-4 rounded-xl shadow-xl flex items-center gap-4 text-white">
@@ -108,7 +108,7 @@ export default function UniversityPage() {
                 <img
                   alt="Smart Matching"
                   className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-                  src="https://lh3.googleusercontent.com/aida/ADBb0uhmaii9uWjftl1knDMFulTPyXvaONSp6AWkZn6PEVXMREjlGSLSCoLZaJviD1wz3-Cs2tDnIxrKCT68dmYqHA9eCqdVq3rFd9GpRVL6DzOiMBZbS407jAPFKgIQXv_dR1_bjF9YJEF4EsYiPiqKF50ER_ubL6RNq53WpcxK7ynr6eFxmJ6M9a_d37drwDlpka3ip5DUHWnGbqtQG8dQEwa2zoErFczmWLdN9jqSdDkekpDIdi89MTOHTM_zAZnVm02F0Qu84qcD"
+                  src="/assets/campus-aerial.jpg"
                 />
               </div>
             </div>
@@ -122,7 +122,7 @@ export default function UniversityPage() {
                 <img
                   alt="Events"
                   className="rounded-xl shadow-lg w-full h-40 object-cover"
-                  src="https://lh3.googleusercontent.com/aida/ADBb0ugV7Bg179qlAEetZJTG0qRhYxfb71yjyXdFmk-0bd5vv9JDvhUCEBUHPLlGEOUxU7BMhukyOCXIIzWrVrNqE-lFbqCft5A2JCnsuO5uapR2_ELE17KIhY4CNEujXJ7Jh4unZRZr7J7zbmiWSnTMTNQ_rkmFcJe8BaY2okMZTjhFBgyaeH1GqcDPrbC1in4OjgW1Ulnx0f3xYbZCAsG4J1IJq8PUWLmjkbFWsTju8f49ymOWlHPTOhNIAXaoGjgCEWu3g2Wwx8DvUw"
+                  src="/assets/campus-sports.jpg"
                 />
               </div>
             </div>
@@ -136,7 +136,7 @@ export default function UniversityPage() {
                 <img
                   alt="Sports"
                   className="w-full h-full object-cover"
-                  src="https://lh3.googleusercontent.com/aida/ADBb0uib4KWy0BsxPbLgimSZB1bYCABtaWEgmjw8lQyKcQUwN9u_LwXEnxdZdyO-utfKwuRebLQIwALMbsPyG0kU0J6BRkVyMtVOgVbvuGR1-7eAUufSJrgjtepj7Jv4ocf4nnJLDR942BaXVsVQN4zVhfGf9MBcnnMxJvixoyNc5c-nZujdv3ZAbAXu6pc7t6iZJmfuaV4dBBVY6uHF3Nd8Mqm-mNflvjH2Fa7g3ydgV04_OUVBLxGv0FI7D7PttxbqeIQHt5n9WUhl"
+                  src="/assets/campus-library.jpg"
                 />
               </div>
             </div>
@@ -151,7 +151,7 @@ export default function UniversityPage() {
                 <img
                   alt="Venue"
                   className="mt-4 rounded-lg h-32 w-full object-cover"
-                  src="https://lh3.googleusercontent.com/aida/ADBb0ugnFRPrW5u-gl7gTitx-yln3KdF_v14KOl_vP0W0S6J1SXMpbeVWHJHFxxBKZmf3c4UevhM5cLd80Wrv10FoQKacAVsnhNGZWs9j_pvZW8B1dVJKrm58HQOtoaHb54WGQVEYB1NV6RGDhDiGvpJ1BWyXISyULKMBRoh4L3_g8LAYhmuFE3snH2dVGO7bJAkLSWat_uAcPkSXGVQDDBBGeUhogc3TyvtHtJxyBbeQ_mZVHz4bMl2YsT-IxgMyvksJN5HvezEuE3how"
+                  src="/assets/campus-events.jpg"
                 />
               </div>
               <div className="bg-surface-container-lowest dark:bg-slate-800 rounded-xl p-6 flex flex-col justify-between">
@@ -163,7 +163,7 @@ export default function UniversityPage() {
                 <img
                   alt="Wellbeing"
                   className="mt-4 rounded-lg h-32 w-full object-cover"
-                  src="https://lh3.googleusercontent.com/aida/ADBb0uii8Mx-nlySuY8vtLDFRbAoJ0R9JOpTzYtOq2Z3Cpi5s3g4ZZ7birGicq_H1keXrSH_XHQ5HcQJtVF-XVJnZYwIhJ9tAGv0Qz12VerZAxt5rmzreV_clTDs5r36MYBk9jQMSvadX13qdukxynJa8grWZns4jZOFI0VqVxDaFXxTVdk7yEe91vR7yBJsGHP12QNRuEUZpAV3Mt0vEtcb3s_4q0ky2gPJ9fvKZZMMfVYHZSeauerK42GkBs7wUEFZN2nN6LLGfE5r"
+                  src="/assets/campus-clubs.jpg"
                 />
               </div>
             </div>

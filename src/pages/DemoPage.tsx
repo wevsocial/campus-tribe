@@ -42,9 +42,9 @@ export default function DemoPage() {
               <div className="mt-12">
                 <div className="flex -space-x-4">
                   {[
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuBtE8WhO7R3fxdOrkYWgUEZTHPhynrZFeTyjQC8VjVmLwqeSti_D60OrfX-T9YYiBTp-0JGkFc_Jk8HQ8bD1WgrbkboFe5qpJY4bkcNz8AotNskZkgDUISlvZqJuv6f_e2zryoL8mMYlhbgsjz7HXEYIUzyaogWcgsBx3Bk4JMNOOGve1vm3B-9xVMWHVg986GWfz2fTFpOguKejaZkoQLcS4DHxll5wdrHS8Yo4mSiFpXEj2ooRlZytFAHQPNPGL_2fm7V5caF8zo',
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuAhm8vufZny214URpwOu_pnHtP3rgCSFT_e8-1J8z2g2WiItjJcpeqSfzKh4LJ_Q5FPiCZ1TYqnOjZBrKmjF36yBMM72JI0OWeleziRK7UegduyWMCWUpOl6EW_557hY8j66M3-Vp7n1ADboE_ApUPSsqksQGDdlLXMNDliRB5tpWdl1dOypK2MRs_Kjmk5NNaiwbd5bBRweViHPcAzNrFcytrWcC0TYtEXWjenODYj4zE_J8EwKmms9Q0_Skfv2i14gewH7GyG7fk',
-                    'https://lh3.googleusercontent.com/aida-public/AB6AXuD_bQqNcnIbOsa3JasG2ERDW3lDAfOr5zy7pZguVmVK_Oh3-W5TPm3UxwsFI3ru0LsF7AviPz5ItafEglPMIJbQ-_CUO6sHdq64uHGcpjitFl-9oFprLdp4MwNd9v7wCLreYmyKc8fX1YW5M19iMp8Za9SlRFVsfSyse94whJnreVSr7vHkq_y6Vu3xfU9q99Q7TwY90_TwOLTzptChJf39xLaOdPC8-hNg8NjAOhopNKuKwDDkHUZgG0pYKn3Thqs1O2WvAKsSFv8',
+                    '/assets/campus-school.jpg',
+                    '/assets/campus-matching.jpg',
+                    '/assets/campus-surveys.jpg',
                   ].map((src, i) => (
                     <div key={i} className="w-12 h-12 rounded-full border-2 border-primary bg-slate-200 overflow-hidden">
                       <img alt="User" src={src} className="w-full h-full object-cover" />

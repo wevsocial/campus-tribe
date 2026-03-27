@@ -36,7 +36,7 @@ export default function SchoolPage() {
                 <img
                   alt="School students engaged in activities"
                   className="w-full h-[500px] object-cover"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7AcdfpRQpzzQyjP5fKEFGdMuEnoe9ck082BroDD5SlMUd64HcbNHuXLvDYZ7Pg0sl4RNyOvpUooC5Q2vHC0h8GBx-xXC1QAXeDtA9V7zzmtPmwI4zRr2Mz8Es6SG5-x2WssT52jVNloPyGBHiO0ha6sYcfB_rSbJ1M_IOZ4Vb_3WXLtblH6sSG0SXAXA36hjrOGUg738o-a-83v70YAdoCVGCTt0_z2eBpETzKOyuLbaD8_beTvkn1ijuFcrm4nzygty44eloVMs"
+                  src="/assets/campus-parent.jpg"
                 />
               </div>
               <div className="absolute -bottom-8 -left-8 z-20 bg-surface-container-lowest p-6 rounded-xl shadow-xl flex items-center gap-4 border border-outline-variant/15">
@@ -65,7 +65,7 @@ export default function SchoolPage() {
                 <h3 className="font-headline text-2xl font-bold mb-4">Secure Attendance Tracking</h3>
                 <p className="font-body text-on-surface-variant max-w-md">Real-time attendance with biometric-ready check-in. Automate absence notifications to parents instantly.</p>
                 <div className="mt-8 rounded-lg overflow-hidden border border-outline-variant/10">
-                  <img alt="School sports" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDCM2UVLIZCIrUz3ENLRBXzBVWI4I5cLklFHfhHoRaHY-oMRXJwsB9oitQh0N2qdGK_mAn-3KlOIwsvnxepNvTrmGKA3Z-Qcr7nn3nmrhXeqMo8BCkhUpKzGr6Fpb-JAtPTrhgxcm-PdHsoUKGJ0rhhFJ7RGaq-uQ-qKq3tpDDjjRy1BURYjief0_q5eHGqFMj8m5E2pnz_Iku-JLnK_U2HVW7Sic22oDGdde599LvSi2s55Payh4LecFLJW81IQaHhpYoDWa2Os-Y" />
+                  <img alt="School sports" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="/assets/campus-coach.jpg" />
                 </div>
               </div>
               <div className="md:col-span-4 bg-secondary text-white rounded-xl p-8 flex flex-col justify-center text-center">
@@ -114,7 +114,7 @@ export default function SchoolPage() {
                 </blockquote>
                 <div className="flex items-center gap-4">
                   <img
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIlUl6z2MIkCMBSPrsucAo80DhcOyJ5GT-EE4GFA3irQNxkZCceMDl1PPCdbEzmYUvd6HaEZ2KqOQJVwah9c8O8mCnPA2HmCKmUND7Yehj8TGEoi2EsEKtyNJYepwC4ARnHWsiQCn_usY2qyRIBNjVeEWmlpSJLznKdbidoez0gg7gpRByPPtX587WgMJ091xDmCTLS9kXi7tO8kFw9WGfUmVFJgojKgeDwEHKp-2kzc7o__X7fVz1NkzGCV5eBo"
+                    src="/assets/campus-university.jpg"
                     alt="Principal testimonial"
                     className="w-14 h-14 rounded-full object-cover"
                   />

@@ -36,7 +36,7 @@ export default function PreschoolPage() {
                 <img
                   alt="Preschool children playing together"
                   className="w-full h-[500px] object-cover"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9Rhk0U8uNfx5As3k3OpSRR0ogU2tlvQGvgZXf6Vz_MxutdZWfLeBiElGjppSimcedNzpdaNEkQ4u9OyMurX6vp8ubY8YgsBQHkGpxZ-hJpuDwvdni36A6R1gU-wx_lovfc5GDVsa0d5Yo5xdENPdJDRjNjuB4Zk9NOPpr9ptS6zL3rcrxwwifBATqR3EVqtvvyVs-N6gqcLmn-T6wGyJvHUb-vt9YN2_dvyEid37ytz2Y1lif4LtsnuIzaTdpE_T5yNfxf96fNBk"
+                  src="/assets/campus-clubs.jpg"
                 />
               </div>
               <div className="absolute -bottom-8 -left-8 z-20 bg-surface-container-lowest p-6 rounded-xl shadow-xl flex items-center gap-4 border border-outline-variant/15">
@@ -68,7 +68,7 @@ export default function PreschoolPage() {
                     <p className="font-body text-on-surface-variant max-w-md">Real-time updates, community threads, and secure event scheduling in one centralized hub.</p>
                   </div>
                   <div className="mt-8 rounded-lg overflow-hidden border border-outline-variant/10">
-                    <img alt="Parent engagement interface" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDj45gwaeXgkzYEEcqDjCitnk4eJaJgWPqtThkcyIjP1A24IttTaMPlR9d0lpSeVLVLLMIRsVNLX4RD3hIzTp9laSZsOt31lCYMEiYPlH061_HMyTgYGFVRsecjdnnfkcP1FuRJB5MoA70sU5rqx3ppI-yF1W2FHFNCT4qL2NodHHR7bBoZOlaHFj2oqTxfgRpCJx7UZdDjuVZMBDySIaOsv7aV_0rG9V8rZxDfaoLP5lGAjEpRrLAexJ4gZD0iAHuyqKyAiirYYg" />
+                    <img alt="Parent engagement interface" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="/assets/campus-wellbeing.jpg" />
                   </div>
                 </div>
               </div>
@@ -167,16 +167,16 @@ export default function PreschoolPage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="aspect-square bg-surface-container-highest rounded-xl overflow-hidden shadow-lg">
-                <img alt="Child painting" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEgs-1-CMbfk4m6_8X02mdYi5XLBOrcMeM1zy589pQ6M5p-gnp0ztyHcjzsC_DzgRNJnpX5Nr6TXlDekh8c2Iny3Xsk4jlNg3t-S3OqdA7Y_LnAgRn4ok7jWh6GiSYYNHZFkCn_FmHO98yft7vM1DgFVmQd6MR7_AydQqkZrOMaTxsIGfejk-c2_QXUU07oGyfwG562abclRsko9dOfhHJOStJJoLK7O_Dc7nE7f-Yk7IWk61eLtUv84eBehKlEdnNlw0VOEjXl84" />
+                <img alt="Child painting" className="w-full h-full object-cover" src="/assets/campus-venues.jpg" />
               </div>
               <div className="aspect-[3/4] bg-surface-container-highest rounded-xl overflow-hidden shadow-lg md:mt-12">
-                <img alt="Reading time" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFliN5TBEozW_sgJXVNfl6OeLkr1EDBGQkZ_NV9WUsobmzzWLVJGSwhP1bsh1ubu-gCoVXo7RLdMAgEQVlqta2LNfzKodi6QiNEIRjnblosy-jfI5lq6_wTt-cXX3KY53g6NAZ6Md4w497s8JkvOWdZ6EqxXViqNY-ZfDtfVkJC7MD5O03So0yA2ImDuEW46_VBBThhJURMlFq5-yfNN2C6ih2SyVi_Dv-jNP-zWBsukaLpJsxh3YxLtROL8OwlZaGEQui3wyZ3m4" />
+                <img alt="Reading time" className="w-full h-full object-cover" src="/assets/campus-preschool.jpg" />
               </div>
               <div className="aspect-square bg-surface-container-highest rounded-xl overflow-hidden shadow-lg">
-                <img alt="Playground fun" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6UvQ4BlX3fTp-kKJgXzX-kfBOarI0zLwFp5vqcsmkCDYaHM0qOJGndxfGvpfHWbuBpjCDCOW3YaOT8XXeJZZrud18lqqm1RQUX0DaA0BfhqAxxdYxG5ROBa-tYrZLLBBwcRC0CxmooSUQmq9q98hMhi-rVYINmlzCVskiC7oPy4izpZ1RRAMCJ2ltBy6m1FU57AaNEJ10TfY1g0aK31DbzBvIyrfTlC9gi5vlR_bnBgHs4ij8Ioh5vLgQHmWjGpxpb-lO4Hk2uPc" />
+                <img alt="Playground fun" className="w-full h-full object-cover" src="/assets/campus-teachers.jpg" />
               </div>
               <div className="aspect-[3/4] bg-surface-container-highest rounded-xl overflow-hidden shadow-lg md:-mt-12">
-                <img alt="Science experiment" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFMJHVRKqanj8crhX2mpqOX5caS7LqGkjPMHNyPhEs6llW8jw6VatvJrVVznrJyQi7jVzXzEk6NViR9DBbJSYBnxXhNLSayEH-MGmKvr3oXLLBASDnh96HuUAAR9aJxVjpx4DbkoQGKu_-ufLP_dbpeNMb3jaYcTmzEDgW6Obh_20sKoSDd-c7HymLpsvMyG0ZzArCvWbA9gaThFudlJoRKRmFZwpBxXbrdoF6PR0zWLN2dqRP2tcCvFMcpMu2-wywvP53Ho54iHE" />
+                <img alt="Science experiment" className="w-full h-full object-cover" src="/assets/campus-admin.jpg" />
               </div>
             </div>
           </div>

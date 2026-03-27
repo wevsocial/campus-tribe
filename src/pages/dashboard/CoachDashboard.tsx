@@ -76,7 +76,7 @@ const CoachDashboard: React.FC = () => {
       {/* Hero Banner */}
       <div className="relative rounded-2xl overflow-hidden mb-8" style={{ height: 200 }}>
         <img
-          src="https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&q=80&auto=format"
+          src="/assets/campus-matching.jpg"
           alt="Sports"
           className="absolute inset-0 w-full h-full object-cover"
         />

@@ -71,7 +71,9 @@ const enrollmentTrend = [
   { month: 'Mar', students: 12847 },
 ];
 
-const tabs = ['Overview', 'Admissions', 'Budget', 'Staff', 'Announcements'];
+import { MOCK_TOURNAMENTS, MOCK_AI_INSIGHTS, MOCK_CLUB_RECOGNITIONS, MOCK_ELECTIONS } from '../../lib/mockData';
+
+const tabs = ['Overview', 'Admissions', 'Budget', 'Staff', 'Announcements', 'Tournaments', 'Club OS', 'AI Insights'];
 
 const KANBAN_COLS = ['Applied', 'Under Review', 'Admitted', 'Enrolled', 'Declined'];
 const COL_COLORS: Record<string, string> = {
@@ -91,7 +93,7 @@ const AdminDashboard: React.FC = () => {
       {/* Hero Banner */}
       <div className="relative rounded-2xl overflow-hidden mb-8" style={{ height: 200 }}>
         <img
-          src="https://images.unsplash.com/photo-1562774053-701939374585?w=800&q=80&auto=format"
+          src="/assets/campus-hero.jpg"
           alt="Campus"
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -432,7 +434,183 @@ const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Add Staff Modal */}
+      {/* Tournaments Tab */}
+      {activeTab === 'Tournaments' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-black text-gray-800" style={{ fontFamily: 'Lexend, sans-serif' }}>Tournaments</h2>
+              <p className="text-gray-500 text-sm mt-1">Manage intramural sports tournaments and brackets</p>
+            </div>
+            <button className="bg-[#0047AB] text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-800 transition-all">🏆 New Tournament</button>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            {MOCK_TOURNAMENTS.map(t => {
+              const statusColor: Record<string,string> = { Active: 'bg-green-100 text-green-700', Registration: 'bg-blue-100 text-[#0047AB]', Completed: 'bg-gray-100 text-gray-500' };
+              return (
+                <div key={t.id} className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div>
+                      <div className="font-black text-gray-800" style={{ fontFamily: 'Lexend, sans-serif' }}>{t.name}</div>
+                      <div className="text-sm text-gray-500 mt-0.5">{t.sport} · {t.format}</div>
+                    </div>
+                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${statusColor[t.status]}`}>{t.status}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+                    <span>👥 {t.teams}/{t.maxTeams} teams</span>
+                    <span>📅 {t.startDate} → {t.endDate}</span>
+                  </div>
+                  {/* Progress bar */}
+                  <div className="w-full bg-gray-100 rounded-full h-2 mb-3">
+                    <div className="bg-[#0047AB] rounded-full h-2 transition-all" style={{ width: `${(t.teams / t.maxTeams) * 100}%` }} />
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="flex-1 border border-[#0047AB] text-[#0047AB] rounded-lg py-2 text-xs font-bold hover:bg-[#0047AB] hover:text-white transition-all">View Bracket</button>
+                    {t.status === 'Registration' && <button className="flex-1 bg-[#0047AB] text-white rounded-lg py-2 text-xs font-bold">Manage Teams</button>}
+                    {t.status === 'Active' && <button className="flex-1 bg-[#FF7F50] text-white rounded-lg py-2 text-xs font-bold">Update Scores</button>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Club OS Tab */}
+      {activeTab === 'Club OS' && (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-black text-gray-800" style={{ fontFamily: 'Lexend, sans-serif' }}>Club & Organization OS</h2>
+
+          {/* Recognition Requests */}
+          <div className="bg-white rounded-3xl p-6" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+            <h3 className="font-black text-gray-800 mb-4" style={{ fontFamily: 'Lexend, sans-serif' }}>🎖 Recognition Requests</h3>
+            <div className="space-y-3">
+              {MOCK_CLUB_RECOGNITIONS.map(r => {
+                const statusColor: Record<string,string> = { pending: 'bg-yellow-100 text-yellow-700', approved: 'bg-green-100 text-green-700', rejected: 'bg-red-100 text-red-500' };
+                return (
+                  <div key={r.id} className="flex items-start justify-between gap-3 p-4 border border-gray-100 rounded-2xl">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-bold text-gray-800 text-sm">{r.clubName}</span>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${statusColor[r.status]}`}>{r.status}</span>
+                      </div>
+                      <div className="text-xs text-gray-500">{r.category} · {r.contactName} · {r.contactEmail}</div>
+                      {r.desc && <p className="text-xs text-gray-500 mt-1 leading-relaxed">{r.desc}</p>}
+                    </div>
+                    {r.status === 'pending' && (
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full hover:bg-green-200">Approve</button>
+                        <button className="bg-red-100 text-red-500 text-xs font-bold px-3 py-1.5 rounded-full hover:bg-red-200">Reject</button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Elections */}
+          <div className="bg-white rounded-3xl p-6" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-black text-gray-800" style={{ fontFamily: 'Lexend, sans-serif' }}>🗳️ Club Elections</h3>
+              <button className="bg-[#0047AB] text-white text-xs font-bold px-4 py-2 rounded-full">+ New Election</button>
+            </div>
+            <div className="space-y-4">
+              {MOCK_ELECTIONS.map(el => (
+                <div key={el.id} className="border border-gray-100 rounded-2xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <div className="font-bold text-gray-800 text-sm">{el.title}</div>
+                      <div className="text-xs text-gray-500">{el.clubName} · Closes: {el.endsAt}</div>
+                    </div>
+                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${el.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                      {el.status}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {el.candidates.map((c, i) => {
+                      const total = el.candidates.reduce((a,b) => a + b.votes, 0);
+                      const pct = total > 0 ? Math.round((c.votes / total) * 100) : 0;
+                      return (
+                        <div key={i}>
+                          <div className="flex items-center justify-between text-xs font-semibold mb-1">
+                            <span className="text-gray-700">{c.name}</span>
+                            <span className="text-gray-500">{c.votes} votes ({pct}%)</span>
+                          </div>
+                          <div className="w-full bg-gray-100 rounded-full h-2">
+                            <div className="bg-[#0047AB] rounded-full h-2" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Insights Tab */}
+      {activeTab === 'AI Insights' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-black text-gray-800" style={{ fontFamily: 'Lexend, sans-serif' }}>AI Insights</h2>
+              <p className="text-gray-500 text-sm mt-1">Data-driven recommendations powered by campus analytics</p>
+            </div>
+            <button className="bg-[#0047AB] text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-800 transition-all">🤖 Generate Report</button>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            {MOCK_AI_INSIGHTS.map(ins => {
+              const borderColor: Record<string,string> = { alert: '#EF4444', warning: '#F59E0B', info: '#0047AB' };
+              const bgColor: Record<string,string> = { alert: 'rgba(239,68,68,0.04)', warning: 'rgba(245,158,11,0.04)', info: 'rgba(0,71,171,0.04)' };
+              return (
+                <div key={ins.id} className="bg-white rounded-2xl p-5 border-l-4" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)', borderLeftColor: borderColor[ins.severity], backgroundColor: ins.read ? '#fff' : bgColor[ins.severity] }}>
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl flex-shrink-0">{ins.icon}</span>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className="font-black text-gray-800 text-sm">{ins.title}</span>
+                        {!ins.read && <span className="w-2 h-2 rounded-full bg-[#FF7F50] flex-shrink-0" />}
+                      </div>
+                      <p className="text-xs text-gray-500 leading-relaxed mb-2">{ins.desc}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-400">{ins.time}</span>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${ins.type === 'at_risk' ? 'bg-red-100 text-red-600' : ins.type === 'trend' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-[#0047AB]'}`}>{ins.type.replace('_',' ')}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {/* Engagement score card */}
+          <div className="bg-white rounded-3xl p-6" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+            <h3 className="font-black text-gray-800 mb-4" style={{ fontFamily: 'Lexend, sans-serif' }}>Campus Engagement Score</h3>
+            <div className="flex items-center gap-6">
+              <div className="relative w-32 h-32 flex-shrink-0">
+                <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f0f0f0" strokeWidth="3" />
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#0047AB" strokeWidth="3" strokeDasharray="78 22" strokeLinecap="round" />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-3xl font-black text-[#0047AB]" style={{ fontFamily: 'Lexend, sans-serif' }}>78%</span>
+                  <span className="text-xs text-gray-500">overall</span>
+                </div>
+              </div>
+              <div className="flex-1 space-y-3">
+                {[{ label: 'Event Participation', value: 82 }, { label: 'Club Membership', value: 74 }, { label: 'Wellbeing Check-ins', value: 91 }, { label: 'Sports Engagement', value: 68 }].map(m => (
+                  <div key={m.label}>
+                    <div className="flex justify-between text-xs font-semibold mb-1"><span className="text-gray-600">{m.label}</span><span className="text-gray-500">{m.value}%</span></div>
+                    <div className="w-full bg-gray-100 rounded-full h-2"><div className="bg-[#0047AB] rounded-full h-2" style={{ width: `${m.value}%` }} /></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <Modal isOpen={addStaffModal} onClose={() => setAddStaffModal(false)} title="Add New Staff Member" size="sm">
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
