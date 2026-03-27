@@ -9,7 +9,7 @@ const articles = [
     date: 'Mar 15, 2026',
     readTime: '8 min read',
     excerpt: 'When Oxford partnered with Campus Tribe, they had a simple goal: help students find their community faster. The results exceeded every benchmark.',
-    img: '/assets/campus-events.jpg',
+    img: '/assets/campus-teachers.jpg',
   },
   {
     title: 'The Student Wellbeing Crisis and What EdTech Can Do About It',
@@ -17,7 +17,7 @@ const articles = [
     date: 'Mar 8, 2026',
     readTime: '12 min read',
     excerpt: 'Loneliness rates among university students have reached record highs. We explore the root causes and how engagement technology can help.',
-    img: '/assets/campus-clubs.jpg',
+    img: '/assets/campus-admin.jpg',
   },
   {
     title: 'Intramural Sports Scheduling: From Chaos to Championship',
@@ -25,7 +25,7 @@ const articles = [
     date: 'Feb 28, 2026',
     readTime: '6 min read',
     excerpt: 'Manual bracket management was costing athletic departments hundreds of hours per semester. Here is how Campus Tribe automated the entire process.',
-    img: '/assets/campus-wellbeing.jpg',
+    img: '/assets/campus-parent.jpg',
   },
   {
     title: 'Building a Preschool Parent Portal That Parents Actually Use',
@@ -33,7 +33,7 @@ const articles = [
     date: 'Feb 20, 2026',
     readTime: '7 min read',
     excerpt: 'Most parent communication tools feel like IT projects. We took a different approach - start with the parent, not the feature list.',
-    img: '/assets/campus-venues.jpg',
+    img: '/assets/campus-coach.jpg',
   },
   {
     title: 'ROI of Student Engagement: A Framework for Admissions Teams',
@@ -41,7 +41,7 @@ const articles = [
     date: 'Feb 12, 2026',
     readTime: '10 min read',
     excerpt: 'Engagement metrics have a direct line to enrollment yield and retention. Here is how to measure and present the value to your board.',
-    img: '/assets/campus-preschool.jpg',
+    img: '/assets/campus-university.jpg',
   },
   {
     title: 'Campus Tribe Raises Series A to Expand Globally',
@@ -49,7 +49,7 @@ const articles = [
     date: 'Feb 5, 2026',
     readTime: '4 min read',
     excerpt: 'We are thrilled to announce our $12M Series A funding round, led by Sequoia Capital. This round accelerates our expansion into the UK, Australia, and Southeast Asia.',
-    img: '/assets/campus-teachers.jpg',
+    img: '/assets/campus-school.jpg',
   },
 ];
 

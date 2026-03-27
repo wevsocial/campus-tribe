@@ -3,9 +3,9 @@ import PublicFooter from '../../components/layout/PublicFooter';
 
 export default function AboutPage() {
   const team = [
-    { name: 'Marcus Thorne', role: 'CEO and Co-Founder', img: '/assets/campus-students.jpg' },
-    { name: 'Sarah Chen', role: 'CTO', img: '/assets/campus-aerial.jpg' },
-    { name: 'Elias Vance', role: 'VP Product', img: '/assets/campus-sports.jpg' },
+    { name: 'Marcus Thorne', role: 'CEO and Co-Founder', img: '/assets/campus-clubs.jpg' },
+    { name: 'Sarah Chen', role: 'CTO', img: '/assets/campus-wellbeing.jpg' },
+    { name: 'Elias Vance', role: 'VP Product', img: '/assets/campus-venues.jpg' },
   ];
 
   return (
@@ -49,7 +49,7 @@ export default function AboutPage() {
               <img
                 alt="Team at work"
                 className="w-full h-full object-cover"
-                src="/assets/campus-library.jpg"
+                src="/assets/campus-preschool.jpg"
               />
             </div>
           </div>

@@ -50,7 +50,7 @@ export default function UniversityPage() {
                   <img
                     alt="Student Library"
                     className="w-full h-full object-cover"
-                    src="/assets/campus-hero.jpg"
+                    src="/assets/campus-surveys.jpg"
                   />
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-xl flex items-center gap-4">
@@ -68,7 +68,7 @@ export default function UniversityPage() {
                   <img
                     alt="Students Group"
                     className="w-full h-full object-cover"
-                    src="/assets/campus-students.jpg"
+                    src="/assets/campus-hero.jpg"
                   />
                 </div>
                 <div className="bg-secondary p-4 rounded-xl shadow-xl flex items-center gap-4 text-white">
@@ -108,7 +108,7 @@ export default function UniversityPage() {
                 <img
                   alt="Smart Matching"
                   className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-                  src="/assets/campus-aerial.jpg"
+                  src="/assets/campus-students.jpg"
                 />
               </div>
             </div>
@@ -122,7 +122,7 @@ export default function UniversityPage() {
                 <img
                   alt="Events"
                   className="rounded-xl shadow-lg w-full h-40 object-cover"
-                  src="/assets/campus-sports.jpg"
+                  src="/assets/campus-aerial.jpg"
                 />
               </div>
             </div>
@@ -136,7 +136,7 @@ export default function UniversityPage() {
                 <img
                   alt="Sports"
                   className="w-full h-full object-cover"
-                  src="/assets/campus-library.jpg"
+                  src="/assets/campus-sports.jpg"
                 />
               </div>
             </div>
@@ -151,7 +151,7 @@ export default function UniversityPage() {
                 <img
                   alt="Venue"
                   className="mt-4 rounded-lg h-32 w-full object-cover"
-                  src="/assets/campus-events.jpg"
+                  src="/assets/campus-library.jpg"
                 />
               </div>
               <div className="bg-surface-container-lowest dark:bg-slate-800 rounded-xl p-6 flex flex-col justify-between">
@@ -163,7 +163,7 @@ export default function UniversityPage() {
                 <img
                   alt="Wellbeing"
                   className="mt-4 rounded-lg h-32 w-full object-cover"
-                  src="/assets/campus-clubs.jpg"
+                  src="/assets/campus-events.jpg"
                 />
               </div>
             </div>
