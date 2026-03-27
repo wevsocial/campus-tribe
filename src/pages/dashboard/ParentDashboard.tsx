@@ -104,7 +104,7 @@ export default function ParentDashboard() {
       {/* Hero Banner */}
       <div className="relative rounded-2xl overflow-hidden mb-8" style={{ height: 180 }}>
         <img
-          src="/assets/campus-surveys.jpg"
+          src="https://images.unsplash.com/photo-1484665754804-74b091211472?w=800&q=80&auto=format"
           alt="Parent"
           className="absolute inset-0 w-full h-full object-cover"
         />

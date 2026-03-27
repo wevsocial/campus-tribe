@@ -132,7 +132,7 @@ export const HeroSection: React.FC = () => {
                   <div className="text-white font-bold text-sm">Alex Johnson</div>
                 </div>
                 <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-white/30">
-                  <img src="https://i.pravatar.cc/32?img=5" alt="" className="w-full h-full object-cover" />
+                  <img src="/assets/campus-sports.jpg" alt="" className="w-full h-full object-cover" />
                 </div>
               </div>
 

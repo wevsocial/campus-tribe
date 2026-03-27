@@ -110,7 +110,7 @@ export default function TeacherDashboard() {
       {/* Hero Banner */}
       <div className="relative rounded-2xl overflow-hidden mb-8" style={{ height: 200 }}>
         <img
-          src="/assets/campus-school.jpg"
+          src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=800&q=80&auto=format"
           alt="Classroom"
           className="absolute inset-0 w-full h-full object-cover"
         />

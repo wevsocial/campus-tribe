@@ -134,7 +134,7 @@ export default function ITDashboard() {
       {/* Hero Banner */}
       <div className="relative rounded-2xl overflow-hidden mb-8" style={{ height: 180 }}>
         <img
-          src="/assets/campus-university.jpg"
+          src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80&auto=format"
           alt="IT"
           className="absolute inset-0 w-full h-full object-cover"
         />

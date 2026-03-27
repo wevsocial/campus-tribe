@@ -3,12 +3,12 @@ import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
-import { MOCK_CLUBS } from '../../lib/mockData';
+import { MOCK_CLUBS, MOCK_CLUB_POSTS, MOCK_ELECTIONS } from '../../lib/mockData';
 import clsx from 'clsx';
 
 const club = MOCK_CLUBS[0]; // Photography Society
 
-const tabs = ['Overview', 'Members', 'Events', 'Venues', 'Budget'];
+const tabs = ['Overview', 'Members', 'Feed', 'Events', 'Venues', 'Budget', 'Elections'];
 
 const members = [
   { name: 'Alex Kim', role: 'Member', joined: 'Sep 2024', status: 'active' },
@@ -250,6 +250,71 @@ const ClubLeaderDashboard: React.FC = () => {
           </Card>
         </div>
       )}
+
+      {/* Club Feed Tab */}
+      {activeTab === 'Feed' && (
+        <div className="space-y-4">
+          {/* Compose */}
+          <div className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+            <h3 className="font-bold text-gray-800 mb-3" style={{ fontFamily: 'Lexend, sans-serif' }}>Post to Club Feed</h3>
+            <textarea rows={3} placeholder="Share an update, event, or achievement…" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-200 mb-3" />
+            <div className="flex gap-2 flex-wrap">
+              {['📝 Update', '📅 Event', '🏆 Achievement'].map(t => (
+                <button key={t} className="text-xs font-bold px-4 py-2 rounded-full bg-[#0047AB]/10 text-[#0047AB] hover:bg-[#0047AB] hover:text-white transition-all">{t}</button>
+              ))}
+              <button className="ml-auto bg-[#0047AB] text-white text-xs font-bold px-5 py-2 rounded-full hover:bg-blue-800 transition-all">Post</button>
+            </div>
+          </div>
+          {/* Posts */}
+          {(MOCK_CLUB_POSTS as any[]).map((post: any) => (
+            <div key={post.id} className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-9 h-9 rounded-xl bg-[#0047AB]/10 flex items-center justify-center text-[#0047AB] font-black text-sm flex-shrink-0">{post.author[0]}</div>
+                <div>
+                  <div className="flex items-center gap-2"><span className="font-bold text-gray-800 text-sm">{post.author}</span><span className="text-xs text-gray-400">{post.time}</span></div>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${post.type === 'achievement' ? 'bg-yellow-100 text-yellow-700' : post.type === 'event' ? 'bg-blue-100 text-[#0047AB]' : 'bg-gray-100 text-gray-600'}`}>{post.type}</span>
+                </div>
+              </div>
+              <p className="text-sm text-gray-700 leading-relaxed mb-3">{post.content}</p>
+              <span className="text-xs text-gray-400 hover:text-[#FF7F50] cursor-pointer transition-colors">❤️ {post.likes}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Elections Tab */}
+      {activeTab === 'Elections' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-800" style={{ fontFamily: 'Lexend, sans-serif' }}>Club Elections</h2>
+            <button className="bg-[#0047AB] text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-800 transition-all">🗳️ New Election</button>
+          </div>
+          {(MOCK_ELECTIONS as any[]).map((el: any) => (
+            <div key={el.id} className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <div className="font-bold text-gray-800" style={{ fontFamily: 'Lexend, sans-serif' }}>{el.title}</div>
+                  <div className="text-sm text-gray-500">{el.clubName} · Closes {el.endsAt}</div>
+                </div>
+                <span className={`text-xs font-bold px-3 py-1 rounded-full ${el.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{el.status}</span>
+              </div>
+              <div className="space-y-3">
+                {el.candidates.map((c: any, i: number) => {
+                  const total = el.candidates.reduce((a: number, b: any) => a + b.votes, 0);
+                  const pct = total > 0 ? Math.round((c.votes / total) * 100) : 0;
+                  return (
+                    <div key={i}>
+                      <div className="flex justify-between text-sm font-semibold mb-1"><span className="text-gray-700">{c.name}</span><span className="text-gray-500">{c.votes} ({pct}%)</span></div>
+                      <div className="w-full bg-gray-100 rounded-full h-2"><div className="bg-[#0047AB] h-2 rounded-full" style={{ width: `${pct}%` }} /></div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
     </DashboardLayout>
   );
 };

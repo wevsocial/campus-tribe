@@ -80,7 +80,7 @@ export default function StudentRepDashboard() {
       {/* Hero Banner */}
       <div className="relative rounded-2xl overflow-hidden mb-8" style={{ height: 200 }}>
         <img
-          src="/assets/campus-wellbeing.jpg"
+          src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80&auto=format"
           alt="Campus"
           className="absolute inset-0 w-full h-full object-cover"
         />

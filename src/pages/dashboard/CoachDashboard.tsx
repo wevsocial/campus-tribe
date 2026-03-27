@@ -4,7 +4,7 @@ import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { MOCK_LEAGUES, MOCK_TEAMS, MOCK_GAMES } from '../../lib/mockData';
+import { MOCK_LEAGUES, MOCK_TEAMS, MOCK_GAMES, MOCK_TOURNAMENTS } from '../../lib/mockData';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line
@@ -47,7 +47,7 @@ const matchResults = [
   { id: 4, opponent: 'Bahen Ballers', ourScore: 88, theirScore: 55, date: 'Mar 19', result: 'W' },
 ];
 
-const tabs = ['Leagues', 'Team Roster', 'Training Schedule', 'Performance Analytics', 'Match Results'];
+const tabs = ['Leagues', 'Team Roster', 'Training Schedule', 'Performance Analytics', 'Match Results', 'Tournaments', 'Venues'];
 
 function ratingStars(score: number) {
   const stars = Math.round(score / 20);
@@ -76,7 +76,7 @@ const CoachDashboard: React.FC = () => {
       {/* Hero Banner */}
       <div className="relative rounded-2xl overflow-hidden mb-8" style={{ height: 200 }}>
         <img
-          src="/assets/campus-matching.jpg"
+          src="https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&q=80&auto=format"
           alt="Sports"
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -425,6 +425,72 @@ const CoachDashboard: React.FC = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Tournaments Tab */}
+      {activeTab === 'Tournaments' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-gray-800" style={{ fontFamily: 'Lexend, sans-serif' }}>Tournaments</h2>
+            <button className="bg-[#0047AB] text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-800 transition-all">🏆 New Tournament</button>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            {MOCK_TOURNAMENTS.map((t: any) => {
+              const statusColor: Record<string, string> = { Active: 'bg-green-100 text-green-700', Registration: 'bg-blue-100 text-[#0047AB]', Completed: 'bg-gray-100 text-gray-500' };
+              return (
+                <div key={t.id} className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div>
+                      <div className="font-bold text-gray-800" style={{ fontFamily: 'Lexend, sans-serif' }}>{t.name}</div>
+                      <div className="text-sm text-gray-500 mt-0.5">{t.sport} · {t.format}</div>
+                    </div>
+                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${statusColor[t.status]}`}>{t.status}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-500 mb-3">
+                    <span>👥 {t.teams}/{t.maxTeams} teams</span>
+                    <span>📅 {t.startDate}</span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2 mb-3">
+                    <div className="bg-[#0047AB] rounded-full h-2" style={{ width: `${(t.teams / t.maxTeams) * 100}%` }} />
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="flex-1 border border-[#0047AB] text-[#0047AB] rounded-lg py-2 text-xs font-bold hover:bg-[#0047AB] hover:text-white transition-all">View Bracket</button>
+                    {t.status === 'Registration' && <button className="flex-1 bg-[#FF7F50] text-white rounded-lg py-2 text-xs font-bold">Register Team</button>}
+                    {t.status === 'Active' && <button className="flex-1 bg-[#00A86B] text-white rounded-lg py-2 text-xs font-bold">Update Scores</button>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Venues Tab */}
+      {activeTab === 'Venues' && (
+        <div className="space-y-4">
+          <h2 className="text-xl font-bold text-gray-800" style={{ fontFamily: 'Lexend, sans-serif' }}>Sports Venues</h2>
+          {[
+            { name: 'Athletic Centre — Main Court', capacity: 500, available: true, img: '/assets/campus-sports.jpg', next: 'Apr 2, 2:00 PM' },
+            { name: 'Varsity Arena', capacity: 1200, available: false, img: '/assets/campus-venues.jpg', next: 'Apr 5, 4:00 PM' },
+            { name: 'Outdoor Soccer Field A', capacity: 300, available: true, img: '/assets/campus-aerial.jpg', next: 'Apr 3, 10:00 AM' },
+            { name: 'Tennis Courts (4)', capacity: 80, available: true, img: '/assets/campus-hero.jpg', next: 'Apr 1, 9:00 AM' },
+          ].map(v => (
+            <div key={v.name} className="bg-white rounded-2xl overflow-hidden flex" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
+              <div className="w-32 flex-shrink-0 overflow-hidden"><img src={v.img} alt={v.name} className="w-full h-full object-cover" /></div>
+              <div className="flex-1 p-4 flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-bold text-gray-800 text-sm">{v.name}</div>
+                  <div className="text-xs text-gray-500">👥 Cap {v.capacity} · Next avail: {v.next}</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`text-xs font-bold px-2 py-1 rounded-full ${v.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-500'}`}>{v.available ? '● Available' : '✗ Booked'}</span>
+                  <button disabled={!v.available} className={`text-xs font-bold px-4 py-2 rounded-lg ${v.available ? 'bg-[#0047AB] text-white hover:bg-blue-800' : 'bg-gray-100 text-gray-400'} transition-all`}>Book</button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
     </DashboardLayout>
   );
 };
