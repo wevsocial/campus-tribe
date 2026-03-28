@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { supabase } from '../lib/supabase';
-import { getRoleDashboardPath, useAuth } from '../context/AuthContext';
+import { getRoleDashboardPath, persistPendingSignup, useAuth } from '../context/AuthContext';
 
 const PLATFORM_ROLES: Record<string, string[]> = {
   university: ['student', 'student_rep', 'teacher', 'admin', 'staff', 'club_leader', 'coach', 'it_director', 'parent'],
@@ -11,13 +11,9 @@ const PLATFORM_ROLES: Record<string, string[]> = {
   preschool: ['parent', 'teacher', 'staff', 'admin'],
 };
 
-function makeInviteCode(name: string) {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24) || `campus-${Date.now().toString(36)}`;
-}
-
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { refreshProfile } = useAuth();
+  const { session, refreshProfile } = useAuth();
   const [platformType, setPlatformType] = useState<'university' | 'school' | 'preschool'>('university');
   const [role, setRole] = useState('student');
   const [fullName, setFullName] = useState('');
@@ -27,94 +23,76 @@ const RegisterPage: React.FC = () => {
   const [inviteCode, setInviteCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const roles = useMemo(() => PLATFORM_ROLES[platformType], [platformType]);
-
-  const ensureInstitution = async () => {
-    if (inviteCode.trim()) {
-      const { data, error } = await supabase
-        .from('ct_institutions')
-        .select('id, name, institution_type')
-        .eq('invite_code', inviteCode.trim().toLowerCase())
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) throw new Error('Invalid invite/access code.');
-      return data;
-    }
-
-    if (!institutionName.trim()) throw new Error('Institution name is required when creating a new organization.');
-
-    const code = makeInviteCode(institutionName);
-    const { data, error } = await supabase
-      .from('ct_institutions')
-      .insert({
-        name: institutionName.trim(),
-        institution_type: platformType,
-        city: null,
-        country: 'Canada',
-        color_primary: '#0047AB',
-        invite_code: code,
-      })
-      .select('id, name, institution_type')
-      .single();
-
-    if (error) throw error;
-    return data;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
+    setSuccess('');
+
+    const pendingPayload = {
+      email,
+      full_name: fullName,
+      role,
+      platform_type: platformType,
+      institution_name: institutionName.trim() || undefined,
+      invite_code: inviteCode.trim().toLowerCase() || undefined,
+    };
 
     try {
+      persistPendingSignup({
+        email,
+        full_name: fullName,
+        role: role as any,
+        platform_type: platformType,
+        institution_name: institutionName.trim() || undefined,
+        invite_code: inviteCode.trim().toLowerCase() || undefined,
+      });
+
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { full_name: fullName, role, platform_type: platformType },
+          data: pendingPayload,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
         },
       });
 
       if (signUpError) throw signUpError;
       if (!signUpData.user) throw new Error('Could not create auth user.');
-      if (!signUpData.session) throw new Error('Signup completed but no active session was created. Check Supabase email confirmation settings.');
 
-      const institution = await ensureInstitution();
+      if (!signUpData.session) {
+        setSuccess('Account created. Check your email to confirm your account, then sign in to finish setup.');
+        setSubmitting(false);
+        return;
+      }
 
-      const { error: profileError } = await supabase.from('ct_users').insert({
-        id: signUpData.user.id,
-        email,
-        full_name: fullName,
-        role,
-        institution_id: institution.id,
-        platform_type: institution.institution_type,
-        institution_type: institution.institution_type,
-        onboarding_complete: false,
-      });
-      if (profileError) throw profileError;
-
-      await supabase.from('ct_notifications').insert({
-        user_id: signUpData.user.id,
-        institution_id: institution.id,
-        title: 'Welcome to Campus Tribe',
-        body: `Your ${institution.institution_type} workspace is ready. Start by creating your first record.`,
-        type: 'system',
-      });
-
-      await refreshProfile(signUpData.user.id);
-      navigate(getRoleDashboardPath(role));
+      const profile = await refreshProfile(signUpData.user.id);
+      setSubmitting(false);
+      navigate(getRoleDashboardPath(profile?.role || role));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed.');
-    } finally {
       setSubmitting(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
     setError('');
+    setSuccess('');
     setSubmitting(true);
+
+    persistPendingSignup({
+      email,
+      full_name: fullName || 'Campus User',
+      role: role as any,
+      platform_type: platformType,
+      institution_name: institutionName.trim() || undefined,
+      invite_code: inviteCode.trim().toLowerCase() || undefined,
+    });
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -122,6 +100,7 @@ const RegisterPage: React.FC = () => {
         queryParams: { access_type: 'offline', prompt: 'select_account' },
       },
     });
+
     if (error) {
       setSubmitting(false);
       setError(error.message);
@@ -194,6 +173,7 @@ const RegisterPage: React.FC = () => {
           </div>
 
           {error && <div className="rounded-[1rem] bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div>}
+          {success && <div className="rounded-[1rem] bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</div>}
 
           <Button type="submit" isLoading={submitting} className="w-full rounded-full" size="lg">
             Create account
