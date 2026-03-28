@@ -18,11 +18,16 @@ Short-form signup is intentionally compact:
 - institution_name or invite/access code
 
 Flow:
-1. Supabase Auth creates the user session.
-2. Campus Tribe creates or resolves the institution.
-3. `ct_users` row is created with role + institution binding.
-4. The user is routed to the role-specific workspace.
-5. Progressive onboarding happens after login via empty states and creation flows.
+1. Supabase Auth creates the auth user.
+2. If email confirmation is enabled, the user confirms first and then signs in.
+3. On the first real Campus Tribe session, the app bootstraps or repairs the institution binding.
+4. `ct_users` is created/upserted with role + institution binding from pending signup metadata.
+5. The user is routed to the role-specific workspace.
+6. Progressive onboarding happens after login via empty states and creation flows.
+
+Important implementation note:
+- Campus Tribe no longer relies on a legacy `auth.users` trigger to create `ct_users` during signup.
+- Profile creation now happens in the app bootstrap path after confirmation/sign-in so auth stays resilient even when the product is in email-confirmation mode or the DB schema evolves.
 
 ## Real Workspaces
 ### Real today
