@@ -75,15 +75,17 @@ The day/night toggle is centralized in `ThemeContext`, which now:
 - sets `color-scheme`
 - persists preference to local storage
 
-## Sprint v1 upgrades now shipped
+## Sprint upgrades shipped across v1 + sprint 2
 - Venue booking request flow now includes venue selection, client-side overlap detection against existing bookings, and visible approval notes/status on club leader and admin/staff surfaces.
-- Venue review surfaces now scope requests to the current institution and expose overlap scan counts/history to help staff/admin make approval decisions safely.
-- Admin and staff workspaces can now approve/reject pending venue bookings with notes.
-- Coach workspace now supports team creation, game scheduling, schedule editing, score entry, derived standings, and a minimal athlete roster flow backed by `ct_teams`, `ct_games`, and `ct_athletes`.
-- Sports authenticated flows were tightened to load only the coach's teams, related games, and related athletes instead of broad global reads.
-- Teacher workspace now includes a real survey builder on `ct_surveys` + `ct_survey_questions`, publish/draft controls, respondent submit flow, and creator-side results summaries from `ct_survey_responses`.
-- Survey loaders were tightened to pull only relevant surveys/questions/responses for the signed-in institution and selected audience path.
+- Venue conflict scanning is now clearer across club leader and student rep booking entry points, with conflict summaries, overlapping request previews, and request notes carried into review.
+- Venue review surfaces now scope requests to the current institution using institution venue IDs rather than broad cross-institution booking reads.
+- Admin and staff workspaces can approve/reject pending venue bookings with notes, while requesters can see decision context on their own booking cards.
+- Coach workspace now supports team creation, game scheduling, schedule editing, score entry, derived standings, filtered schedule views, and a richer athlete roster management flow backed by `ct_teams`, `ct_games`, and `ct_athletes`.
+- Sports authenticated flows were tightened to load only the coach's teams, related games, related training sessions, and related athletes instead of broad global reads.
+- Teacher workspace now includes a real survey builder on `ct_surveys` + `ct_survey_questions`, publish/draft controls, existing-survey edit/load-back-into-builder support, respondent submit flow, and creator-side results summaries from `ct_survey_responses`.
+- Survey submit now validates required questions before save, and survey editing replaces questions safely for the selected survey instead of forcing one-way creation only.
 - Parent/staff workflows now include richer daily reports, parent-child linking helpers, and a simple parent/teacher update trail using `ct_parent_updates`.
+- Parent loaders now fetch only the signed-in parent's linked-child reports and updates instead of broad institution-wide reads filtered on the client.
 - Admin workspace now includes LMS + Helcim settings/review scaffolding backed by `ct_platform_settings`.
 - Auth pages now expose Google OAuth via Supabase when the provider is configured.
 

@@ -8,25 +8,35 @@ import { StatCard } from '../../components/ui/StatCard';
 import { useAuth } from '../../context/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
+import { normalizeRelation, summarizeVenueConflicts } from '../../lib/dashboardData';
+
+type Booking = { id: string; purpose: string | null; status: string; start_time: string; end_time: string; venue_id: string | null; notes?: string | null; ct_venues?: { name?: string | null; building?: string | null; institution_id?: string | null } | null };
 
 export default function StudentRepDashboard() {
   const { user, institutionId } = useAuth();
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
-    const [venuesRes, bookingsRes, clubsRes, eventsRes, announcementsRes] = await Promise.all([
+    const [venuesRes, clubsRes, eventsRes, announcementsRes] = await Promise.all([
       supabase.from('ct_venues').select('*').eq('institution_id', institutionId).order('name'),
-      supabase.from('ct_venue_bookings').select('*, ct_venues(name)').eq('booked_by', userId).order('created_at', { ascending: false }),
       supabase.from('ct_clubs').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }),
       supabase.from('ct_events').select('*').eq('institution_id', institutionId).order('start_time', { ascending: true }).limit(12),
       supabase.from('ct_announcements').select('*').eq('author_id', userId).order('created_at', { ascending: false }).limit(10),
     ]);
+    const venueIds = (venuesRes.data ?? []).map((venue: any) => venue.id);
+    const [bookingsRes, institutionBookingsRes] = await Promise.all([
+      supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, ct_venues(name, building, institution_id)').eq('booked_by', userId).order('created_at', { ascending: false }),
+      venueIds.length
+        ? supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, ct_venues(name, building, institution_id)').in('venue_id', venueIds).order('start_time', { ascending: true }).limit(120)
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
     return {
       venues: venuesRes.data ?? [],
-      bookings: bookingsRes.data ?? [],
+      bookings: (bookingsRes.data ?? []).map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues) })),
+      institutionBookings: (institutionBookingsRes.data ?? []).map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues) })),
       clubs: clubsRes.data ?? [],
       events: eventsRes.data ?? [],
       announcements: announcementsRes.data ?? [],
     };
-  }, { venues: [], bookings: [], clubs: [], events: [], announcements: [] } as any);
+  }, { venues: [], bookings: [], institutionBookings: [], clubs: [], events: [], announcements: [] } as any);
 
   const [eventTitle, setEventTitle] = useState('');
   const [eventDate, setEventDate] = useState('');
@@ -36,8 +46,15 @@ export default function StudentRepDashboard() {
   const [bookingStart, setBookingStart] = useState('');
   const [bookingEnd, setBookingEnd] = useState('');
   const [announcementTitle, setAnnouncementTitle] = useState('');
+  const [bookingNotes, setBookingNotes] = useState('');
+  const [message, setMessage] = useState('');
 
   const availableVenues = useMemo(() => data.venues.filter((venue: any) => venue.is_bookable !== false), [data.venues]);
+  const conflictSummary = useMemo(() => summarizeVenueConflicts(data.institutionBookings as Booking[], {
+    venueId: bookingVenueId,
+    start: bookingStart,
+    end: bookingEnd,
+  }), [bookingVenueId, bookingStart, bookingEnd, data.institutionBookings]);
 
   const createEvent = async () => {
     if (!user?.id || !institutionId || !eventTitle.trim()) return;
@@ -57,6 +74,7 @@ export default function StudentRepDashboard() {
 
   const requestBooking = async () => {
     if (!user?.id || !bookingVenueId || !bookingPurpose.trim() || !bookingStart || !bookingEnd) return;
+    const { conflicts } = conflictSummary;
     const { data: booking } = await supabase.from('ct_venue_bookings').insert({
       venue_id: bookingVenueId,
       booked_by: user.id,
@@ -64,9 +82,14 @@ export default function StudentRepDashboard() {
       start_time: bookingStart,
       end_time: bookingEnd,
       status: 'pending',
-    }).select('*, ct_venues(name)').single();
-    if (booking) setData((current: any) => ({ ...current, bookings: [booking, ...current.bookings] }));
-    setBookingVenueId(''); setBookingPurpose(''); setBookingStart(''); setBookingEnd('');
+      notes: bookingNotes.trim() || null,
+    }).select('id, purpose, status, start_time, end_time, venue_id, notes, ct_venues(name, building, institution_id)').single();
+    if (booking) {
+      const normalized = { ...booking, ct_venues: normalizeRelation((booking as any).ct_venues) };
+      setData((current: any) => ({ ...current, bookings: [normalized, ...current.bookings], institutionBookings: [...current.institutionBookings, normalized] }));
+      setMessage(conflicts.length ? `Booking submitted with ${conflicts.length} overlapping request${conflicts.length === 1 ? '' : 's'} flagged for reviewers.` : 'Booking submitted to the venue review queue.');
+    }
+    setBookingVenueId(''); setBookingPurpose(''); setBookingStart(''); setBookingEnd(''); setBookingNotes('');
   };
 
   const createAnnouncement = async () => {
@@ -126,6 +149,23 @@ export default function StudentRepDashboard() {
               <Input label="Purpose" value={bookingPurpose} onChange={(e) => setBookingPurpose(e.target.value)} placeholder="Student government meeting" />
               <Input label="Start" type="datetime-local" value={bookingStart} onChange={(e) => setBookingStart(e.target.value)} />
               <Input label="End" type="datetime-local" value={bookingEnd} onChange={(e) => setBookingEnd(e.target.value)} />
+              <div>
+                <label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Submission notes</label>
+                <textarea value={bookingNotes} onChange={(e) => setBookingNotes(e.target.value)} rows={3} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-3 text-sm text-on-surface" placeholder="Accessibility, setup, AV, or approval context" />
+              </div>
+              {(bookingVenueId && bookingStart && bookingEnd) && (
+                <div className={`rounded-[1rem] p-3 text-sm ${conflictSummary.conflicts.length ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-700'}`}>
+                  <p className="font-jakarta font-700">{conflictSummary.conflicts.length ? 'Conflict scan' : 'Availability scan'}</p>
+                  <p className="mt-1">{conflictSummary.label}</p>
+                  {(conflictSummary.conflicts as Booking[]).slice(0, 3).map((booking: Booking) => (
+                    <div key={booking.id} className="mt-2 rounded-xl bg-white/80 p-2">
+                      <p className="font-medium">{booking.ct_venues?.name || 'Venue'} · {booking.status}</p>
+                      <p>{new Date(booking.start_time).toLocaleString()} → {new Date(booking.end_time).toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {message && <div className="rounded-[1rem] bg-primary/10 p-3 text-sm text-primary">{message}</div>}
               <Button onClick={requestBooking} className="w-full rounded-full">Submit booking</Button>
             </div>
           </Card>
@@ -144,13 +184,16 @@ export default function StudentRepDashboard() {
             <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Venue requests</h2>
             {data.bookings.length === 0 ? (
               <p className="text-sm text-on-surface-variant">No venue requests yet. Create your first booking request to reserve a campus space.</p>
-            ) : data.bookings.map((booking: any) => (
-              <div key={booking.id} className="mb-3 rounded-[1rem] bg-surface p-4 flex items-center justify-between gap-4">
-                <div>
-                  <p className="font-jakarta font-700 text-on-surface">{booking.purpose}</p>
-                  <p className="text-sm text-on-surface-variant">{booking.ct_venues?.name || 'Venue pending'} · {new Date(booking.start_time).toLocaleString()}</p>
+            ) : data.bookings.map((booking: Booking) => (
+              <div key={booking.id} className="mb-3 rounded-[1rem] bg-surface p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-jakarta font-700 text-on-surface">{booking.purpose}</p>
+                    <p className="text-sm text-on-surface-variant">{booking.ct_venues?.name || 'Venue pending'} · {new Date(booking.start_time).toLocaleString()}</p>
+                  </div>
+                  <Badge label={booking.status} variant={booking.status === 'approved' ? 'tertiary' : booking.status === 'rejected' ? 'secondary' : 'primary'} />
                 </div>
-                <Badge label={booking.status} variant={booking.status === 'approved' ? 'tertiary' : booking.status === 'rejected' ? 'danger' : 'secondary'} />
+                {booking.notes && <p className="mt-2 text-sm text-on-surface-variant">Notes: {booking.notes}</p>}
               </div>
             ))}
           </Card>

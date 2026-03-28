@@ -25,14 +25,17 @@ type Booking = {
 export default function ClubLeaderDashboard() {
   const { user, institutionId } = useAuth();
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
-    const [clubsRes, membersRes, eventsRes, bookingsRes, venuesRes, venueBookingsRes] = await Promise.all([
+    const [clubsRes, membersRes, eventsRes, bookingsRes, venuesRes] = await Promise.all([
       supabase.from('ct_clubs').select('*').eq('leader_id', userId).eq('institution_id', institutionId),
       supabase.from('ct_club_members').select('id, club_id, user_id, role, status').eq('institution_id', institutionId),
       supabase.from('ct_events').select('id, club_id, title, status, start_time').eq('created_by', userId).order('created_at', { ascending: false }),
       supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, approved_by, ct_venues(name, building, institution_id)').eq('booked_by', userId).order('created_at', { ascending: false }),
       supabase.from('ct_venues').select('id, name, building, capacity, institution_id').eq('institution_id', institutionId).eq('is_bookable', true).order('name'),
-      supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, approved_by, ct_venues(name, building, institution_id)').order('start_time', { ascending: true }),
     ]);
+    const venueIds = (venuesRes.data ?? []).map((venue: Venue) => venue.id);
+    const venueBookingsRes = venueIds.length
+      ? await supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, approved_by, ct_venues(name, building, institution_id)').in('venue_id', venueIds).order('start_time', { ascending: true })
+      : { data: [] };
     return {
       clubs: clubsRes.data ?? [],
       members: membersRes.data ?? [],
@@ -40,8 +43,7 @@ export default function ClubLeaderDashboard() {
       bookings: (bookingsRes.data ?? []).map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues) })) as Booking[],
       venues: (venuesRes.data ?? []) as Venue[],
       venueBookings: (venueBookingsRes.data ?? [])
-        .map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues) }))
-        .filter((booking: Booking) => booking.ct_venues?.institution_id === institutionId) as Booking[],
+        .map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues) })) as Booking[],
     };
   }, { clubs: [], members: [], events: [], bookings: [], venues: [], venueBookings: [] } as any);
 

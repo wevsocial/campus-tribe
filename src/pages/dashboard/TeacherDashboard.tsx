@@ -27,11 +27,13 @@ function normalizeQuestion(row: any): SurveyQuestion {
     survey_id: row.survey_id,
     prompt: row.prompt,
     question_type: row.question_type,
-    options: Array.isArray(row.options) ? row.options : Array.isArray(row.options || []) ? row.options : ((row.options && Array.isArray(row.options)) ? row.options : []),
+    options: Array.isArray(row.options) ? row.options : [],
     required: row.required,
     position: row.position ?? 0,
   };
 }
+
+const BUILDER_DEFAULT = [{ prompt: 'How are you doing this week?', question_type: 'text', options: [], required: true, position: 0 }];
 
 export default function TeacherDashboard() {
   const { user, institutionId } = useAuth();
@@ -69,12 +71,13 @@ export default function TeacherDashboard() {
   const [surveyTitle, setSurveyTitle] = useState('');
   const [surveyDescription, setSurveyDescription] = useState('');
   const [surveyTargetRole, setSurveyTargetRole] = useState('student');
-  const [builderQuestions, setBuilderQuestions] = useState<SurveyQuestion[]>([{ prompt: 'How are you doing this week?', question_type: 'text', options: [], required: true, position: 0 }]);
+  const [builderQuestions, setBuilderQuestions] = useState<SurveyQuestion[]>(BUILDER_DEFAULT);
+  const [editingSurveyId, setEditingSurveyId] = useState('');
   const [selectedSurveyId, setSelectedSurveyId] = useState('');
   const [responseValues, setResponseValues] = useState<Record<string, any>>({});
   const [flash, setFlash] = useState('');
 
-  const selectedSurvey = useMemo(() => data.publishedSurveys.find((survey: Survey) => survey.id === selectedSurveyId) || data.surveys[0] || null, [data.publishedSurveys, data.surveys, selectedSurveyId]);
+  const selectedSurvey = useMemo(() => data.publishedSurveys.find((survey: Survey) => survey.id === selectedSurveyId) || data.surveys.find((survey: Survey) => survey.id === selectedSurveyId) || data.surveys[0] || null, [data.publishedSurveys, data.surveys, selectedSurveyId]);
   const selectedQuestions = useMemo(() => data.questions.filter((question: SurveyQuestion) => question.survey_id === selectedSurvey?.id).sort((a: SurveyQuestion, b: SurveyQuestion) => a.position - b.position), [data.questions, selectedSurvey]);
   const selectedResponses = useMemo(() => data.responses.filter((response: SurveyResponse) => response.survey_id === selectedSurvey?.id), [data.responses, selectedSurvey]);
 
@@ -94,20 +97,68 @@ export default function TeacherDashboard() {
     setAssignmentTitle('');
   };
 
+  const resetBuilder = () => {
+    setEditingSurveyId('');
+    setSurveyTitle('');
+    setSurveyDescription('');
+    setSurveyTargetRole('student');
+    setBuilderQuestions(BUILDER_DEFAULT);
+  };
+
+  const loadSurveyIntoBuilder = (survey: Survey) => {
+    setEditingSurveyId(survey.id);
+    setSelectedSurveyId(survey.id);
+    setSurveyTitle(survey.title || '');
+    setSurveyDescription(survey.description || '');
+    setSurveyTargetRole(survey.target_roles?.[0] || 'student');
+    const questions = data.questions
+      .filter((question: SurveyQuestion) => question.survey_id === survey.id)
+      .sort((a: SurveyQuestion, b: SurveyQuestion) => a.position - b.position)
+      .map((question: SurveyQuestion, index: number) => ({ ...question, position: index }));
+    setBuilderQuestions(questions.length ? questions : BUILDER_DEFAULT);
+    setFlash(`Loaded \"${survey.title}\" into the builder.`);
+  };
+
   const updateBuilderQuestion = (index: number, patch: Partial<SurveyQuestion>) => {
-    setBuilderQuestions((current) => current.map((question, questionIndex) => questionIndex === index ? { ...question, ...patch } : question));
+    setBuilderQuestions((current) => current.map((question, questionIndex) => questionIndex === index ? { ...question, ...patch } : question).map((question, position) => ({ ...question, position })));
   };
 
   const addBuilderQuestion = () => {
     setBuilderQuestions((current) => [...current, { prompt: '', question_type: 'text', options: [], required: false, position: current.length }]);
   };
 
+  const duplicateBuilderQuestion = (index: number) => {
+    setBuilderQuestions((current) => current.flatMap((question, questionIndex) => questionIndex === index ? [{ ...question }, { ...question, id: undefined, prompt: `${question.prompt} (copy)` }] : [question]).map((question, position) => ({ ...question, position })));
+  };
+
+  const removeBuilderQuestion = (index: number) => {
+    setBuilderQuestions((current) => current.filter((_, questionIndex) => questionIndex !== index).map((question, position) => ({ ...question, position })) || BUILDER_DEFAULT);
+  };
+
   const saveSurvey = async (publish = false) => {
     if (!user?.id || !institutionId || !surveyTitle.trim() || builderQuestions.length === 0) return;
-    const { data: survey } = await supabase.from('ct_surveys').insert({ institution_id: institutionId, created_by: user.id, title: surveyTitle.trim(), description: surveyDescription || null, target_roles: [surveyTargetRole], status: publish ? 'published' : 'draft', is_active: publish, anonymous: false }).select('*').single();
+    const cleanedQuestions = builderQuestions
+      .map((question, index) => ({
+        ...question,
+        prompt: question.prompt.trim(),
+        options: (question.options || []).map((entry) => entry.trim()).filter(Boolean),
+        position: index,
+      }))
+      .filter((question) => question.prompt);
+    if (!cleanedQuestions.length) {
+      setFlash('Add at least one non-empty survey question.');
+      return;
+    }
+
+    const surveyPayload = { institution_id: institutionId, created_by: user.id, title: surveyTitle.trim(), description: surveyDescription || null, target_roles: [surveyTargetRole], status: publish ? 'published' : 'draft', is_active: publish, anonymous: false };
+    const surveyResult = editingSurveyId
+      ? await supabase.from('ct_surveys').update(surveyPayload).eq('id', editingSurveyId).select('*').single()
+      : await supabase.from('ct_surveys').insert(surveyPayload).select('*').single();
+    const survey = surveyResult.data;
     if (!survey) return;
 
-    const questionPayload = builderQuestions.map((question, index) => ({
+    await supabase.from('ct_survey_questions').delete().eq('survey_id', survey.id);
+    const questionPayload = cleanedQuestions.map((question, index) => ({
       survey_id: survey.id,
       prompt: question.prompt,
       question_type: question.question_type,
@@ -115,14 +166,28 @@ export default function TeacherDashboard() {
       position: index,
       required: question.required ?? false,
     }));
-
     const { data: savedQuestions } = await supabase.from('ct_survey_questions').insert(questionPayload).select('*');
-    setData((current: any) => ({ ...current, surveys: [survey, ...current.surveys], publishedSurveys: publish ? [survey, ...current.publishedSurveys] : current.publishedSurveys, questions: [...current.questions, ...((savedQuestions ?? []).map(normalizeQuestion))] }));
-    setSurveyTitle(''); setSurveyDescription(''); setBuilderQuestions([{ prompt: 'How are you doing this week?', question_type: 'text', options: [], required: true, position: 0 }]); setSelectedSurveyId(survey.id); setFlash(publish ? 'Survey published.' : 'Survey draft saved.');
+
+    setData((current: any) => ({
+      ...current,
+      surveys: [survey, ...current.surveys.filter((entry: Survey) => entry.id !== survey.id)],
+      publishedSurveys: publish
+        ? [survey, ...current.publishedSurveys.filter((entry: Survey) => entry.id !== survey.id)]
+        : current.publishedSurveys.filter((entry: Survey) => entry.id !== survey.id),
+      questions: [...current.questions.filter((entry: SurveyQuestion) => entry.survey_id !== survey.id), ...((savedQuestions ?? []).map(normalizeQuestion))],
+    }));
+    setSelectedSurveyId(survey.id);
+    setEditingSurveyId(survey.id);
+    setFlash(editingSurveyId ? (publish ? 'Survey updated and published.' : 'Survey draft updated.') : (publish ? 'Survey published.' : 'Survey draft saved.'));
   };
 
   const submitSurveyResponse = async () => {
     if (!user?.id || !selectedSurvey?.id) return;
+    const missingRequired = selectedQuestions.filter((question: SurveyQuestion) => question.required && (responseValues[question.id || question.prompt] == null || responseValues[question.id || question.prompt] === '' || (Array.isArray(responseValues[question.id || question.prompt]) && responseValues[question.id || question.prompt].length === 0)));
+    if (missingRequired.length) {
+      setFlash(`Complete required questions before submitting (${missingRequired.length} missing).`);
+      return;
+    }
     const answers: Record<string, any> = {};
     selectedQuestions.forEach((question: SurveyQuestion) => {
       answers[question.id || question.prompt] = responseValues[question.id || question.prompt] ?? null;
@@ -203,7 +268,10 @@ export default function TeacherDashboard() {
             </div>
           </Card>
           <Card>
-            <h2 className="mb-3 font-lexend text-lg font-800 text-on-surface">Survey meta</h2>
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <h2 className="font-lexend text-lg font-800 text-on-surface">Survey meta</h2>
+              {editingSurveyId && <Button variant="outline" size="sm" className="rounded-full" onClick={resetBuilder}>New survey</Button>}
+            </div>
             <div className="space-y-3">
               <Input label="Survey title" value={surveyTitle} onChange={(e) => setSurveyTitle(e.target.value)} placeholder="Week 1 pulse check" />
               <div>
@@ -221,17 +289,27 @@ export default function TeacherDashboard() {
         <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-6">
           <Card>
             <div className="flex items-center justify-between gap-3 mb-4">
-              <h2 className="font-lexend text-lg font-800 text-on-surface">Survey builder</h2>
+              <div>
+                <h2 className="font-lexend text-lg font-800 text-on-surface">Survey builder</h2>
+                <p className="text-sm text-on-surface-variant">{editingSurveyId ? 'Editing an existing survey.' : 'Build a new survey.'}</p>
+              </div>
               <Button variant="outline" size="sm" className="rounded-full" onClick={addBuilderQuestion}>Add question</Button>
             </div>
             <div className="space-y-4">
               {builderQuestions.map((question, index) => (
-                <div key={index} className="rounded-[1rem] bg-surface p-4 space-y-3">
-                  <Input label={`Question ${index + 1}`} value={question.prompt} onChange={(e) => updateBuilderQuestion(index, { prompt: e.target.value })} placeholder="Ask something useful" />
+                <div key={`${question.id || 'new'}-${index}`} className="rounded-[1rem] bg-surface p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-jakarta font-700 text-on-surface">Question {index + 1}</p>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" className="rounded-full" onClick={() => duplicateBuilderQuestion(index)}>Duplicate</Button>
+                      <Button size="sm" variant="outline" className="rounded-full" onClick={() => removeBuilderQuestion(index)} disabled={builderQuestions.length === 1}>Remove</Button>
+                    </div>
+                  </div>
+                  <Input label={`Prompt`} value={question.prompt} onChange={(e) => updateBuilderQuestion(index, { prompt: e.target.value })} placeholder="Ask something useful" />
                   <div className="grid md:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Type</label>
-                      <select value={question.question_type} onChange={(e) => updateBuilderQuestion(index, { question_type: e.target.value, options: e.target.value === 'single_choice' || e.target.value === 'multi_choice' ? ['Option 1', 'Option 2'] : [] })} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm">
+                      <select value={question.question_type} onChange={(e) => updateBuilderQuestion(index, { question_type: e.target.value, options: e.target.value === 'single_choice' || e.target.value === 'multi_choice' ? ((question.options && question.options.length) ? question.options : ['Option 1', 'Option 2']) : [] })} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm">
                         {QUESTION_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
                       </select>
                     </div>
@@ -246,8 +324,8 @@ export default function TeacherDashboard() {
               ))}
             </div>
             <div className="mt-4 flex flex-wrap gap-3">
-              <Button onClick={() => saveSurvey(false)} className="rounded-full">Save draft</Button>
-              <Button variant="secondary" onClick={() => saveSurvey(true)} className="rounded-full">Publish survey</Button>
+              <Button onClick={() => saveSurvey(false)} className="rounded-full">{editingSurveyId ? 'Update draft' : 'Save draft'}</Button>
+              <Button variant="secondary" onClick={() => saveSurvey(true)} className="rounded-full">{editingSurveyId ? 'Update + publish' : 'Publish survey'}</Button>
             </div>
           </Card>
 
@@ -256,7 +334,7 @@ export default function TeacherDashboard() {
             <div className="space-y-3">
               {data.classes.map((klass: any) => <div key={klass.id} className="rounded-[1rem] bg-surface p-4"><p className="font-jakarta font-700 text-on-surface">{klass.ct_courses?.code} · {klass.ct_courses?.name}</p><p className="text-sm text-on-surface-variant">Section {klass.section || 'A'}</p></div>)}
               {data.assignments.map((assignment: any) => <div key={assignment.id} className="rounded-[1rem] bg-surface p-4 flex items-center justify-between"><p className="font-jakarta font-700 text-on-surface">{assignment.title}</p><Badge label={assignment.is_published ? 'published' : 'draft'} variant="secondary" /></div>)}
-              {data.surveys.map((survey: Survey) => <button key={survey.id} onClick={() => setSelectedSurveyId(survey.id)} className="block w-full rounded-[1rem] bg-surface p-4 text-left"><div className="flex items-center justify-between"><p className="font-jakarta font-700 text-on-surface">{survey.title}</p><Badge label={survey.status || (survey.is_active ? 'active' : 'draft')} variant="tertiary" /></div><p className="mt-1 text-sm text-on-surface-variant">{survey.description || 'No description'}</p></button>)}
+              {data.surveys.map((survey: Survey) => <div key={survey.id} className="rounded-[1rem] bg-surface p-4"><button onClick={() => setSelectedSurveyId(survey.id)} className="block w-full text-left"><div className="flex items-center justify-between"><p className="font-jakarta font-700 text-on-surface">{survey.title}</p><Badge label={survey.status || (survey.is_active ? 'active' : 'draft')} variant="tertiary" /></div><p className="mt-1 text-sm text-on-surface-variant">{survey.description || 'No description'}</p></button><div className="mt-3"><Button size="sm" variant="outline" className="rounded-full" onClick={() => loadSurveyIntoBuilder(survey)}>Edit survey</Button></div></div>)}
             </div>
           </Card>
         </div>
@@ -277,7 +355,7 @@ export default function TeacherDashboard() {
                 </div>
                 {selectedQuestions.map((question: SurveyQuestion, index: number) => (
                   <div key={question.id || index} className="rounded-[1rem] bg-surface p-4">
-                    <p className="font-jakarta font-700 text-on-surface">{index + 1}. {question.prompt}</p>
+                    <p className="font-jakarta font-700 text-on-surface">{index + 1}. {question.prompt}{question.required ? ' *' : ''}</p>
                     <div className="mt-3">{renderQuestionInput(question)}</div>
                   </div>
                 ))}

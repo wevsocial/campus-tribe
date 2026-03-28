@@ -7,25 +7,27 @@ import { Badge } from '../../components/ui/Badge';
 import { useAuth } from '../../context/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
+import { formatDateTimeLocalInput } from '../../lib/dashboardData';
 
 type Team = { id: string; name: string; sport: string | null; season: string | null; coach_id: string | null; institution_id: string | null };
-type Athlete = { id: string; team_id: string | null; position: string | null; jersey_number: string | null; ct_users?: { full_name: string | null; email: string | null } | null };
+type Athlete = { id: string; user_id?: string | null; team_id: string | null; position: string | null; jersey_number: string | null; ct_users?: { full_name: string | null; email: string | null } | null };
 type Game = { id: string; home_team_id: string; away_team_id: string; scheduled_at: string | null; home_score: number | null; away_score: number | null; status: string; notes: string | null };
+type TrainingSession = { id: string; team_id: string | null; title: string | null; scheduled_at: string | null };
 
 export default function CoachDashboard() {
   const { user, institutionId } = useAuth();
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
     const [teamsRes, trainingRes, usersRes] = await Promise.all([
       supabase.from('ct_teams').select('*').eq('coach_id', userId).eq('institution_id', institutionId).order('created_at', { ascending: false }),
-      supabase.from('ct_training_sessions').select('*').eq('coach_id', userId).order('scheduled_at', { ascending: false }).limit(20),
+      supabase.from('ct_training_sessions').select('*').eq('coach_id', userId).order('scheduled_at', { ascending: false }).limit(30),
       supabase.from('ct_users').select('id, full_name, email, role').eq('institution_id', institutionId).in('role', ['student', 'student_rep']).order('full_name'),
     ]);
     const teams = teamsRes.data ?? [];
     const teamIds = teams.map((team: Team) => team.id);
     const [gamesRes, athletesRes] = teamIds.length
       ? await Promise.all([
-          supabase.from('ct_games').select('*').or(teamIds.map((teamId: string) => `home_team_id.eq.${teamId},away_team_id.eq.${teamId}`).join(',')).order('scheduled_at', { ascending: false }).limit(40),
-          supabase.from('ct_athletes').select('id, team_id, position, jersey_number, ct_users(full_name, email)').in('team_id', teamIds).order('created_at', { ascending: false }),
+          supabase.from('ct_games').select('*').or(teamIds.map((teamId: string) => `home_team_id.eq.${teamId},away_team_id.eq.${teamId}`).join(',')).order('scheduled_at', { ascending: false }).limit(60),
+          supabase.from('ct_athletes').select('id, user_id, team_id, position, jersey_number, ct_users(full_name, email)').in('team_id', teamIds).order('created_at', { ascending: false }),
         ])
       : [{ data: [] }, { data: [] }];
     return { teams, games: gamesRes.data ?? [], training: trainingRes.data ?? [], athletes: athletesRes.data ?? [], users: usersRes.data ?? [] };
@@ -33,8 +35,10 @@ export default function CoachDashboard() {
 
   const [teamName, setTeamName] = useState('');
   const [sport, setSport] = useState('');
+  const [season, setSeason] = useState('Current');
   const [sessionTitle, setSessionTitle] = useState('');
   const [sessionTime, setSessionTime] = useState('');
+  const [sessionTeamId, setSessionTeamId] = useState('');
   const [homeTeamId, setHomeTeamId] = useState('');
   const [awayTeamId, setAwayTeamId] = useState('');
   const [gameTime, setGameTime] = useState('');
@@ -42,16 +46,28 @@ export default function CoachDashboard() {
   const [athleteTeamId, setAthleteTeamId] = useState('');
   const [athletePosition, setAthletePosition] = useState('');
   const [athleteJersey, setAthleteJersey] = useState('');
+  const [selectedTeamId, setSelectedTeamId] = useState('all');
   const [gameEdits, setGameEdits] = useState<Record<string, { scheduled_at?: string; status?: string; notes?: string; home_score?: string; away_score?: string }>>({});
+  const [athleteEdits, setAthleteEdits] = useState<Record<string, { team_id?: string; position?: string; jersey_number?: string }>>({});
+  const [message, setMessage] = useState('');
 
   const teamMap = useMemo(() => Object.fromEntries(data.teams.map((team: Team) => [team.id, team])), [data.teams]);
 
   const myGames = useMemo(() => data.games.filter((game: Game) => teamMap[game.home_team_id] || teamMap[game.away_team_id]), [data.games, teamMap]);
+  const filteredGames = useMemo(() => selectedTeamId === 'all'
+    ? myGames
+    : myGames.filter((game: Game) => game.home_team_id === selectedTeamId || game.away_team_id === selectedTeamId), [myGames, selectedTeamId]);
+  const filteredAthletes = useMemo(() => selectedTeamId === 'all'
+    ? data.athletes
+    : data.athletes.filter((athlete: Athlete) => athlete.team_id === selectedTeamId), [data.athletes, selectedTeamId]);
+  const filteredTraining = useMemo(() => selectedTeamId === 'all'
+    ? data.training
+    : data.training.filter((session: TrainingSession) => session.team_id === selectedTeamId), [data.training, selectedTeamId]);
 
   const standings = useMemo(() => {
-    const rows: Record<string, { teamId: string; name: string; sport: string; wins: number; losses: number; draws: number; points: number; games: number; pf: number; pa: number }> = {};
+    const rows: Record<string, { teamId: string; name: string; sport: string; season: string; wins: number; losses: number; draws: number; points: number; games: number; pf: number; pa: number }> = {};
     data.teams.forEach((team: Team) => {
-      rows[team.id] = { teamId: team.id, name: team.name, sport: team.sport || 'Sport', wins: 0, losses: 0, draws: 0, points: 0, games: 0, pf: 0, pa: 0 };
+      rows[team.id] = { teamId: team.id, name: team.name, sport: team.sport || 'Sport', season: team.season || 'Current', wins: 0, losses: 0, draws: 0, points: 0, games: 0, pf: 0, pa: 0 };
     });
     myGames.forEach((game: Game) => {
       const home = rows[game.home_team_id];
@@ -69,14 +85,17 @@ export default function CoachDashboard() {
 
   const createTeam = async () => {
     if (!user?.id || !institutionId || !teamName.trim()) return;
-    const { data: team } = await supabase.from('ct_teams').insert({ institution_id: institutionId, coach_id: user.id, name: teamName.trim(), sport: sport.trim() || null, season: 'Current' }).select('*').single();
-    if (team) setData((current: any) => ({ ...current, teams: [team, ...current.teams] }));
-    setTeamName(''); setSport('');
+    const { data: team } = await supabase.from('ct_teams').insert({ institution_id: institutionId, coach_id: user.id, name: teamName.trim(), sport: sport.trim() || null, season: season.trim() || 'Current' }).select('*').single();
+    if (team) {
+      setData((current: any) => ({ ...current, teams: [team, ...current.teams] }));
+      setSelectedTeamId(team.id);
+    }
+    setTeamName(''); setSport(''); setSeason('Current');
   };
 
   const createTraining = async () => {
-    if (!user?.id || !data.teams[0]?.id || !sessionTitle.trim() || !sessionTime) return;
-    const { data: session } = await supabase.from('ct_training_sessions').insert({ team_id: data.teams[0].id, coach_id: user.id, title: sessionTitle.trim(), scheduled_at: sessionTime }).select('*').single();
+    if (!user?.id || !sessionTeamId || !sessionTitle.trim() || !sessionTime) return;
+    const { data: session } = await supabase.from('ct_training_sessions').insert({ team_id: sessionTeamId, coach_id: user.id, title: sessionTitle.trim(), scheduled_at: sessionTime }).select('*').single();
     if (session) setData((current: any) => ({ ...current, training: [session, ...current.training] }));
     setSessionTitle(''); setSessionTime('');
   };
@@ -110,14 +129,42 @@ export default function CoachDashboard() {
         home_score: updated.home_score != null ? String(updated.home_score) : '',
         away_score: updated.away_score != null ? String(updated.away_score) : '',
       } }));
+      setMessage(mode === 'score' ? 'Score saved and standings refreshed.' : 'Game schedule updated.');
     }
   };
 
   const addAthlete = async () => {
     if (!athleteUserId || !athleteTeamId) return;
-    const { data: athlete } = await supabase.from('ct_athletes').insert({ user_id: athleteUserId, team_id: athleteTeamId, position: athletePosition || null, jersey_number: athleteJersey || null }).select('id, team_id, position, jersey_number, ct_users(full_name, email)').single();
-    if (athlete) setData((current: any) => ({ ...current, athletes: [athlete, ...current.athletes] }));
+    const { data: athlete, error } = await supabase.from('ct_athletes').insert({ user_id: athleteUserId, team_id: athleteTeamId, position: athletePosition || null, jersey_number: athleteJersey || null }).select('id, user_id, team_id, position, jersey_number, ct_users(full_name, email)').single();
+    if (error) {
+      setMessage(error.message.includes('duplicate') ? 'That athlete is already on this roster.' : error.message);
+      return;
+    }
+    if (athlete) {
+      setData((current: any) => ({ ...current, athletes: [athlete, ...current.athletes] }));
+      setSelectedTeamId(athlete.team_id || 'all');
+      setMessage('Athlete added to roster.');
+    }
     setAthleteUserId(''); setAthleteTeamId(''); setAthletePosition(''); setAthleteJersey('');
+  };
+
+  const saveAthlete = async (athlete: Athlete) => {
+    const edit = athleteEdits[athlete.id] || {};
+    const { data: updated } = await supabase.from('ct_athletes').update({
+      team_id: edit.team_id ?? athlete.team_id,
+      position: edit.position ?? athlete.position,
+      jersey_number: edit.jersey_number ?? athlete.jersey_number,
+    }).eq('id', athlete.id).select('id, user_id, team_id, position, jersey_number, ct_users(full_name, email)').single();
+    if (updated) {
+      setData((current: any) => ({ ...current, athletes: current.athletes.map((entry: Athlete) => entry.id === athlete.id ? updated : entry) }));
+      setMessage('Roster entry updated.');
+    }
+  };
+
+  const removeAthlete = async (athleteId: string) => {
+    await supabase.from('ct_athletes').delete().eq('id', athleteId);
+    setData((current: any) => ({ ...current, athletes: current.athletes.filter((entry: Athlete) => entry.id !== athleteId) }));
+    setMessage('Athlete removed from roster.');
   };
 
   return (
@@ -125,8 +172,10 @@ export default function CoachDashboard() {
       <div className="space-y-6">
         <div className="rounded-[1.5rem] bg-primary p-8 text-white">
           <h1 className="font-lexend text-3xl font-900">Coach Workspace</h1>
-          <p className="mt-2 text-white/80">Create teams and games, record scores, derive standings, and manage a minimal roster flow from live data.</p>
+          <p className="mt-2 text-white/80">Create teams and games, record scores, derive standings, and manage a fuller live roster workflow.</p>
         </div>
+
+        {message && <div className="rounded-[1rem] bg-primary/10 p-3 text-sm text-primary">{message}</div>}
 
         <div className="grid lg:grid-cols-4 gap-6">
           <Card>
@@ -134,6 +183,7 @@ export default function CoachDashboard() {
             <div className="space-y-3">
               <Input label="Team name" value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Blue Wolves" />
               <Input label="Sport" value={sport} onChange={(e) => setSport(e.target.value)} placeholder="Basketball" />
+              <Input label="Season" value={season} onChange={(e) => setSeason(e.target.value)} placeholder="Spring 2026" />
               <Button onClick={createTeam} className="w-full rounded-full">Create team</Button>
             </div>
           </Card>
@@ -141,9 +191,14 @@ export default function CoachDashboard() {
           <Card>
             <h2 className="mb-3 font-lexend text-lg font-800 text-on-surface">Create training session</h2>
             <div className="space-y-3">
+              <label className="block text-sm font-jakarta font-700 text-on-surface">Team</label>
+              <select value={sessionTeamId} onChange={(e) => setSessionTeamId(e.target.value)} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm text-on-surface">
+                <option value="">Select team</option>
+                {data.teams.map((team: Team) => <option key={team.id} value={team.id}>{team.name}</option>)}
+              </select>
               <Input label="Session title" value={sessionTitle} onChange={(e) => setSessionTitle(e.target.value)} placeholder="Conditioning" />
               <Input label="Scheduled at" type="datetime-local" value={sessionTime} onChange={(e) => setSessionTime(e.target.value)} />
-              <Button onClick={createTraining} className="w-full rounded-full" disabled={!data.teams[0]}>Create session</Button>
+              <Button onClick={createTraining} className="w-full rounded-full" disabled={!data.teams.length}>Create session</Button>
             </div>
           </Card>
 
@@ -185,6 +240,14 @@ export default function CoachDashboard() {
           </Card>
         </div>
 
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="text-sm font-jakarta font-700 text-on-surface">Filter team</label>
+          <select value={selectedTeamId} onChange={(e) => setSelectedTeamId(e.target.value)} className="rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm text-on-surface">
+            <option value="all">All teams</option>
+            {data.teams.map((team: Team) => <option key={team.id} value={team.id}>{team.name}</option>)}
+          </select>
+        </div>
+
         <div className="grid lg:grid-cols-3 gap-6">
           <Card>
             <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Standings</h2>
@@ -193,7 +256,8 @@ export default function CoachDashboard() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="font-jakarta font-700 text-on-surface">#{index + 1} · {team.name}</p>
-                    <p className="text-sm text-on-surface-variant">{team.sport} · {team.wins}-{team.losses}-{team.draws} · PF/PA {team.pf}/{team.pa}</p>
+                    <p className="text-sm text-on-surface-variant">{team.sport} · {team.season} · {team.wins}-{team.losses}-{team.draws}</p>
+                    <p className="text-xs text-on-surface-variant">PF/PA {team.pf}/{team.pa} · Diff {team.pf - team.pa}</p>
                   </div>
                   <Badge label={`${team.points} pts`} variant="tertiary" />
                 </div>
@@ -202,7 +266,7 @@ export default function CoachDashboard() {
           </Card>
           <Card>
             <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Schedule & score updates</h2>
-            {myGames.length === 0 ? <p className="text-sm text-on-surface-variant">No games recorded yet.</p> : myGames.map((game: Game) => {
+            {filteredGames.length === 0 ? <p className="text-sm text-on-surface-variant">No games recorded for this view yet.</p> : filteredGames.map((game: Game) => {
               const edit = gameEdits[game.id] || {};
               return (
               <div key={game.id} className="mb-3 rounded-[1rem] bg-surface p-4">
@@ -214,7 +278,7 @@ export default function CoachDashboard() {
                   <Badge label={game.status} variant={game.status === 'completed' ? 'tertiary' : 'secondary'} />
                 </div>
                 <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <Input label="Scheduled at" type="datetime-local" value={edit.scheduled_at ?? (game.scheduled_at ? new Date(new Date(game.scheduled_at).getTime() - new Date(game.scheduled_at).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '')} onChange={(e) => setGameEdits((current) => ({ ...current, [game.id]: { ...current[game.id], scheduled_at: e.target.value } }))} />
+                  <Input label="Scheduled at" type="datetime-local" value={edit.scheduled_at ?? formatDateTimeLocalInput(game.scheduled_at)} onChange={(e) => setGameEdits((current) => ({ ...current, [game.id]: { ...current[game.id], scheduled_at: e.target.value } }))} />
                   <div>
                     <label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Status</label>
                     <select value={edit.status ?? game.status} onChange={(e) => setGameEdits((current) => ({ ...current, [game.id]: { ...current[game.id], status: e.target.value } }))} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm text-on-surface">
@@ -234,17 +298,21 @@ export default function CoachDashboard() {
             );})}
           </Card>
           <Card>
-            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Teams, roster & training</h2>
-            {data.teams.length === 0 ? <p className="text-sm text-on-surface-variant">No teams yet. Create your first team.</p> : data.teams.map((team: Team) => (
-              <div key={team.id} className="mb-4 rounded-[1rem] bg-surface p-4">
-                <div className="flex items-center justify-between"><p className="font-jakarta font-700 text-on-surface">{team.name}</p><Badge label={team.sport || 'sport'} variant="primary" /></div>
-                <p className="mt-1 text-sm text-on-surface-variant">Roster: {data.athletes.filter((athlete: Athlete) => athlete.team_id === team.id).length} athletes</p>
-                <div className="mt-2 space-y-2">
-                  {data.athletes.filter((athlete: Athlete) => athlete.team_id === team.id).slice(0, 4).map((athlete: Athlete) => <p key={athlete.id} className="text-sm text-on-surface-variant">{athlete.ct_users?.full_name || athlete.ct_users?.email || 'Athlete'} · {athlete.position || 'Position TBD'} · #{athlete.jersey_number || '—'}</p>)}
-                  {data.training.filter((session: any) => session.team_id === team.id).slice(0, 2).map((session: any) => <p key={session.id} className="text-sm text-on-surface-variant">Training: {session.title || 'Session'} · {session.scheduled_at ? new Date(session.scheduled_at).toLocaleString() : 'TBD'}</p>)}
+            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Roster & training</h2>
+            {data.teams.length === 0 ? <p className="text-sm text-on-surface-variant">No teams yet. Create your first team.</p> : (
+              <div className="space-y-4">
+                {filteredAthletes.length === 0 ? <p className="text-sm text-on-surface-variant">No athletes in this filtered view yet.</p> : filteredAthletes.map((athlete: Athlete) => {
+                  const edit = athleteEdits[athlete.id] || {};
+                  return <div key={athlete.id} className="rounded-[1rem] bg-surface p-4 space-y-3"><div className="flex items-center justify-between gap-3"><div><p className="font-jakarta font-700 text-on-surface">{athlete.ct_users?.full_name || athlete.ct_users?.email || 'Athlete'}</p><p className="text-sm text-on-surface-variant">{teamMap[(edit.team_id ?? athlete.team_id) || '']?.name || 'Unassigned team'}</p></div><Badge label={edit.position || athlete.position || 'Position TBD'} variant="primary" /></div><div className="grid md:grid-cols-3 gap-3"><div><label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Team</label><select value={edit.team_id ?? athlete.team_id ?? ''} onChange={(e) => setAthleteEdits((current) => ({ ...current, [athlete.id]: { ...current[athlete.id], team_id: e.target.value } }))} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm text-on-surface">{data.teams.map((team: Team) => <option key={team.id} value={team.id}>{team.name}</option>)}</select></div><Input label="Position" value={edit.position ?? athlete.position ?? ''} onChange={(e) => setAthleteEdits((current) => ({ ...current, [athlete.id]: { ...current[athlete.id], position: e.target.value } }))} placeholder="Forward" /><Input label="Jersey #" value={edit.jersey_number ?? athlete.jersey_number ?? ''} onChange={(e) => setAthleteEdits((current) => ({ ...current, [athlete.id]: { ...current[athlete.id], jersey_number: e.target.value } }))} placeholder="12" /></div><div className="flex gap-2"><Button size="sm" className="rounded-full" onClick={() => saveAthlete(athlete)}>Save athlete</Button><Button size="sm" variant="outline" className="rounded-full" onClick={() => removeAthlete(athlete.id)}>Remove</Button></div></div>;
+                })}
+                <div className="rounded-[1rem] bg-surface p-4">
+                  <p className="font-jakarta font-700 text-on-surface">Upcoming training</p>
+                  <div className="mt-2 space-y-2">
+                    {filteredTraining.length === 0 ? <p className="text-sm text-on-surface-variant">No training sessions in this view.</p> : filteredTraining.slice(0, 5).map((session: TrainingSession) => <p key={session.id} className="text-sm text-on-surface-variant">{teamMap[session.team_id || '']?.name || 'Team'} · {session.title || 'Session'} · {session.scheduled_at ? new Date(session.scheduled_at).toLocaleString() : 'TBD'}</p>)}
+                  </div>
                 </div>
               </div>
-            ))}
+            )}
           </Card>
         </div>
       </div>

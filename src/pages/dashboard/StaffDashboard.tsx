@@ -32,15 +32,19 @@ export default function StaffDashboard() {
   const [bookingReviewNotes, setBookingReviewNotes] = useState<Record<string, string>>({});
 
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
-    const [childrenRes, reportsRes, classesRes, announcementsRes, parentsRes, updatesRes, bookingsRes] = await Promise.all([
+    const [childrenRes, reportsRes, classesRes, announcementsRes, parentsRes, updatesRes, venuesRes] = await Promise.all([
       supabase.from('ct_children').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }),
       supabase.from('ct_daily_reports').select('*, ct_children(full_name)').eq('teacher_id', userId).order('report_date', { ascending: false }).limit(20),
       supabase.from('ct_classes').select('id, section, room, schedule, ct_courses(code, name)').eq('teacher_id', userId).eq('institution_id', institutionId),
       supabase.from('ct_announcements').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(10),
       supabase.from('ct_users').select('id, full_name, email').eq('institution_id', institutionId).eq('role', 'parent').order('full_name'),
       supabase.from('ct_parent_updates').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(20),
-      supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, ct_venues(name, institution_id)').in('status', ['pending', 'approved', 'rejected']).order('created_at', { ascending: false }).limit(40),
+      supabase.from('ct_venues').select('id').eq('institution_id', institutionId),
     ]);
+    const venueIds = (venuesRes.data ?? []).map((venue: any) => venue.id);
+    const bookingsRes = venueIds.length
+      ? await supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, ct_venues(name, institution_id)').in('venue_id', venueIds).in('status', ['pending', 'approved', 'rejected']).order('created_at', { ascending: false }).limit(40)
+      : { data: [] };
     return {
       children: childrenRes.data ?? [],
       reports: reportsRes.data ?? [],
@@ -49,8 +53,7 @@ export default function StaffDashboard() {
       parents: parentsRes.data ?? [],
       updates: updatesRes.data ?? [],
       bookings: (bookingsRes.data ?? [])
-        .map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues) }))
-        .filter((booking: Booking) => booking.ct_venues?.institution_id === institutionId),
+        .map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues) })),
     };
   }, { children: [], reports: [], classes: [], announcements: [], parents: [], updates: [], bookings: [] } as any);
 

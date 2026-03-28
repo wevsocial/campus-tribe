@@ -6,6 +6,7 @@ export type VenueBookingLike = {
   status: string;
   purpose?: string | null;
   notes?: string | null;
+  approved_by?: string | null;
   ct_venues?: { name?: string | null; building?: string | null; institution_id?: string | null } | null;
 };
 
@@ -26,4 +27,26 @@ export function findVenueConflicts(bookings: VenueBookingLike[], candidate: { ve
     && booking.status !== 'rejected'
     && booking.status !== 'cancelled'
     && hasTimeOverlap(start, end, booking.start_time, booking.end_time));
+}
+
+export function formatDateTimeLocalInput(value?: string | null) {
+  if (!value) return '';
+  const date = new Date(value);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
+export function summarizeVenueConflicts(bookings: VenueBookingLike[], candidate: { venueId?: string | null; start?: string; end?: string; excludeId?: string | null }) {
+  const conflicts = findVenueConflicts(bookings, candidate);
+  const approved = conflicts.filter((booking) => booking.status === 'approved').length;
+  const pending = conflicts.filter((booking) => booking.status === 'pending').length;
+  const live = conflicts.filter((booking) => booking.status !== 'approved' && booking.status !== 'pending').length;
+  return {
+    conflicts,
+    approved,
+    pending,
+    live,
+    label: conflicts.length === 0
+      ? 'No known conflicts for this request.'
+      : `${conflicts.length} overlapping request${conflicts.length === 1 ? '' : 's'} found · ${approved} approved · ${pending} pending${live ? ` · ${live} active` : ''}`,
+  };
 }
