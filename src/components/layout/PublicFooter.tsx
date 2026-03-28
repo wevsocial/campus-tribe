@@ -32,6 +32,7 @@ export default function PublicFooter() {
             <ul className="space-y-4">
               <li><Link to="/resources/features" className="text-slate-500 dark:text-slate-400 hover:text-secondary transition-all text-sm">Features Guide</Link></li>
               <li><Link to="/resources/wellbeing" className="text-slate-500 dark:text-slate-400 hover:text-secondary transition-all text-sm">Wellbeing Whitepaper</Link></li>
+              <li><Link to="/resources/api-documentation" className="text-slate-500 dark:text-slate-400 hover:text-secondary transition-all text-sm">API Documentation</Link></li>
               <li><Link to="/resources/support" className="text-slate-500 dark:text-slate-400 hover:text-secondary transition-all text-sm">Contact Support</Link></li>
             </ul>
           </div>

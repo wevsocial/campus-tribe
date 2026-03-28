@@ -8,12 +8,12 @@ const roles = [
     color: 'text-primary',
     bg: 'bg-primary/10',
     features: [
-      'Smart peer matching by interests and study style',
-      'Club discovery and one-tap membership requests',
-      'Event calendar with personal RSVP tracking',
-      'Intramural sports registration and leaderboards',
-      'Daily wellbeing check-ins and mood tracking',
-      'Venue booking for study sessions and social events',
+      'Interest onboarding and club discovery',
+      'Campus event feed with RSVP and reminders',
+      'Wellbeing check-ins and self-reported pulse tracking',
+      'Team and intramural participation experiences',
+      'Role-aware notifications and campus announcements',
+      'A platform mode tailored to university or school context',
     ],
   },
   {
@@ -22,12 +22,12 @@ const roles = [
     color: 'text-tertiary',
     bg: 'bg-tertiary/10',
     features: [
-      'Class roster with real-time attendance tracking',
-      'Assignment builder with deadline management',
-      'Gradebook with editable grade entries',
-      'At-risk student detection and alert system',
-      'Student notes and annotation panel',
-      'Weekly schedule and calendar integration',
+      'Class and course shells tied to institutional roles',
+      'Assignment creation and lightweight academic workflows',
+      'Polls and surveys for class feedback and pulse checks',
+      'Announcements to targeted student groups',
+      'Visibility into connected campus engagement context',
+      'Progressive path toward LMS-linked experiences',
     ],
   },
   {
@@ -36,12 +36,12 @@ const roles = [
     color: 'text-secondary',
     bg: 'bg-secondary/10',
     features: [
-      'Admissions pipeline kanban (Applied to Enrolled)',
-      'Budget allocation and reporting dashboards',
-      'Enrollment trend analytics with chart visualizations',
-      'Staff management (add, edit, deactivate)',
-      'Institution-wide announcements composer',
-      'Compliance and export report builder',
+      'Institution setup, member management, and announcements',
+      'Club approvals and student organization workflows',
+      'Venue operations and institutional communications',
+      'Foundation for analytics, reporting, and retention insights',
+      'Survey distribution and policy-safe audience targeting',
+      'Multi-platform support across university, school, and preschool',
     ],
   },
   {
@@ -50,12 +50,12 @@ const roles = [
     color: 'text-purple-600',
     bg: 'bg-purple-100 dark:bg-purple-900/20',
     features: [
-      'Daily activity summary for each child',
-      'Daily reports (meals, nap times, activities)',
-      'Upcoming events and permission slip approvals',
-      'Direct messaging with teachers',
-      'Photo gallery access and download',
-      'Push notifications for urgent updates',
+      'Child linking and parent-facing communication',
+      'Daily reports for preschool and early years settings',
+      'Announcements relevant to their institution or child context',
+      'Progressive support for school-family coordination',
+      'Fast, low-friction onboarding without long setup fatigue',
+      'Secure, role-scoped access to family-facing information',
     ],
   },
   {
@@ -64,12 +64,12 @@ const roles = [
     color: 'text-amber-600',
     bg: 'bg-amber-100 dark:bg-amber-900/20',
     features: [
-      'Member management table with status tracking',
-      'Event creation with RSVP and waitlist management',
-      'Club budget tracker with expense logging',
-      'Venue booking request and approval workflow',
-      'Recruitment pipeline for new member acquisition',
-      'Announcement composer for club channels',
+      'Create and operate clubs inside a single workspace',
+      'Publish student-facing events and announcements',
+      'Review or support club approval workflows',
+      'Request and track venue bookings',
+      'Manage members and engagement activities',
+      'Operate against real institution data rather than demos',
     ],
   },
   {
@@ -78,12 +78,12 @@ const roles = [
     color: 'text-orange-600',
     bg: 'bg-orange-100 dark:bg-orange-900/20',
     features: [
-      'Team roster with athlete profiles and photos',
-      'Training schedule calendar with session planning',
-      'Performance tracker with radar chart visualization',
-      'Game score entry and results archive',
-      'Athlete health and injury log',
-      'Team communication and announcement panel',
+      'Team creation and training schedule workflows',
+      'Sports participation foundations for P1 expansion',
+      'Game and training records tied to live data',
+      'Operational pathway toward full intramural management',
+      'Coach-facing communications and future survey support',
+      'Preparation for standings, live scores, and compliance reporting',
     ],
   },
   {
@@ -92,12 +92,12 @@ const roles = [
     color: 'text-slate-600',
     bg: 'bg-slate-100 dark:bg-slate-700/30',
     features: [
-      'RBAC user management and role assignment',
-      'SSO, LDAP, and Google Workspace integration',
-      'API documentation with curl example explorer',
-      'System health and uptime metrics',
-      'Full audit log with filter and export',
-      'Webhook configuration for external integrations',
+      'User directory and role visibility by institution',
+      'API key issuance and revocation',
+      'Public-safe API documentation review and full logged-in reference',
+      'Audit log visibility for integration and governance activity',
+      'Integration review surfaces for LMS, SSO, and webhook planning',
+      'Foundation for institutional API and identity rollout',
     ],
   },
 ];
@@ -113,7 +113,7 @@ export default function FeaturesGuidePage() {
             Built for Every<br /><span className="text-primary">Role on Campus</span>.
           </h1>
           <p className="text-xl text-on-surface-variant dark:text-slate-400 max-w-2xl mx-auto">
-            Campus Tribe is a unified platform where every stakeholder has a purpose-built experience. Explore features by role.
+            Campus Tribe is a unified multi-platform system where every stakeholder has a role-aware experience across university, school, and preschool modes.
           </p>
         </section>
 

@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
-import { useAuthStore } from '../../store/authStore';
 import type { UserRole } from '../../types';
 import {
   LayoutDashboard, Compass, Calendar, Users, Trophy, Heart, User,
   BarChart2, Building2, Settings, Flag, List, Wallet, LogOut,
   ChevronRight, BookOpen
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import NotificationBell from '../dashboard/NotificationBell';
 
 const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; path: string }[]> = {
   student: [
@@ -54,9 +55,9 @@ const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; pat
     { label: 'Analytics', icon: <BarChart2 size={18} />, path: '/dashboard/coach#analytics' },
   ],
   staff: [
-    { label: 'Overview', icon: <LayoutDashboard size={18} />, path: '/dashboard/admin' },
-    { label: 'Events', icon: <Calendar size={18} />, path: '/dashboard/admin#events' },
-    { label: 'Reports', icon: <Flag size={18} />, path: '/dashboard/admin#reports' },
+    { label: 'Overview', icon: <LayoutDashboard size={18} />, path: '/dashboard/staff' },
+    { label: 'Daily Reports', icon: <Flag size={18} />, path: '/dashboard/staff#reports' },
+    { label: 'Classes', icon: <BookOpen size={18} />, path: '/dashboard/staff#classes' },
   ],
   it_director: [
     { label: 'Overview', icon: <LayoutDashboard size={18} />, path: '/dashboard/it' },
@@ -102,59 +103,47 @@ const roleLabels: Record<UserRole, string> = {
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  activeSection?: string;
 }
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
-  const { user, logout } = useAuthStore();
+  const { profile, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const role = user?.role || 'student';
-  const navItems = (roleNavItems[role as UserRole] || roleNavItems.student) as { label: string; icon: React.ReactNode; path: string }[];
+  const role = (profile?.role || 'student') as UserRole;
+  const navItems = roleNavItems[role] || roleNavItems.student;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
     navigate('/');
   };
 
-  const initials = user?.name
-    ?.split(' ')
-    .map((n: string) => n[0])
+  const initials = (profile?.full_name || profile?.email || 'U')
+    .split(' ')
+    .map((segment: string) => segment[0])
     .join('')
-    .toUpperCase() || 'U';
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <div className="flex h-screen bg-surface overflow-hidden">
-      {/* Sidebar */}
-      <aside className={clsx(
-        'fixed inset-y-0 left-0 z-40 w-60 bg-surface-lowest border-r border-outline-variant/40 flex flex-col transition-transform duration-300',
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      )}>
-        {/* Logo */}
-        <div className="px-5 py-5 border-b border-outline-variant/30">
+      <aside className={clsx('fixed inset-y-0 left-0 z-40 w-64 bg-surface-lowest flex flex-col transition-transform duration-300', sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0')}>
+        <div className="px-5 py-5 bg-surface">
           <Link to="/" className="font-lexend font-900 italic text-lg text-primary">Campus Tribe</Link>
-          <div className={clsx('mt-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-jakarta font-700', roleBadgeColors[role as UserRole])}>
-            {roleLabels[role as UserRole]}
+          <div className={clsx('mt-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-jakarta font-700', roleBadgeColors[role])}>
+            {roleLabels[role]}
           </div>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4 px-3">
-          {navItems.map((item: { label: string; icon: React.ReactNode; path: string }) => {
-            const isActive = location.pathname === item.path.split('#')[0] &&
-              (item.path === location.pathname || location.hash === `#${item.path.split('#')[1]}`);
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path.split('#')[0] && (item.path === location.pathname || location.hash === `#${item.path.split('#')[1]}`);
             return (
               <Link
                 key={item.label}
                 to={item.path}
-                className={clsx(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-sm font-jakarta transition-all',
-                  isActive
-                    ? 'bg-primary-container text-primary font-700'
-                    : 'text-on-surface-variant hover:bg-surface-low hover:text-on-surface'
-                )}
+                className={clsx('flex items-center gap-3 px-4 py-3 rounded-[1rem] mb-1 text-sm font-jakarta transition-all', isActive ? 'bg-primary-container text-primary font-700' : 'text-on-surface-variant hover:bg-surface hover:text-on-surface')}
               >
                 {item.icon}
                 {item.label}
@@ -164,47 +153,36 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           })}
         </nav>
 
-        {/* User footer */}
-        <div className="px-3 py-4 border-t border-outline-variant/30">
+        <div className="px-3 py-4 bg-surface">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white text-sm font-lexend font-800 flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white text-sm font-lexend font-800 flex-shrink-0">
               {initials}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-jakarta font-700 text-on-surface truncate">{user?.name}</p>
-              <p className="text-xs text-on-surface-variant truncate">{user?.email}</p>
+              <p className="text-sm font-jakarta font-700 text-on-surface truncate">{profile?.full_name || 'Campus User'}</p>
+              <p className="text-xs text-on-surface-variant truncate">{profile?.email}</p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-jakarta text-on-surface-variant hover:bg-red-50 hover:text-red-600 transition-colors"
-          >
+          <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 rounded-full text-sm font-jakarta text-on-surface-variant hover:bg-red-50 hover:text-red-600 transition-colors">
             <LogOut size={16} />
             Logout
           </button>
         </div>
       </aside>
 
-      {/* Overlay for mobile */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {sidebarOpen && <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
 
-      {/* Main */}
-      <main className="flex-1 lg:ml-60 overflow-y-auto h-screen">
-        {/* Mobile top bar */}
-        <div className="lg:hidden sticky top-0 z-20 bg-surface-lowest border-b border-outline-variant/30 px-4 h-14 flex items-center gap-3">
-          <button onClick={() => setSidebarOpen(true)} className="text-on-surface-variant">
-            <span className="material-symbols-outlined">menu</span>
-          </button>
-          <span className="font-lexend font-900 italic text-primary">Campus Tribe</span>
+      <main className="flex-1 lg:ml-64 overflow-y-auto h-screen">
+        <div className="sticky top-0 z-20 flex items-center justify-between bg-surface-lowest/90 backdrop-blur px-4 lg:px-6 h-16">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(true)} className="text-on-surface-variant lg:hidden">
+              <span className="material-symbols-outlined">menu</span>
+            </button>
+            <span className="font-lexend font-900 italic text-primary lg:hidden">Campus Tribe</span>
+          </div>
+          <NotificationBell />
         </div>
-        <div className="p-6">
-          {children}
-        </div>
+        <div className="p-6">{children}</div>
       </main>
     </div>
   );

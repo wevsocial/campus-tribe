@@ -20,8 +20,9 @@ export default function PublicNav() {
               Resources <span className="material-symbols-outlined text-sm">expand_more</span>
             </button>
             <div className="absolute top-full left-0 hidden group-hover:block pt-2 z-50">
-              <div className="bg-white dark:bg-zinc-800 shadow-xl rounded-xl border border-slate-100 dark:border-zinc-700 p-2 min-w-[200px]">
+              <div className="bg-white dark:bg-zinc-800 shadow-xl rounded-xl border border-slate-100 dark:border-zinc-700 p-2 min-w-[220px]">
                 <Link to="/resources/features" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Features Guide</Link>
+                <Link to="/resources/api-documentation" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">API Documentation</Link>
                 <Link to="/resources/wellbeing" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Wellbeing Whitepaper</Link>
                 <Link to="/resources/support" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Contact Support</Link>
               </div>
@@ -43,18 +44,19 @@ export default function PublicNav() {
         </div>
         <div className="flex gap-4 items-center">
           <button
+            type="button"
+            aria-label="Toggle day and night mode"
             onClick={toggle}
-            className="p-2 rounded-full hover:bg-surface-container dark:hover:bg-slate-700 transition-colors"
-            title="Toggle dark mode"
+            className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 bg-surface-container-lowest dark:bg-slate-800 px-3 py-2 text-sm font-jakarta font-700 text-on-surface dark:text-slate-200 transition-colors hover:bg-surface-container-low dark:hover:bg-slate-700"
+            title="Toggle day and night mode"
           >
-            <span className="material-symbols-outlined text-on-surface dark:text-slate-200">
-              {dark ? 'light_mode' : 'dark_mode'}
-            </span>
+            <span className="material-symbols-outlined text-base leading-none">{dark ? 'light_mode' : 'dark_mode'}</span>
+            <span>{dark ? 'Day' : 'Night'}</span>
           </button>
           <Link to="/login" className="hidden lg:block text-slate-600 dark:text-slate-300 font-headline font-semibold px-4 py-2 hover:bg-primary/10 rounded-full transition-all">Login</Link>
           <Link to="/register" className="bg-primary text-on-primary font-headline font-bold px-6 py-2.5 rounded-full shadow-lg shadow-primary/20 hover:scale-105 transition-transform">Get Started</Link>
         </div>
-        <button className="md:hidden p-2" onClick={() => setMobileOpen(!mobileOpen)}>
+        <button type="button" className="md:hidden p-2" onClick={() => setMobileOpen(!mobileOpen)}>
           <span className="material-symbols-outlined dark:text-slate-200">{mobileOpen ? 'close' : 'menu'}</span>
         </button>
       </div>
@@ -64,6 +66,8 @@ export default function PublicNav() {
           <Link to="/school" className="block py-2 text-slate-700 dark:text-slate-200 font-headline" onClick={() => setMobileOpen(false)}>School</Link>
           <Link to="/preschool" className="block py-2 text-slate-700 dark:text-slate-200 font-headline" onClick={() => setMobileOpen(false)}>Preschool</Link>
           <Link to="/pricing" className="block py-2 text-slate-700 dark:text-slate-200 font-headline" onClick={() => setMobileOpen(false)}>Pricing</Link>
+          <Link to="/resources/features" className="block py-2 text-slate-700 dark:text-slate-200 font-headline" onClick={() => setMobileOpen(false)}>Features</Link>
+          <Link to="/resources/api-documentation" className="block py-2 text-slate-700 dark:text-slate-200 font-headline" onClick={() => setMobileOpen(false)}>API Documentation</Link>
           <Link to="/about" className="block py-2 text-slate-700 dark:text-slate-200 font-headline" onClick={() => setMobileOpen(false)}>About</Link>
           <Link to="/blog" className="block py-2 text-slate-700 dark:text-slate-200 font-headline" onClick={() => setMobileOpen(false)}>Blog</Link>
           <Link to="/login" className="block py-2 text-slate-700 dark:text-slate-200 font-headline" onClick={() => setMobileOpen(false)}>Login</Link>

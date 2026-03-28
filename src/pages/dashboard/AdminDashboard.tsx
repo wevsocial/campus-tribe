@@ -1,655 +1,88 @@
 import React, { useState } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
-import { StatCard } from '../../components/ui/StatCard';
 import { Card } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
+import { StatCard } from '../../components/ui/StatCard';
 import { Button } from '../../components/ui/Button';
-import { Modal } from '../../components/ui/Modal';
-import { MOCK_ANALYTICS } from '../../lib/mockData';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, LineChart, Line
-} from 'recharts';
-import { AlertTriangle, Plus, TrendingUp, TrendingDown } from 'lucide-react';
+import { Input } from '../../components/ui/Input';
+import { Badge } from '../../components/ui/Badge';
+import { useAuth } from '../../context/AuthContext';
+import { useDashboardData } from '../../hooks/useDashboardData';
+import { supabase } from '../../lib/supabase';
 
-const data = MOCK_ANALYTICS;
+export default function AdminDashboard() {
+  const { user, institutionId } = useAuth();
+  const { data, setData } = useDashboardData(async ({ institutionId, userId }) => {
+    const [institutionRes, membersRes, clubsRes, announcementsRes] = await Promise.all([
+      supabase.from('ct_institutions').select('*').eq('id', institutionId).maybeSingle(),
+      supabase.from('ct_users').select('id, full_name, email, role').eq('institution_id', institutionId).order('created_at', { ascending: false }),
+      supabase.from('ct_clubs').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }),
+      supabase.from('ct_announcements').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }),
+    ]);
+    return { institution: institutionRes.data ?? null, members: membersRes.data ?? [], clubs: clubsRes.data ?? [], announcements: announcementsRes.data ?? [], userId };
+  }, { institution: null, members: [], clubs: [], announcements: [], userId: null } as any);
 
-const admissionsKanban: Record<string, { id: number; name: string; program: string; date: string; avatar: number }[]> = {
-  Applied: [
-    { id: 1, name: 'Oliver Martinez', program: 'Computer Science', date: 'Mar 24', avatar: 21 },
-    { id: 2, name: 'Sofia Nguyen', program: 'Business Admin', date: 'Mar 23', avatar: 22 },
-    { id: 3, name: 'Ethan Brooks', program: 'Engineering', date: 'Mar 22', avatar: 23 },
-  ],
-  'Under Review': [
-    { id: 4, name: 'Mia Johnson', program: 'Medicine', date: 'Mar 18', avatar: 24 },
-    { id: 5, name: 'Noah Williams', program: 'Law', date: 'Mar 17', avatar: 25 },
-  ],
-  Admitted: [
-    { id: 6, name: 'Isabella Taylor', program: 'Computer Science', date: 'Mar 10', avatar: 26 },
-    { id: 7, name: 'Liam Davis', program: 'Engineering', date: 'Mar 9', avatar: 27 },
-  ],
-  Enrolled: [
-    { id: 8, name: 'Emma Wilson', program: 'Psychology', date: 'Mar 5', avatar: 28 },
-  ],
-  Declined: [
-    { id: 9, name: 'Ava Moore', program: 'Architecture', date: 'Mar 3', avatar: 29 },
-  ],
-};
+  const [announcementTitle, setAnnouncementTitle] = useState('');
+  const [clubName, setClubName] = useState('');
 
-const semesterBudgets = [
-  { semester: 'Fall 2024', allocated: 850000, spent: 820000, remaining: 30000 },
-  { semester: 'Winter 2025', allocated: 920000, spent: 890000, remaining: 30000 },
-  { semester: 'Summer 2025', allocated: 340000, spent: 280000, remaining: 60000 },
-  { semester: 'Fall 2025', allocated: 900000, spent: 870000, remaining: 30000 },
-  { semester: 'Winter 2026', allocated: 950000, spent: 490000, remaining: 460000 },
-];
+  const createAnnouncement = async () => {
+    if (!user?.id || !institutionId || !announcementTitle.trim()) return;
+    const { data: announcement } = await supabase.from('ct_announcements').insert({ institution_id: institutionId, author_id: user.id, title: announcementTitle.trim(), status: 'published', audience: 'all' }).select('*').single();
+    if (announcement) setData((current: any) => ({ ...current, announcements: [announcement, ...current.announcements] }));
+    setAnnouncementTitle('');
+  };
 
-const clubBudgetData = [
-  { name: 'Athletics', budget: 85000 },
-  { name: 'Photography', budget: 12000 },
-  { name: 'Robotics', budget: 18000 },
-  { name: 'Sustainability', budget: 9500 },
-  { name: 'Debate', budget: 7200 },
-  { name: 'Film Society', budget: 5800 },
-];
+  const createClubRequest = async () => {
+    if (!user?.id || !institutionId || !clubName.trim()) return;
+    const { data: club } = await supabase.from('ct_clubs').insert({ institution_id: institutionId, created_by: user.id, leader_id: user.id, name: clubName.trim(), is_approved: false }).select('*').single();
+    if (club) setData((current: any) => ({ ...current, clubs: [club, ...current.clubs] }));
+    setClubName('');
+  };
 
-const staffList = [
-  { id: 1, name: 'Dr. Sarah Patel', role: 'Dean of Students', dept: 'Admin', status: 'active', avatar: 31 },
-  { id: 2, name: 'Marcus Thompson', role: 'Athletics Coordinator', dept: 'Athletics', status: 'active', avatar: 32 },
-  { id: 3, name: 'Leon Okafor', role: 'IT Director', dept: 'IT', status: 'active', avatar: 33 },
-  { id: 4, name: 'Jennifer Wu', role: 'Registrar', dept: 'Academics', status: 'active', avatar: 34 },
-  { id: 5, name: 'Carlos Rivera', role: 'Facilities Manager', dept: 'Operations', status: 'on-leave', avatar: 35 },
-  { id: 6, name: 'Amanda Foster', role: 'Student Counselor', dept: 'Wellness', status: 'active', avatar: 36 },
-];
-
-const enrollmentTrend = [
-  { month: 'Oct', students: 11200 },
-  { month: 'Nov', students: 11600 },
-  { month: 'Dec', students: 11400 },
-  { month: 'Jan', students: 12100 },
-  { month: 'Feb', students: 12500 },
-  { month: 'Mar', students: 12847 },
-];
-
-import { MOCK_TOURNAMENTS, MOCK_AI_INSIGHTS, MOCK_CLUB_RECOGNITIONS, MOCK_ELECTIONS } from '../../lib/mockData';
-
-const tabs = ['Overview', 'Admissions', 'Budget', 'Staff', 'Announcements', 'Tournaments', 'Club OS', 'AI Insights'];
-
-const KANBAN_COLS = ['Applied', 'Under Review', 'Admitted', 'Enrolled', 'Declined'];
-const COL_COLORS: Record<string, string> = {
-  Applied: '#6B7280',
-  'Under Review': '#F59E0B',
-  Admitted: '#0047AB',
-  Enrolled: '#00A86B',
-  Declined: '#EF4444',
-};
-
-const AdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('Overview');
-  const [addStaffModal, setAddStaffModal] = useState(false);
+  const approveClub = async (clubId: string) => {
+    await supabase.from('ct_clubs').update({ is_approved: true }).eq('id', clubId);
+    setData((current: any) => ({ ...current, clubs: current.clubs.map((club: any) => club.id === clubId ? { ...club, is_approved: true } : club) }));
+  };
 
   return (
     <DashboardLayout>
-      {/* Hero Banner */}
-      <div className="relative rounded-2xl overflow-hidden mb-8" style={{ height: 200 }}>
-        <img
-          src="/assets/campus-hero.jpg"
-          alt="Campus"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#001a4d]/90 via-[#0047AB]/70 to-transparent" />
-        <div className="relative z-10 h-full flex flex-col justify-center px-8">
-          <h1 className="font-bold text-3xl text-white mb-1" style={{ fontFamily: 'Lexend, sans-serif' }}>Admin Overview</h1>
-          <p className="text-blue-200 text-sm">University of Toronto - Spring 2026</p>
-          <div className="flex gap-4 mt-4">
-            {[{ label: '12,847 Students', icon: '🎓' }, { label: '342 Staff', icon: '👥' }, { label: '98.2% Uptime', icon: '✅' }].map(s => (
-              <div key={s.label} className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-white text-xs font-semibold">
-                <span>{s.icon}</span><span>{s.label}</span>
-              </div>
-            ))}
-          </div>
+      <div className="space-y-6">
+        <div className="rounded-[1.5rem] bg-primary p-8 text-white">
+          <h1 className="font-lexend text-3xl font-900">Admin Workspace</h1>
+          <p className="mt-2 text-white/80">Manage your institution, publish announcements, and approve club registrations with real data.</p>
         </div>
-      </div>
 
-      {/* Alert */}
-      <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-5 py-4 mb-6">
-        <AlertTriangle size={20} className="text-red-500 flex-shrink-0" />
-        <div>
-          <p className="text-sm font-jakarta font-700 text-red-700">47 students show disengagement signs</p>
-          <p className="text-xs text-red-500 mt-0.5">Based on activity patterns over the last 30 days. Review recommended.</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard label="Institution" value={data.institution?.name || 'Setup needed'} color="primary" />
+          <StatCard label="Members" value={data.members.length} color="secondary" />
+          <StatCard label="Clubs" value={data.clubs.length} color="tertiary" />
+          <StatCard label="Announcements" value={data.announcements.length} color="primary" />
         </div>
-        <button className="ml-auto text-xs font-jakarta font-700 text-red-600 border border-red-300 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors">
-          Review
-        </button>
-      </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6 overflow-x-auto bg-gray-100 rounded-xl p-1">
-        {tabs.map(tab => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${activeTab === tab ? 'bg-white text-[#0047AB] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* Overview Tab */}
-      {activeTab === 'Overview' && (
-        <div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard value={data.activeStudents.toLocaleString()} label="Active Students" icon="people" color="primary" trend={8} />
-            <StatCard value="342" label="Active Faculty" icon="school" color="tertiary" trend={3} />
-            <StatCard value={data.totalClubs} label="Clubs Registered" icon="groups" color="secondary" trend={12} />
-            <StatCard value={data.totalEvents} label="Events This Month" icon="calendar_month" color="danger" trend={5} />
-          </div>
-
-          <div className="grid lg:grid-cols-3 gap-6 mb-8">
-            <div className="lg:col-span-2">
-              <Card>
-                <h2 className="font-lexend font-800 text-lg text-on-surface mb-4">Enrollment Trend (6 months)</h2>
-                <ResponsiveContainer width="100%" height={220}>
-                  <LineChart data={enrollmentTrend}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#BFC3D4" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#4A4E63' }} />
-                    <YAxis domain={[10000, 14000]} tick={{ fontSize: 11, fill: '#4A4E63' }} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="students" stroke="#0047AB" strokeWidth={2.5} dot={{ r: 4 }} name="Students" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </Card>
-            </div>
-            <div>
-              <Card>
-                <h2 className="font-lexend font-800 text-lg text-on-surface mb-4">Clubs by Category</h2>
-                <ResponsiveContainer width="100%" height={220}>
-                  <PieChart>
-                    <Pie data={data.clubsByCategory} cx="50%" cy="45%" innerRadius={50} outerRadius={75} dataKey="count" nameKey="category">
-                      {data.clubsByCategory.map((entry: { category: string; count: number; color: string }, i: number) => (
-                        <Cell key={i} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Legend iconSize={8} wrapperStyle={{ fontSize: '10px' }} formatter={(value) => <span style={{ color: '#4A4E63' }}>{value}</span>} />
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </Card>
-            </div>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Card>
-              <h2 className="font-lexend font-800 text-lg text-on-surface mb-4">Weekly Engagement</h2>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={data.weeklyTrend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#BFC3D4" />
-                  <XAxis dataKey="week" tick={{ fontSize: 10, fill: '#4A4E63' }} />
-                  <YAxis tick={{ fontSize: 10, fill: '#4A4E63' }} />
-                  <Tooltip />
-                  <Bar dataKey="activeUsers" fill="#0047AB" name="Active Users" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="newSignups" fill="#BFC3D4" name="New Signups" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
-            <Card padding="none" className="overflow-hidden">
-              <div className="px-5 py-4 border-b border-outline-variant/30">
-                <h2 className="font-lexend font-800 text-lg text-on-surface">Recent Activity</h2>
-              </div>
-              {[
-                { icon: '📋', action: 'Photography Society submitted a venue booking request', time: '5 min ago' },
-                { icon: '🆕', action: '12 new students registered via mobile app', time: '1h ago' },
-                { icon: '🏆', action: 'Basketball league game scores updated by Coach Thompson', time: '2h ago' },
-                { icon: '📅', action: 'Sustainability Fair event created by Priya Sharma', time: '4h ago' },
-                { icon: '⚠️', action: '3 students flagged for low wellness scores', time: '6h ago' },
-              ].map((item, i) => (
-                <div key={i} className={`flex items-center gap-3 px-5 py-3 ${i < 4 ? 'border-b border-outline-variant/30' : ''}`}>
-                  <span className="text-xl">{item.icon}</span>
-                  <p className="text-sm text-on-surface flex-1">{item.action}</p>
-                  <span className="text-xs text-on-surface-variant flex-shrink-0">{item.time}</span>
-                </div>
-              ))}
-            </Card>
-          </div>
-        </div>
-      )}
-
-      {/* Admissions Tab */}
-      {activeTab === 'Admissions' && (
-        <div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {[
-              { label: 'Total Applied', value: '2,341', trend: <TrendingUp size={14} className="text-green-600" /> },
-              { label: 'Under Review', value: '189', trend: null },
-              { label: 'Admitted', value: '423', trend: <TrendingUp size={14} className="text-green-600" /> },
-              { label: 'Enrollment Rate', value: '67%', trend: <TrendingDown size={14} className="text-red-500" /> },
-            ].map(s => (
-              <div key={s.label} className="bg-white rounded-xl border border-black/5 shadow-sm p-5">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="text-2xl font-lexend font-extrabold text-gray-900">{s.value}</div>
-                  {s.trend}
-                </div>
-                <div className="text-sm text-gray-500">{s.label}</div>
-              </div>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 overflow-x-auto">
-            {KANBAN_COLS.map(col => (
-              <div key={col}>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COL_COLORS[col] }} />
-                  <span className="text-sm font-jakarta font-700 text-on-surface">{col}</span>
-                  <span className="ml-auto text-xs bg-surface-low px-1.5 py-0.5 rounded-full text-on-surface-variant">{admissionsKanban[col].length}</span>
-                </div>
-                <div className="space-y-3">
-                  {admissionsKanban[col].map(s => (
-                    <div key={s.id} className="bg-white rounded-xl border border-outline-variant/30 shadow-sm p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <img src={`https://i.pravatar.cc/32?img=${s.avatar}`} alt={s.name} className="w-8 h-8 rounded-full object-cover" />
-                        <div>
-                          <p className="text-xs font-jakarta font-700 text-on-surface leading-tight">{s.name}</p>
-                          <p className="text-xs text-on-surface-variant">{s.program}</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-on-surface-variant">{s.date}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Budget Tab */}
-      {activeTab === 'Budget' && (
-        <div className="space-y-6">
-          <Card padding="none" className="overflow-hidden">
-            <div className="px-5 py-4 border-b border-outline-variant/30">
-              <h2 className="font-lexend font-800 text-lg text-on-surface">Semester Budget Overview</h2>
-            </div>
-            <table className="w-full">
-              <thead>
-                <tr className="bg-surface-low border-b border-outline-variant/30">
-                  {['Semester', 'Allocated', 'Spent', 'Remaining', '% Used'].map(h => (
-                    <th key={h} className="text-left py-3 px-5 text-xs font-jakarta font-700 text-on-surface-variant">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {semesterBudgets.map((s, i) => {
-                  const pct = Math.round((s.spent / s.allocated) * 100);
-                  return (
-                    <tr key={s.semester} className={i % 2 === 0 ? '' : 'bg-surface/50'}>
-                      <td className="py-3 px-5 text-sm font-jakarta font-700 text-on-surface">{s.semester}</td>
-                      <td className="py-3 px-5 text-sm text-on-surface-variant">${s.allocated.toLocaleString()}</td>
-                      <td className="py-3 px-5 text-sm text-on-surface-variant">${s.spent.toLocaleString()}</td>
-                      <td className="py-3 px-5 text-sm text-tertiary font-jakarta font-700">${s.remaining.toLocaleString()}</td>
-                      <td className="py-3 px-5">
-                        <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-20 bg-gray-100 rounded-full">
-                            <div className="h-1.5 bg-[#0047AB] rounded-full" style={{ width: `${pct}%` }} />
-                          </div>
-                          <span className="text-xs text-on-surface-variant">{pct}%</span>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </Card>
-
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Card>
-              <h3 className="font-lexend font-800 text-base text-on-surface mb-4">Club Budget Allocation</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={clubBudgetData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#BFC3D4" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#4A4E63' }} />
-                  <YAxis tick={{ fontSize: 10, fill: '#4A4E63' }} />
-                  <Tooltip formatter={(val: any) => `$${val.toLocaleString()}`} />
-                  <Bar dataKey="budget" fill="#FF7F50" radius={[4, 4, 0, 0]} name="Budget" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
-            <Card>
-              <h3 className="font-lexend font-800 text-base text-on-surface mb-4">Quick Budget Adjustment</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-jakarta font-700 text-on-surface block mb-1">Select Club</label>
-                  <select className="w-full border border-outline-variant rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
-                    {clubBudgetData.map(c => <option key={c.name}>{c.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-sm font-jakarta font-700 text-on-surface block mb-1">Adjustment Amount ($)</label>
-                  <input type="number" className="w-full border border-outline-variant rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="e.g. 5000" />
-                </div>
-                <div>
-                  <label className="text-sm font-jakarta font-700 text-on-surface block mb-1">Type</label>
-                  <div className="flex gap-2">
-                    <button className="flex-1 py-2 rounded-xl bg-green-50 text-green-700 text-sm font-medium border border-green-200">+ Increase</button>
-                    <button className="flex-1 py-2 rounded-xl bg-red-50 text-red-600 text-sm font-medium border border-red-200">- Decrease</button>
-                  </div>
-                </div>
-                <Button variant="primary" className="w-full">Submit Adjustment</Button>
-              </div>
-            </Card>
-          </div>
-        </div>
-      )}
-
-      {/* Staff Tab */}
-      {activeTab === 'Staff' && (
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="font-lexend font-800 text-lg text-on-surface">Staff Directory</h2>
-            <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => setAddStaffModal(true)}>
-              Add Staff
-            </Button>
-          </div>
-          <Card padding="none" className="overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-surface-low border-b border-outline-variant/30">
-                  {['Name', 'Role', 'Department', 'Status', 'Actions'].map(h => (
-                    <th key={h} className="text-left py-3 px-5 text-xs font-jakarta font-700 text-on-surface-variant">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {staffList.map((s, i) => (
-                  <tr key={s.id} className={i % 2 === 0 ? '' : 'bg-surface/50'}>
-                    <td className="py-3 px-5">
-                      <div className="flex items-center gap-3">
-                        <img src={`https://i.pravatar.cc/36?img=${s.avatar}`} alt={s.name} className="w-9 h-9 rounded-full object-cover" />
-                        <span className="text-sm font-jakarta font-700 text-on-surface">{s.name}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-5 text-sm text-on-surface-variant">{s.role}</td>
-                    <td className="py-3 px-5 text-sm text-on-surface-variant">{s.dept}</td>
-                    <td className="py-3 px-5">
-                      <Badge label={s.status === 'active' ? 'Active' : 'On Leave'} variant={s.status === 'active' ? 'tertiary' : 'warning'} />
-                    </td>
-                    <td className="py-3 px-5">
-                      <button className="text-xs text-[#0047AB] hover:underline mr-3">Edit</button>
-                      <button className="text-xs text-red-500 hover:underline">Remove</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </Card>
-        </div>
-      )}
-
-      {/* Announcements Tab */}
-      {activeTab === 'Announcements' && (
-        <div className="space-y-6">
+        <div className="grid lg:grid-cols-2 gap-6">
           <Card>
-            <h3 className="font-lexend font-800 text-base text-on-surface mb-4">Draft Announcement</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-jakarta font-700 text-on-surface block mb-1">Target Audience</label>
-                <select className="w-full border border-outline-variant rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
-                  <option>All Students</option>
-                  <option>All Faculty</option>
-                  <option>All Staff</option>
-                  <option>Specific Platform</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-jakarta font-700 text-on-surface block mb-1">Subject</label>
-                <input type="text" className="w-full border border-outline-variant rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="Announcement subject..." />
-              </div>
-              <div>
-                <label className="text-sm font-jakarta font-700 text-on-surface block mb-1">Message</label>
-                <textarea className="w-full border border-outline-variant rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/30" rows={5} placeholder="Write your announcement here..." />
-              </div>
-              <Button variant="primary">Send Announcement</Button>
-            </div>
+            <h2 className="mb-3 font-lexend text-lg font-800 text-on-surface">Create announcement</h2>
+            <Input label="Announcement title" value={announcementTitle} onChange={(e) => setAnnouncementTitle(e.target.value)} placeholder="Campus opens registration next week" />
+            <Button onClick={createAnnouncement} className="mt-3 w-full rounded-full">Publish announcement</Button>
           </Card>
           <Card>
-            <h3 className="font-lexend font-800 text-base text-on-surface mb-4">Recent Announcements</h3>
-            <div className="space-y-4">
-              {[
-                { title: 'Spring Registration Opens April 1', target: 'All Students', date: 'Mar 22', body: 'Course registration for the upcoming fall semester will open on April 1. Please review your academic plan with your advisor before registering.' },
-                { title: 'Faculty Senate Meeting Notes Available', target: 'All Faculty', date: 'Mar 20', body: 'Notes from the March 19 Faculty Senate meeting are now available in the faculty portal under Documents.' },
-              ].map((a, i) => (
-                <div key={i} className="border-b border-outline-variant/30 pb-4 last:border-0 last:pb-0">
-                  <div className="flex justify-between items-start mb-1">
-                    <div>
-                      <h4 className="font-jakarta font-700 text-sm text-on-surface">{a.title}</h4>
-                      <Badge label={a.target} variant="neutral" />
-                    </div>
-                    <span className="text-xs text-on-surface-variant">{a.date}</span>
-                  </div>
-                  <p className="text-sm text-on-surface-variant mt-2">{a.body}</p>
-                </div>
-              ))}
-            </div>
+            <h2 className="mb-3 font-lexend text-lg font-800 text-on-surface">Create club request</h2>
+            <Input label="Club name" value={clubName} onChange={(e) => setClubName(e.target.value)} placeholder="Debate Club" />
+            <Button onClick={createClubRequest} className="mt-3 w-full rounded-full">Create pending club</Button>
           </Card>
         </div>
-      )}
 
-      {/* Tournaments Tab */}
-      {activeTab === 'Tournaments' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-black text-gray-800" style={{ fontFamily: 'Lexend, sans-serif' }}>Tournaments</h2>
-              <p className="text-gray-500 text-sm mt-1">Manage intramural sports tournaments and brackets</p>
-            </div>
-            <button className="bg-[#0047AB] text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-800 transition-all">🏆 New Tournament</button>
-          </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            {MOCK_TOURNAMENTS.map(t => {
-              const statusColor: Record<string,string> = { Active: 'bg-green-100 text-green-700', Registration: 'bg-blue-100 text-[#0047AB]', Completed: 'bg-gray-100 text-gray-500' };
-              return (
-                <div key={t.id} className="bg-white rounded-2xl p-5" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div>
-                      <div className="font-black text-gray-800" style={{ fontFamily: 'Lexend, sans-serif' }}>{t.name}</div>
-                      <div className="text-sm text-gray-500 mt-0.5">{t.sport} · {t.format}</div>
-                    </div>
-                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${statusColor[t.status]}`}>{t.status}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                    <span>👥 {t.teams}/{t.maxTeams} teams</span>
-                    <span>📅 {t.startDate} → {t.endDate}</span>
-                  </div>
-                  {/* Progress bar */}
-                  <div className="w-full bg-gray-100 rounded-full h-2 mb-3">
-                    <div className="bg-[#0047AB] rounded-full h-2 transition-all" style={{ width: `${(t.teams / t.maxTeams) * 100}%` }} />
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="flex-1 border border-[#0047AB] text-[#0047AB] rounded-lg py-2 text-xs font-bold hover:bg-[#0047AB] hover:text-white transition-all">View Bracket</button>
-                    {t.status === 'Registration' && <button className="flex-1 bg-[#0047AB] text-white rounded-lg py-2 text-xs font-bold">Manage Teams</button>}
-                    {t.status === 'Active' && <button className="flex-1 bg-[#FF7F50] text-white rounded-lg py-2 text-xs font-bold">Update Scores</button>}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        <div className="grid lg:grid-cols-2 gap-6">
+          <Card>
+            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Pending / Active Clubs</h2>
+            {data.clubs.length === 0 ? <p className="text-sm text-on-surface-variant">No clubs yet. Create the first one or wait for student leaders to submit requests.</p> : data.clubs.map((club: any) => <div key={club.id} className="mb-3 rounded-[1rem] bg-surface p-4 flex items-center justify-between gap-3"><div><p className="font-jakarta font-700 text-on-surface">{club.name}</p><p className="text-sm text-on-surface-variant">{club.is_approved ? 'Approved' : 'Pending approval'}</p></div>{club.is_approved ? <Badge label="approved" variant="tertiary" /> : <Button onClick={() => approveClub(club.id)} className="rounded-full">Approve</Button>}</div>)}
+          </Card>
+          <Card>
+            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Members & Announcements</h2>
+            {data.members.length === 0 ? <p className="text-sm text-on-surface-variant">No members yet. Share your invite/access code with staff and students.</p> : data.members.slice(0, 8).map((member: any) => <div key={member.id} className="mb-3 rounded-[1rem] bg-surface p-4"><p className="font-jakarta font-700 text-on-surface">{member.full_name || member.email}</p><p className="text-sm text-on-surface-variant">{member.role} · {member.email}</p></div>)}
+            {data.announcements.length > 0 && <div className="mt-4 space-y-3">{data.announcements.slice(0, 4).map((announcement: any) => <div key={announcement.id} className="rounded-[1rem] bg-surface p-4"><p className="font-jakarta font-700 text-on-surface">{announcement.title}</p><p className="text-sm text-on-surface-variant">{announcement.status || 'published'}</p></div>)}</div>}
+          </Card>
         </div>
-      )}
-
-      {/* Club OS Tab */}
-      {activeTab === 'Club OS' && (
-        <div className="space-y-6">
-          <h2 className="text-2xl font-black text-gray-800" style={{ fontFamily: 'Lexend, sans-serif' }}>Club & Organization OS</h2>
-
-          {/* Recognition Requests */}
-          <div className="bg-white rounded-3xl p-6" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-            <h3 className="font-black text-gray-800 mb-4" style={{ fontFamily: 'Lexend, sans-serif' }}>🎖 Recognition Requests</h3>
-            <div className="space-y-3">
-              {MOCK_CLUB_RECOGNITIONS.map(r => {
-                const statusColor: Record<string,string> = { pending: 'bg-yellow-100 text-yellow-700', approved: 'bg-green-100 text-green-700', rejected: 'bg-red-100 text-red-500' };
-                return (
-                  <div key={r.id} className="flex items-start justify-between gap-3 p-4 border border-gray-100 rounded-2xl">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-gray-800 text-sm">{r.clubName}</span>
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${statusColor[r.status]}`}>{r.status}</span>
-                      </div>
-                      <div className="text-xs text-gray-500">{r.category} · {r.contactName} · {r.contactEmail}</div>
-                      {r.desc && <p className="text-xs text-gray-500 mt-1 leading-relaxed">{r.desc}</p>}
-                    </div>
-                    {r.status === 'pending' && (
-                      <div className="flex gap-2 flex-shrink-0">
-                        <button className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full hover:bg-green-200">Approve</button>
-                        <button className="bg-red-100 text-red-500 text-xs font-bold px-3 py-1.5 rounded-full hover:bg-red-200">Reject</button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Elections */}
-          <div className="bg-white rounded-3xl p-6" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-black text-gray-800" style={{ fontFamily: 'Lexend, sans-serif' }}>🗳️ Club Elections</h3>
-              <button className="bg-[#0047AB] text-white text-xs font-bold px-4 py-2 rounded-full">+ New Election</button>
-            </div>
-            <div className="space-y-4">
-              {MOCK_ELECTIONS.map(el => (
-                <div key={el.id} className="border border-gray-100 rounded-2xl p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <div className="font-bold text-gray-800 text-sm">{el.title}</div>
-                      <div className="text-xs text-gray-500">{el.clubName} · Closes: {el.endsAt}</div>
-                    </div>
-                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${el.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                      {el.status}
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    {el.candidates.map((c, i) => {
-                      const total = el.candidates.reduce((a,b) => a + b.votes, 0);
-                      const pct = total > 0 ? Math.round((c.votes / total) * 100) : 0;
-                      return (
-                        <div key={i}>
-                          <div className="flex items-center justify-between text-xs font-semibold mb-1">
-                            <span className="text-gray-700">{c.name}</span>
-                            <span className="text-gray-500">{c.votes} votes ({pct}%)</span>
-                          </div>
-                          <div className="w-full bg-gray-100 rounded-full h-2">
-                            <div className="bg-[#0047AB] rounded-full h-2" style={{ width: `${pct}%` }} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* AI Insights Tab */}
-      {activeTab === 'AI Insights' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-black text-gray-800" style={{ fontFamily: 'Lexend, sans-serif' }}>AI Insights</h2>
-              <p className="text-gray-500 text-sm mt-1">Data-driven recommendations powered by campus analytics</p>
-            </div>
-            <button className="bg-[#0047AB] text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-800 transition-all">🤖 Generate Report</button>
-          </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            {MOCK_AI_INSIGHTS.map(ins => {
-              const borderColor: Record<string,string> = { alert: '#EF4444', warning: '#F59E0B', info: '#0047AB' };
-              const bgColor: Record<string,string> = { alert: 'rgba(239,68,68,0.04)', warning: 'rgba(245,158,11,0.04)', info: 'rgba(0,71,171,0.04)' };
-              return (
-                <div key={ins.id} className="bg-white rounded-2xl p-5 border-l-4" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)', borderLeftColor: borderColor[ins.severity], backgroundColor: ins.read ? '#fff' : bgColor[ins.severity] }}>
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl flex-shrink-0">{ins.icon}</span>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="font-black text-gray-800 text-sm">{ins.title}</span>
-                        {!ins.read && <span className="w-2 h-2 rounded-full bg-[#FF7F50] flex-shrink-0" />}
-                      </div>
-                      <p className="text-xs text-gray-500 leading-relaxed mb-2">{ins.desc}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-400">{ins.time}</span>
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${ins.type === 'at_risk' ? 'bg-red-100 text-red-600' : ins.type === 'trend' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-[#0047AB]'}`}>{ins.type.replace('_',' ')}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          {/* Engagement score card */}
-          <div className="bg-white rounded-3xl p-6" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
-            <h3 className="font-black text-gray-800 mb-4" style={{ fontFamily: 'Lexend, sans-serif' }}>Campus Engagement Score</h3>
-            <div className="flex items-center gap-6">
-              <div className="relative w-32 h-32 flex-shrink-0">
-                <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f0f0f0" strokeWidth="3" />
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#0047AB" strokeWidth="3" strokeDasharray="78 22" strokeLinecap="round" />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-3xl font-black text-[#0047AB]" style={{ fontFamily: 'Lexend, sans-serif' }}>78%</span>
-                  <span className="text-xs text-gray-500">overall</span>
-                </div>
-              </div>
-              <div className="flex-1 space-y-3">
-                {[{ label: 'Event Participation', value: 82 }, { label: 'Club Membership', value: 74 }, { label: 'Wellbeing Check-ins', value: 91 }, { label: 'Sports Engagement', value: 68 }].map(m => (
-                  <div key={m.label}>
-                    <div className="flex justify-between text-xs font-semibold mb-1"><span className="text-gray-600">{m.label}</span><span className="text-gray-500">{m.value}%</span></div>
-                    <div className="w-full bg-gray-100 rounded-full h-2"><div className="bg-[#0047AB] rounded-full h-2" style={{ width: `${m.value}%` }} /></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      <Modal isOpen={addStaffModal} onClose={() => setAddStaffModal(false)} title="Add New Staff Member" size="sm">
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-sm font-jakarta font-700 text-on-surface block mb-1">First Name</label>
-              <input type="text" className="w-full border border-outline-variant rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-            </div>
-            <div>
-              <label className="text-sm font-jakarta font-700 text-on-surface block mb-1">Last Name</label>
-              <input type="text" className="w-full border border-outline-variant rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-            </div>
-          </div>
-          <div>
-            <label className="text-sm font-jakarta font-700 text-on-surface block mb-1">Email</label>
-            <input type="email" className="w-full border border-outline-variant rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-          </div>
-          <div>
-            <label className="text-sm font-jakarta font-700 text-on-surface block mb-1">Role</label>
-            <input type="text" className="w-full border border-outline-variant rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" placeholder="e.g. Student Advisor" />
-          </div>
-          <div>
-            <label className="text-sm font-jakarta font-700 text-on-surface block mb-1">Department</label>
-            <select className="w-full border border-outline-variant rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
-              <option>Admin</option>
-              <option>Academics</option>
-              <option>Athletics</option>
-              <option>IT</option>
-              <option>Operations</option>
-              <option>Wellness</option>
-            </select>
-          </div>
-          <div className="flex gap-3">
-            <Button variant="outline" className="flex-1" onClick={() => setAddStaffModal(false)}>Cancel</Button>
-            <Button variant="primary" className="flex-1" onClick={() => setAddStaffModal(false)}>Add Staff</Button>
-          </div>
-        </div>
-      </Modal>
+      </div>
     </DashboardLayout>
   );
-};
-
-export default AdminDashboard;
+}
