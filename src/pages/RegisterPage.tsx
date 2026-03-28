@@ -112,9 +112,25 @@ const RegisterPage: React.FC = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setSubmitting(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+        queryParams: { access_type: 'offline', prompt: 'select_account' },
+      },
+    });
+    if (error) {
+      setSubmitting(false);
+      setError(error.message);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-surface flex items-center justify-center p-6">
-      <div className="w-full max-w-2xl rounded-[1.5rem] bg-surface-lowest p-8 shadow-rise">
+    <div className="min-h-screen bg-surface flex items-center justify-center p-6 dark:bg-slate-950">
+      <div className="w-full max-w-2xl rounded-[1.5rem] bg-surface-lowest p-8 shadow-rise dark:bg-slate-900">
         <Link to="/" className="font-lexend font-900 italic text-2xl text-primary">Campus Tribe</Link>
         <h1 className="mt-6 font-lexend font-900 text-3xl text-on-surface">Create your account</h1>
         <p className="mt-2 text-sm text-on-surface-variant">Fast signup. Create a new organization or join an existing one with an access code.</p>
@@ -131,7 +147,7 @@ const RegisterPage: React.FC = () => {
                     setPlatformType(platform);
                     setRole(PLATFORM_ROLES[platform][0]);
                   }}
-                  className={`rounded-full px-4 py-2 text-sm font-jakarta font-700 capitalize ${platformType === platform ? 'bg-primary text-white' : 'bg-surface text-on-surface-variant'}`}
+                  className={`rounded-full px-4 py-2 text-sm font-jakarta font-700 capitalize ${platformType === platform ? 'bg-primary text-white' : 'bg-surface text-on-surface-variant dark:bg-slate-800'}`}
                 >
                   {platform}
                 </button>
@@ -147,7 +163,7 @@ const RegisterPage: React.FC = () => {
                   key={roleOption}
                   type="button"
                   onClick={() => setRole(roleOption)}
-                  className={`rounded-full px-4 py-2 text-sm font-jakarta font-700 ${role === roleOption ? 'bg-secondary text-white' : 'bg-surface text-on-surface-variant'}`}
+                  className={`rounded-full px-4 py-2 text-sm font-jakarta font-700 ${role === roleOption ? 'bg-secondary text-white' : 'bg-surface text-on-surface-variant dark:bg-slate-800'}`}
                 >
                   {roleOption.replace('_', ' ')}
                 </button>
@@ -181,6 +197,9 @@ const RegisterPage: React.FC = () => {
 
           <Button type="submit" isLoading={submitting} className="w-full rounded-full" size="lg">
             Create account
+          </Button>
+          <Button type="button" variant="outline" size="lg" className="w-full rounded-full" onClick={handleGoogleSignIn}>
+            Continue with Google
           </Button>
         </form>
 

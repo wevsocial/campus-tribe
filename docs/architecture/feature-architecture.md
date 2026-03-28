@@ -75,10 +75,19 @@ The day/night toggle is centralized in `ThemeContext`, which now:
 - sets `color-scheme`
 - persists preference to local storage
 
+## Sprint v1 upgrades now shipped
+- Venue booking request flow now includes venue selection, client-side overlap detection against existing bookings, and visible approval notes/status on club leader and admin/staff surfaces.
+- Admin and staff workspaces can now approve/reject pending venue bookings with notes.
+- Coach workspace now supports team creation, game scheduling, score entry, derived standings, and a minimal athlete roster flow.
+- Teacher workspace now includes a real survey builder on `ct_surveys` + `ct_survey_questions`, publish/draft controls, respondent submit flow, and creator-side results summaries from `ct_survey_responses`.
+- Parent/staff workflows now include richer daily reports, parent-child linking helpers, and a simple parent/teacher update trail using `ct_parent_updates`.
+- Admin workspace now includes LMS + Helcim settings/review scaffolding backed by `ct_platform_settings`.
+- Auth pages now expose Google OAuth via Supabase when the provider is configured.
+
 ## Remaining Major Work (still real backlog)
-- Stronger survey builder/editor
-- Venue conflict detection UI + approval path upgrades
+- Server-enforced venue conflict prevention (currently UI-detected + human approval workflow)
+- Branching / conditional surveys and richer analytics exports
 - Student recommendation / onboarding intelligence
-- Sports P1 depth (standings, live scores, waivers)
+- Sports P1 depth beyond v1 standings/rosters (live feeds, brackets, waivers)
 - Admin OS analytics and AI risk tooling
-- Enterprise auth (SSO/SAML) + LMS + Helcim
+- Enterprise auth (SSO/SAML) and full LMS / Helcim implementations

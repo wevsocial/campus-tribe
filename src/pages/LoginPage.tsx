@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import { getRoleDashboardPath, useAuth } from '../context/AuthContext';
 
 const LoginPage: React.FC = () => {
@@ -31,6 +32,19 @@ const LoginPage: React.FC = () => {
     const profile = await refreshProfile();
     setSubmitting(false);
     navigate(getRoleDashboardPath(profile?.role));
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setSubmitting(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/dashboard` },
+    });
+    if (error) {
+      setSubmitting(false);
+      setError(error.message);
+    }
   };
 
   return (
@@ -90,6 +104,9 @@ const LoginPage: React.FC = () => {
 
             <Button type="submit" variant="primary" size="lg" isLoading={submitting} className="w-full rounded-full">
               Sign In
+            </Button>
+            <Button type="button" variant="outline" size="lg" className="w-full rounded-full" onClick={handleGoogleSignIn}>
+              Continue with Google
             </Button>
           </form>
 

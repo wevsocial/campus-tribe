@@ -34,12 +34,28 @@
 - [x] Design-system note added
 - [x] Feature checklist added
 
+## Sprint v1 shipped in this pass
+- [x] Venue selection + overlap detection before booking submit
+- [x] Venue approval/reject flow for admin/staff with notes/status visibility
+- [x] Sports game creation + score updates + derived standings UI
+- [x] Minimal athlete/roster flow in coach workspace
+- [x] Real survey builder using ct_surveys + ct_survey_questions + ct_survey_responses
+- [x] Question types: text, single choice, multi choice, rating, yes/no
+- [x] Survey draft/publish flow
+- [x] Respondent submit flow + creator results summary
+- [x] Richer daily reports for preschool/school staff
+- [x] Parent-child linking helpers for staff and parents
+- [x] Parent/teacher communication trail scaffolding
+- [x] LMS + Helcim admin review/settings scaffolding
+- [x] Google sign-in/sign-up button wiring through Supabase OAuth
+- [x] Public page image mismatch cleanup on school/preschool hero sections
+
 ## Still pending after this pass
 - [ ] Pixel-perfect full Stitch parity on all public pages
-- [ ] Deep survey builder / branching UI
-- [ ] Venue conflict detection and approval engine UX
-- [ ] Sports standings / live scores / waivers
+- [ ] Server-enforced venue conflict prevention at DB level
+- [ ] Deep survey branching / logic / exports
+- [ ] Sports live scoring, brackets, waivers
 - [ ] AI risk analytics / admin OS P1 depth
-- [ ] LMS integrations
-- [ ] Helcim integrations
+- [ ] Real LMS integrations
+- [ ] Real Helcim integration
 - [ ] Institutional SSO/SAML

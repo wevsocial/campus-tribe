@@ -36,7 +36,7 @@ export default function PreschoolPage() {
                 <img
                   alt="Preschool children playing together"
                   className="w-full h-[500px] object-cover"
-                  src="/assets/campus-clubs.jpg"
+                  src="/assets/campus-preschool.jpg"
                 />
               </div>
               <div className="absolute -bottom-8 -left-8 z-20 bg-surface-container-lowest p-6 rounded-xl shadow-xl flex items-center gap-4 border border-outline-variant/15">
@@ -68,7 +68,7 @@ export default function PreschoolPage() {
                     <p className="font-body text-on-surface-variant max-w-md">Real-time updates, community threads, and secure event scheduling in one centralized hub.</p>
                   </div>
                   <div className="mt-8 rounded-lg overflow-hidden border border-outline-variant/10">
-                    <img alt="Parent engagement interface" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="/assets/campus-wellbeing.jpg" />
+                    <img alt="Parent engagement interface" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="/assets/campus-parent.jpg" />
                   </div>
                 </div>
               </div>
@@ -167,7 +167,7 @@ export default function PreschoolPage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="aspect-square bg-surface-container-highest rounded-xl overflow-hidden shadow-lg">
-                <img alt="Child painting" className="w-full h-full object-cover" src="/assets/campus-venues.jpg" />
+                <img alt="Child painting" className="w-full h-full object-cover" src="/assets/campus-preschool.jpg" />
               </div>
               <div className="aspect-[3/4] bg-surface-container-highest rounded-xl overflow-hidden shadow-lg md:mt-12">
                 <img alt="Reading time" className="w-full h-full object-cover" src="/assets/campus-preschool.jpg" />
