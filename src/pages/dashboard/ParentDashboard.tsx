@@ -15,25 +15,29 @@ type SurveyQuestion = { id: string; survey_id: string; prompt: string; question_
 export default function ParentDashboard() {
   const { user, institutionId } = useAuth();
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
-    const [childrenRes, reportsRes, announcementsRes, unlinkedChildrenRes, parentUpdatesRes, surveysRes, questionsRes] = await Promise.all([
+    const [childrenRes, reportsRes, announcementsRes, unlinkedChildrenRes, parentUpdatesRes, surveysRes] = await Promise.all([
       supabase.from('ct_children').select('*').eq('parent_id', userId).eq('institution_id', institutionId),
       supabase.from('ct_daily_reports').select('*').order('report_date', { ascending: false }).limit(20),
       supabase.from('ct_announcements').select('id, title, audience, created_at').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(10),
       supabase.from('ct_children').select('*').eq('institution_id', institutionId).is('parent_id', null).order('created_at', { ascending: false }).limit(10),
       supabase.from('ct_parent_updates').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(20),
       supabase.from('ct_surveys').select('*').eq('institution_id', institutionId).or('status.eq.published,is_active.eq.true').order('created_at', { ascending: false }),
-      supabase.from('ct_survey_questions').select('*').order('position'),
     ]);
     const children = childrenRes.data ?? [];
     const childIds = new Set(children.map((child: any) => child.id));
+    const surveys = (surveysRes.data ?? []).filter((survey: Survey) => !survey.target_roles || survey.target_roles.includes('parent') || survey.target_roles.includes('all'));
+    const surveyIds = surveys.map((survey: Survey) => survey.id);
+    const { data: questions } = surveyIds.length
+      ? await supabase.from('ct_survey_questions').select('*').in('survey_id', surveyIds).order('position')
+      : { data: [] };
     return {
       children,
       reports: (reportsRes.data ?? []).filter((report: any) => childIds.has(report.child_id)),
       announcements: announcementsRes.data ?? [],
       unlinkedChildren: unlinkedChildrenRes.data ?? [],
       parentUpdates: (parentUpdatesRes.data ?? []).filter((entry: any) => childIds.has(entry.child_id)),
-      surveys: (surveysRes.data ?? []).filter((survey: Survey) => !survey.target_roles || survey.target_roles.includes('parent') || survey.target_roles.includes('all')),
-      questions: questionsRes.data ?? [],
+      surveys,
+      questions: questions ?? [],
     };
   }, { children: [], reports: [], announcements: [], unlinkedChildren: [], parentUpdates: [], surveys: [], questions: [] } as any);
 

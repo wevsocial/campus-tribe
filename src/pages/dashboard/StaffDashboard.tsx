@@ -8,9 +8,10 @@ import { StatCard } from '../../components/ui/StatCard';
 import { useAuth } from '../../context/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
+import { findVenueConflicts, normalizeRelation } from '../../lib/dashboardData';
 
 type Child = { id: string; full_name: string; parent_id: string | null; room: string | null };
-type Booking = { id: string; purpose: string | null; status: string; start_time: string; end_time: string; notes: string | null; ct_venues?: { name: string | null } | null };
+type Booking = { id: string; purpose: string | null; status: string; start_time: string; end_time: string; venue_id: string | null; notes: string | null; ct_venues?: { name: string | null; institution_id?: string | null } | null };
 
 export default function StaffDashboard() {
   const { user, institutionId, profile } = useAuth();
@@ -38,7 +39,7 @@ export default function StaffDashboard() {
       supabase.from('ct_announcements').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(10),
       supabase.from('ct_users').select('id, full_name, email').eq('institution_id', institutionId).eq('role', 'parent').order('full_name'),
       supabase.from('ct_parent_updates').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(20),
-      supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, notes, ct_venues(name)').in('status', ['pending', 'approved', 'rejected']).order('created_at', { ascending: false }).limit(20),
+      supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, ct_venues(name, institution_id)').in('status', ['pending', 'approved', 'rejected']).order('created_at', { ascending: false }).limit(40),
     ]);
     return {
       children: childrenRes.data ?? [],
@@ -47,7 +48,9 @@ export default function StaffDashboard() {
       announcements: announcementsRes.data ?? [],
       parents: parentsRes.data ?? [],
       updates: updatesRes.data ?? [],
-      bookings: bookingsRes.data ?? [],
+      bookings: (bookingsRes.data ?? [])
+        .map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues) }))
+        .filter((booking: Booking) => booking.ct_venues?.institution_id === institutionId),
     };
   }, { children: [], reports: [], classes: [], announcements: [], parents: [], updates: [], bookings: [] } as any);
 
@@ -86,7 +89,7 @@ export default function StaffDashboard() {
 
   const reviewBooking = async (bookingId: string, status: 'approved' | 'rejected') => {
     const notes = bookingReviewNotes[bookingId] || null;
-    const { data: booking } = await supabase.from('ct_venue_bookings').update({ status, approved_by: user?.id || null, notes }).eq('id', bookingId).select('id, purpose, status, start_time, end_time, notes, ct_venues(name)').single();
+    const { data: booking } = await supabase.from('ct_venue_bookings').update({ status, approved_by: user?.id || null, notes }).eq('id', bookingId).select('id, purpose, status, start_time, end_time, venue_id, notes, ct_venues(name, institution_id)').single();
     if (booking) setData((current: any) => ({ ...current, bookings: current.bookings.map((entry: Booking) => entry.id === bookingId ? booking : entry) }));
   };
 
@@ -183,7 +186,14 @@ export default function StaffDashboard() {
 
           <Card>
             <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Venue review queue</h2>
-            {data.bookings.length === 0 ? <p className="text-sm text-on-surface-variant">No venue bookings waiting.</p> : data.bookings.map((booking: Booking) => (
+            {data.bookings.length === 0 ? <p className="text-sm text-on-surface-variant">No venue bookings waiting.</p> : data.bookings.map((booking: Booking) => {
+              const conflicts = findVenueConflicts(data.bookings as Booking[], {
+                venueId: booking.venue_id,
+                start: booking.start_time,
+                end: booking.end_time,
+                excludeId: booking.id,
+              });
+              return (
               <div key={booking.id} className="mb-3 rounded-[1rem] bg-surface p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
@@ -192,13 +202,14 @@ export default function StaffDashboard() {
                   </div>
                   <Badge label={booking.status} variant={booking.status === 'approved' ? 'tertiary' : booking.status === 'rejected' ? 'secondary' : 'primary'} />
                 </div>
+                <p className="mt-2 text-xs text-on-surface-variant">Overlap scan: {conflicts.length} conflicting request(s)</p>
                 <textarea value={bookingReviewNotes[booking.id] ?? booking.notes ?? ''} onChange={(e) => setBookingReviewNotes((current) => ({ ...current, [booking.id]: e.target.value }))} rows={2} className="mt-3 w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-3 text-sm" placeholder="Approval note / reason" />
                 <div className="mt-3 flex gap-2">
                   <Button size="sm" className="rounded-full" onClick={() => reviewBooking(booking.id, 'approved')}>Approve</Button>
                   <Button size="sm" variant="outline" className="rounded-full" onClick={() => reviewBooking(booking.id, 'rejected')}>Reject</Button>
                 </div>
               </div>
-            ))}
+            );})}
           </Card>
         </div>
       </div>

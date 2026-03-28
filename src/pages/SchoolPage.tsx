@@ -114,7 +114,7 @@ export default function SchoolPage() {
                 </blockquote>
                 <div className="flex items-center gap-4">
                   <img
-                    src="/assets/campus-university.jpg"
+                    src="/assets/campus-school.jpg"
                     alt="Principal testimonial"
                     className="w-14 h-14 rounded-full object-cover"
                   />

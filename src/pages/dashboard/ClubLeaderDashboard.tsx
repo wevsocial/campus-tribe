@@ -7,8 +7,9 @@ import { Badge } from '../../components/ui/Badge';
 import { useAuth } from '../../context/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
+import { findVenueConflicts, normalizeRelation } from '../../lib/dashboardData';
 
-type Venue = { id: string; name: string; building: string | null; capacity: number | null };
+type Venue = { id: string; name: string; building: string | null; capacity: number | null; institution_id?: string | null };
 type Booking = {
   id: string;
   purpose: string | null;
@@ -18,17 +19,8 @@ type Booking = {
   venue_id: string | null;
   notes: string | null;
   approved_by?: string | null;
-  ct_venues?: { name: string | null; building: string | null } | null;
+  ct_venues?: { name: string | null; building: string | null; institution_id?: string | null } | null;
 };
-
-function normalizeVenueRelation(input: any) {
-  if (Array.isArray(input)) return input[0] || null;
-  return input || null;
-}
-
-function overlaps(startA: string, endA: string, startB: string, endB: string) {
-  return new Date(startA).getTime() < new Date(endB).getTime() && new Date(endA).getTime() > new Date(startB).getTime();
-}
 
 export default function ClubLeaderDashboard() {
   const { user, institutionId } = useAuth();
@@ -37,17 +29,19 @@ export default function ClubLeaderDashboard() {
       supabase.from('ct_clubs').select('*').eq('leader_id', userId).eq('institution_id', institutionId),
       supabase.from('ct_club_members').select('id, club_id, user_id, role, status').eq('institution_id', institutionId),
       supabase.from('ct_events').select('id, club_id, title, status, start_time').eq('created_by', userId).order('created_at', { ascending: false }),
-      supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, approved_by, ct_venues(name, building)').eq('booked_by', userId).order('created_at', { ascending: false }),
-      supabase.from('ct_venues').select('id, name, building, capacity').eq('institution_id', institutionId).eq('is_bookable', true).order('name'),
-      supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, approved_by, ct_venues(name, building)').order('start_time', { ascending: true }),
+      supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, approved_by, ct_venues(name, building, institution_id)').eq('booked_by', userId).order('created_at', { ascending: false }),
+      supabase.from('ct_venues').select('id, name, building, capacity, institution_id').eq('institution_id', institutionId).eq('is_bookable', true).order('name'),
+      supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, approved_by, ct_venues(name, building, institution_id)').order('start_time', { ascending: true }),
     ]);
     return {
       clubs: clubsRes.data ?? [],
       members: membersRes.data ?? [],
       events: eventsRes.data ?? [],
-      bookings: (bookingsRes.data ?? []).map((booking: any) => ({ ...booking, ct_venues: normalizeVenueRelation(booking.ct_venues) })) as Booking[],
+      bookings: (bookingsRes.data ?? []).map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues) })) as Booking[],
       venues: (venuesRes.data ?? []) as Venue[],
-      venueBookings: (venueBookingsRes.data ?? []).map((booking: any) => ({ ...booking, ct_venues: normalizeVenueRelation(booking.ct_venues) })) as Booking[],
+      venueBookings: (venueBookingsRes.data ?? [])
+        .map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues) }))
+        .filter((booking: Booking) => booking.ct_venues?.institution_id === institutionId) as Booking[],
     };
   }, { clubs: [], members: [], events: [], bookings: [], venues: [], venueBookings: [] } as any);
 
@@ -62,10 +56,11 @@ export default function ClubLeaderDashboard() {
   const [message, setMessage] = useState('');
   const firstClub = data.clubs[0];
 
-  const detectedConflicts = useMemo(() => {
-    if (!bookingVenueId || !bookingStart || !bookingEnd) return [];
-    return data.venueBookings.filter((booking: Booking) => booking.venue_id === bookingVenueId && booking.status !== 'rejected' && booking.status !== 'cancelled' && overlaps(bookingStart, bookingEnd, booking.start_time, booking.end_time));
-  }, [bookingVenueId, bookingStart, bookingEnd, data.venueBookings]);
+  const detectedConflicts = useMemo(() => findVenueConflicts(data.venueBookings as Booking[], {
+    venueId: bookingVenueId,
+    start: bookingStart,
+    end: bookingEnd,
+  }), [bookingVenueId, bookingStart, bookingEnd, data.venueBookings]);
 
   const createClub = async () => {
     if (!user?.id || !institutionId || !clubName.trim()) return;
@@ -85,7 +80,7 @@ export default function ClubLeaderDashboard() {
   const createBooking = async () => {
     if (!user?.id || !bookingPurpose.trim() || !bookingStart || !bookingEnd || !bookingVenueId) return;
     setMessage('');
-    const { data: booking } = await supabase.from('ct_venue_bookings').insert({ booked_by: user.id, venue_id: bookingVenueId, purpose: bookingPurpose.trim(), start_time: bookingStart, end_time: bookingEnd, status: 'pending', notes: bookingNotes || null }).select('id, purpose, status, start_time, end_time, venue_id, notes, approved_by, ct_venues(name, building)').single();
+    const { data: booking } = await supabase.from('ct_venue_bookings').insert({ booked_by: user.id, venue_id: bookingVenueId, purpose: bookingPurpose.trim(), start_time: bookingStart, end_time: bookingEnd, status: 'pending', notes: bookingNotes || null }).select('id, purpose, status, start_time, end_time, venue_id, notes, approved_by, ct_venues(name, building, institution_id)').single();
     if (booking) {
       setData((current: any) => ({ ...current, bookings: [booking, ...current.bookings], venueBookings: [...current.venueBookings, booking] }));
       setMessage(detectedConflicts.length ? `Booking submitted with ${detectedConflicts.length} detected conflict(s). Awaiting review.` : 'Booking request submitted.');
@@ -141,7 +136,7 @@ export default function ClubLeaderDashboard() {
                 <div className="rounded-[1rem] bg-amber-50 p-3 text-sm text-amber-700">
                   <p className="font-jakarta font-700">Potential conflicts detected</p>
                   <div className="mt-2 space-y-2">
-                    {detectedConflicts.map((booking: Booking) => (
+                    {(detectedConflicts as Booking[]).map((booking) => (
                       <div key={booking.id} className="rounded-xl bg-white/80 p-2">
                         <p className="font-medium">{booking.ct_venues?.name || 'Venue'} · {booking.status}</p>
                         <p>{new Date(booking.start_time).toLocaleString()} → {new Date(booking.end_time).toLocaleString()}</p>
@@ -175,7 +170,15 @@ export default function ClubLeaderDashboard() {
             {data.events.length === 0 && data.bookings.length === 0 ? <p className="text-sm text-on-surface-variant">No club operations yet. Create an event or request a venue booking.</p> : (
               <div className="space-y-3">
                 {data.events.map((event: any) => <div key={event.id} className="rounded-[1rem] bg-surface p-4 flex items-center justify-between"><div><p className="font-jakarta font-700 text-on-surface">{event.title}</p><p className="text-sm text-on-surface-variant">{event.start_time ? new Date(event.start_time).toLocaleString() : 'TBD'}</p></div><Badge label={event.status} variant="primary" /></div>)}
-                {data.bookings.map((booking: Booking) => <div key={booking.id} className="rounded-[1rem] bg-surface p-4"><div className="flex items-center justify-between gap-3"><div><p className="font-jakarta font-700 text-on-surface">{booking.purpose || 'Venue booking'}</p><p className="text-sm text-on-surface-variant">{booking.ct_venues?.name || 'Venue TBD'} · {new Date(booking.start_time).toLocaleString()}</p></div><Badge label={booking.status} variant={booking.status === 'approved' ? 'tertiary' : booking.status === 'rejected' ? 'secondary' : 'primary'} /></div>{booking.notes && <p className="mt-2 text-sm text-on-surface-variant">Notes: {booking.notes}</p>}</div>)}
+                {(data.bookings as Booking[]).map((booking: Booking) => {
+                  const historyConflicts = findVenueConflicts(data.venueBookings as Booking[], {
+                    venueId: booking.venue_id,
+                    start: booking.start_time,
+                    end: booking.end_time,
+                    excludeId: booking.id,
+                  });
+                  return <div key={booking.id} className="rounded-[1rem] bg-surface p-4"><div className="flex items-center justify-between gap-3"><div><p className="font-jakarta font-700 text-on-surface">{booking.purpose || 'Venue booking'}</p><p className="text-sm text-on-surface-variant">{booking.ct_venues?.name || 'Venue TBD'} · {new Date(booking.start_time).toLocaleString()}</p></div><Badge label={booking.status} variant={booking.status === 'approved' ? 'tertiary' : booking.status === 'rejected' ? 'secondary' : 'primary'} /></div><p className="mt-2 text-xs text-on-surface-variant">Conflict history: {historyConflicts.length} overlapping booking(s)</p>{booking.notes && <p className="mt-2 text-sm text-on-surface-variant">Notes: {booking.notes}</p>}</div>;
+                })}
               </div>
             )}
           </Card>

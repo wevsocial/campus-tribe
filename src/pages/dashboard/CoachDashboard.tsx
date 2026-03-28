@@ -15,14 +15,20 @@ type Game = { id: string; home_team_id: string; away_team_id: string; scheduled_
 export default function CoachDashboard() {
   const { user, institutionId } = useAuth();
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
-    const [teamsRes, gamesRes, trainingRes, athletesRes, usersRes] = await Promise.all([
+    const [teamsRes, trainingRes, usersRes] = await Promise.all([
       supabase.from('ct_teams').select('*').eq('coach_id', userId).eq('institution_id', institutionId).order('created_at', { ascending: false }),
-      supabase.from('ct_games').select('*').order('scheduled_at', { ascending: false }).limit(30),
       supabase.from('ct_training_sessions').select('*').eq('coach_id', userId).order('scheduled_at', { ascending: false }).limit(20),
-      supabase.from('ct_athletes').select('id, team_id, position, jersey_number, ct_users(full_name, email)').order('created_at', { ascending: false }),
       supabase.from('ct_users').select('id, full_name, email, role').eq('institution_id', institutionId).in('role', ['student', 'student_rep']).order('full_name'),
     ]);
-    return { teams: teamsRes.data ?? [], games: gamesRes.data ?? [], training: trainingRes.data ?? [], athletes: athletesRes.data ?? [], users: usersRes.data ?? [] };
+    const teams = teamsRes.data ?? [];
+    const teamIds = teams.map((team: Team) => team.id);
+    const [gamesRes, athletesRes] = teamIds.length
+      ? await Promise.all([
+          supabase.from('ct_games').select('*').or(teamIds.map((teamId: string) => `home_team_id.eq.${teamId},away_team_id.eq.${teamId}`).join(',')).order('scheduled_at', { ascending: false }).limit(40),
+          supabase.from('ct_athletes').select('id, team_id, position, jersey_number, ct_users(full_name, email)').in('team_id', teamIds).order('created_at', { ascending: false }),
+        ])
+      : [{ data: [] }, { data: [] }];
+    return { teams, games: gamesRes.data ?? [], training: trainingRes.data ?? [], athletes: athletesRes.data ?? [], users: usersRes.data ?? [] };
   }, { teams: [], games: [], training: [], athletes: [], users: [] } as any);
 
   const [teamName, setTeamName] = useState('');
@@ -36,6 +42,7 @@ export default function CoachDashboard() {
   const [athleteTeamId, setAthleteTeamId] = useState('');
   const [athletePosition, setAthletePosition] = useState('');
   const [athleteJersey, setAthleteJersey] = useState('');
+  const [gameEdits, setGameEdits] = useState<Record<string, { scheduled_at?: string; status?: string; notes?: string; home_score?: string; away_score?: string }>>({});
 
   const teamMap = useMemo(() => Object.fromEntries(data.teams.map((team: Team) => [team.id, team])), [data.teams]);
 
@@ -81,9 +88,29 @@ export default function CoachDashboard() {
     setHomeTeamId(''); setAwayTeamId(''); setGameTime('');
   };
 
-  const updateScore = async (game: Game, homeScore: number, awayScore: number) => {
-    const { data: updated } = await supabase.from('ct_games').update({ home_score: homeScore, away_score: awayScore, status: 'completed' }).eq('id', game.id).select('*').single();
-    if (updated) setData((current: any) => ({ ...current, games: current.games.map((entry: Game) => entry.id === game.id ? updated : entry) }));
+  const saveGame = async (game: Game, mode: 'schedule' | 'score' = 'schedule') => {
+    const edit = gameEdits[game.id] || {};
+    const payload: Record<string, any> = {
+      scheduled_at: edit.scheduled_at ?? game.scheduled_at,
+      status: edit.status ?? game.status,
+      notes: edit.notes ?? game.notes,
+    };
+    if (mode === 'score') {
+      payload.home_score = Number(edit.home_score ?? game.home_score ?? 0);
+      payload.away_score = Number(edit.away_score ?? game.away_score ?? 0);
+      payload.status = 'completed';
+    }
+    const { data: updated } = await supabase.from('ct_games').update(payload).eq('id', game.id).select('*').single();
+    if (updated) {
+      setData((current: any) => ({ ...current, games: current.games.map((entry: Game) => entry.id === game.id ? updated : entry) }));
+      setGameEdits((current) => ({ ...current, [game.id]: {
+        scheduled_at: updated.scheduled_at ?? '',
+        status: updated.status,
+        notes: updated.notes ?? '',
+        home_score: updated.home_score != null ? String(updated.home_score) : '',
+        away_score: updated.away_score != null ? String(updated.away_score) : '',
+      } }));
+    }
   };
 
   const addAthlete = async () => {
@@ -175,7 +202,9 @@ export default function CoachDashboard() {
           </Card>
           <Card>
             <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Schedule & score updates</h2>
-            {myGames.length === 0 ? <p className="text-sm text-on-surface-variant">No games recorded yet.</p> : myGames.map((game: Game) => (
+            {myGames.length === 0 ? <p className="text-sm text-on-surface-variant">No games recorded yet.</p> : myGames.map((game: Game) => {
+              const edit = gameEdits[game.id] || {};
+              return (
               <div key={game.id} className="mb-3 rounded-[1rem] bg-surface p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
@@ -184,18 +213,25 @@ export default function CoachDashboard() {
                   </div>
                   <Badge label={game.status} variant={game.status === 'completed' ? 'tertiary' : 'secondary'} />
                 </div>
-                <div className="mt-3 flex items-center gap-2">
-                  <input defaultValue={game.home_score ?? ''} type="number" min="0" className="w-20 rounded-lg border border-outline-variant bg-surface-lowest px-3 py-2 text-sm" id={`home-${game.id}`} />
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <Input label="Scheduled at" type="datetime-local" value={edit.scheduled_at ?? (game.scheduled_at ? new Date(new Date(game.scheduled_at).getTime() - new Date(game.scheduled_at).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '')} onChange={(e) => setGameEdits((current) => ({ ...current, [game.id]: { ...current[game.id], scheduled_at: e.target.value } }))} />
+                  <div>
+                    <label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Status</label>
+                    <select value={edit.status ?? game.status} onChange={(e) => setGameEdits((current) => ({ ...current, [game.id]: { ...current[game.id], status: e.target.value } }))} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm text-on-surface">
+                      {['scheduled', 'live', 'completed', 'cancelled'].map((status) => <option key={status} value={status}>{status}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <textarea value={edit.notes ?? game.notes ?? ''} onChange={(e) => setGameEdits((current) => ({ ...current, [game.id]: { ...current[game.id], notes: e.target.value } }))} rows={2} className="mt-3 w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-3 text-sm" placeholder="Game notes / schedule changes" />
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <input value={edit.home_score ?? (game.home_score != null ? String(game.home_score) : '')} onChange={(e) => setGameEdits((current) => ({ ...current, [game.id]: { ...current[game.id], home_score: e.target.value } }))} type="number" min="0" className="w-20 rounded-lg border border-outline-variant bg-surface-lowest px-3 py-2 text-sm" />
                   <span className="text-on-surface-variant">-</span>
-                  <input defaultValue={game.away_score ?? ''} type="number" min="0" className="w-20 rounded-lg border border-outline-variant bg-surface-lowest px-3 py-2 text-sm" id={`away-${game.id}`} />
-                  <Button size="sm" className="rounded-full" onClick={() => {
-                    const home = Number((document.getElementById(`home-${game.id}`) as HTMLInputElement)?.value ?? 0);
-                    const away = Number((document.getElementById(`away-${game.id}`) as HTMLInputElement)?.value ?? 0);
-                    updateScore(game, home, away);
-                  }}>Save score</Button>
+                  <input value={edit.away_score ?? (game.away_score != null ? String(game.away_score) : '')} onChange={(e) => setGameEdits((current) => ({ ...current, [game.id]: { ...current[game.id], away_score: e.target.value } }))} type="number" min="0" className="w-20 rounded-lg border border-outline-variant bg-surface-lowest px-3 py-2 text-sm" />
+                  <Button size="sm" className="rounded-full" onClick={() => saveGame(game, 'score')}>Save score</Button>
+                  <Button size="sm" variant="outline" className="rounded-full" onClick={() => saveGame(game, 'schedule')}>Save schedule</Button>
                 </div>
               </div>
-            ))}
+            );})}
           </Card>
           <Card>
             <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Teams, roster & training</h2>

@@ -36,23 +36,30 @@ function normalizeQuestion(row: any): SurveyQuestion {
 export default function TeacherDashboard() {
   const { user, institutionId } = useAuth();
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
-    const [classesRes, assignmentsRes, surveysRes, announcementsRes, questionsRes, responsesRes, publishedRes] = await Promise.all([
+    const [classesRes, assignmentsRes, surveysRes, announcementsRes, publishedRes] = await Promise.all([
       supabase.from('ct_classes').select('id, section, room, schedule, course_id, ct_courses(code, name)').eq('teacher_id', userId).eq('institution_id', institutionId),
       supabase.from('ct_assignments').select('*').eq('teacher_id', userId).order('created_at', { ascending: false }),
       supabase.from('ct_surveys').select('*').eq('created_by', userId).order('created_at', { ascending: false }),
       supabase.from('ct_announcements').select('*').eq('author_id', userId).order('created_at', { ascending: false }),
-      supabase.from('ct_survey_questions').select('*').order('position'),
-      supabase.from('ct_survey_responses').select('*').order('submitted_at', { ascending: false }),
       supabase.from('ct_surveys').select('*').eq('institution_id', institutionId).or('status.eq.published,is_active.eq.true').order('created_at', { ascending: false }),
     ]);
+    const surveys = surveysRes.data ?? [];
+    const publishedSurveys = publishedRes.data ?? [];
+    const relevantSurveyIds = Array.from(new Set([...surveys, ...publishedSurveys].map((survey: Survey) => survey.id)));
+    const [questionsRes, responsesRes] = relevantSurveyIds.length
+      ? await Promise.all([
+          supabase.from('ct_survey_questions').select('*').in('survey_id', relevantSurveyIds).order('position'),
+          supabase.from('ct_survey_responses').select('*').in('survey_id', relevantSurveyIds).order('submitted_at', { ascending: false }),
+        ])
+      : [{ data: [] }, { data: [] }];
     return {
       classes: classesRes.data ?? [],
       assignments: assignmentsRes.data ?? [],
-      surveys: surveysRes.data ?? [],
+      surveys,
       announcements: announcementsRes.data ?? [],
       questions: (questionsRes.data ?? []).map(normalizeQuestion),
       responses: responsesRes.data ?? [],
-      publishedSurveys: publishedRes.data ?? [],
+      publishedSurveys,
     };
   }, { classes: [], assignments: [], surveys: [], announcements: [], questions: [], responses: [], publishedSurveys: [] } as any);
 

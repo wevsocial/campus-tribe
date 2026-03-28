@@ -170,13 +170,13 @@ export default function PreschoolPage() {
                 <img alt="Child painting" className="w-full h-full object-cover" src="/assets/campus-preschool.jpg" />
               </div>
               <div className="aspect-[3/4] bg-surface-container-highest rounded-xl overflow-hidden shadow-lg md:mt-12">
-                <img alt="Reading time" className="w-full h-full object-cover" src="/assets/campus-preschool.jpg" />
+                <img alt="Reading time" className="w-full h-full object-cover" src="/assets/campus-parent.jpg" />
               </div>
               <div className="aspect-square bg-surface-container-highest rounded-xl overflow-hidden shadow-lg">
-                <img alt="Playground fun" className="w-full h-full object-cover" src="/assets/campus-teachers.jpg" />
+                <img alt="Teacher guided activity" className="w-full h-full object-cover" src="/assets/campus-teachers.jpg" />
               </div>
               <div className="aspect-[3/4] bg-surface-container-highest rounded-xl overflow-hidden shadow-lg md:-mt-12">
-                <img alt="Science experiment" className="w-full h-full object-cover" src="/assets/campus-admin.jpg" />
+                <img alt="Outdoor play area" className="w-full h-full object-cover" src="/assets/campus-events.jpg" />
               </div>
             </div>
           </div>

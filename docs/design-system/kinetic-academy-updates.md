@@ -12,6 +12,8 @@ The user-provided PRD and the Stitch direction remain the visual north star.
 - Preserved Lexend / Inter / Plus Jakarta Sans stack
 - Fixed day/night toggle to apply globally and persist reliably
 - Maintained rounded cards / pills / editorial gradients
+- Reduced obvious public-page image/content mismatches on school and preschool routes by aligning imagery to the correct institution story
+- Kept new workflow-heavy dashboard panels visually consistent with the existing rounded container system instead of introducing a second admin UI language
 
 ## Practical note
 The codebase still contains some legacy border-based utility components that predate the stricter no-line interpretation. Those were not fully rewritten in this pass because the priority was restoring product functionality and critical blockers. The next refinement pass should remove remaining outline-heavy UI from generic cards/forms.
