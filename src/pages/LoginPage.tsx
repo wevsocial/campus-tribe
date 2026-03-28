@@ -1,10 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { Eye, EyeOff, Mail } from 'lucide-react';
 import { getRoleDashboardPath, useAuth } from '../context/AuthContext';
+import { initializeGoogleButton } from '../lib/googleIdentity';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -14,8 +14,29 @@ const LoginPage: React.FC = () => {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const googleButtonRef = useRef<HTMLDivElement | null>(null);
 
   const demoHint = useMemo(() => 'Use your Campus Tribe credentials', []);
+
+  useEffect(() => {
+    if (!googleButtonRef.current) return;
+    initializeGoogleButton({
+      element: googleButtonRef.current,
+      onBeforeAuth: () => {
+        setSubmitting(true);
+        setError('');
+      },
+      onSuccess: async () => {
+        const profile = await refreshProfile();
+        setSubmitting(false);
+        navigate(getRoleDashboardPath(profile?.role));
+      },
+      onError: (message) => {
+        setSubmitting(false);
+        setError(message);
+      },
+    }).catch((err) => setError(err instanceof Error ? err.message : 'Google sign-in failed.'));
+  }, [navigate, refreshProfile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,19 +53,6 @@ const LoginPage: React.FC = () => {
     const profile = await refreshProfile();
     setSubmitting(false);
     navigate(getRoleDashboardPath(profile?.role));
-  };
-
-  const handleGoogleSignIn = async () => {
-    setError('');
-    setSubmitting(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/dashboard` },
-    });
-    if (error) {
-      setSubmitting(false);
-      setError(error.message);
-    }
   };
 
   return (
@@ -105,10 +113,11 @@ const LoginPage: React.FC = () => {
             <Button type="submit" variant="primary" size="lg" isLoading={submitting} className="w-full rounded-full">
               Sign In
             </Button>
-            <Button type="button" variant="outline" size="lg" className="w-full rounded-full" onClick={handleGoogleSignIn}>
-              Continue with Google
-            </Button>
           </form>
+
+          <div className="mt-4 flex justify-center">
+            <div ref={googleButtonRef} className="min-h-[44px]" />
+          </div>
 
           <p className="text-center text-sm text-on-surface-variant mt-6">
             Don't have an account?{' '}

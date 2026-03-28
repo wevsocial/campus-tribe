@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { supabase } from '../lib/supabase';
 import { getRoleDashboardPath, persistPendingSignup, useAuth } from '../context/AuthContext';
+import { initializeGoogleButton } from '../lib/googleIdentity';
 
 const PLATFORM_ROLES: Record<string, string[]> = {
   university: ['student', 'student_rep', 'teacher', 'admin', 'staff', 'club_leader', 'coach', 'it_director', 'parent'],
@@ -13,7 +14,7 @@ const PLATFORM_ROLES: Record<string, string[]> = {
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { session, refreshProfile } = useAuth();
+  const { refreshProfile } = useAuth();
   const [platformType, setPlatformType] = useState<'university' | 'school' | 'preschool'>('university');
   const [role, setRole] = useState('student');
   const [fullName, setFullName] = useState('');
@@ -24,23 +25,44 @@ const RegisterPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const googleButtonRef = useRef<HTMLDivElement | null>(null);
 
   const roles = useMemo(() => PLATFORM_ROLES[platformType], [platformType]);
+
+  useEffect(() => {
+    if (!googleButtonRef.current) return;
+    initializeGoogleButton({
+      element: googleButtonRef.current,
+      onBeforeAuth: () => {
+        persistPendingSignup({
+          email,
+          full_name: fullName || 'Campus User',
+          role: role as any,
+          platform_type: platformType,
+          institution_name: institutionName.trim() || undefined,
+          invite_code: inviteCode.trim().toLowerCase() || undefined,
+        });
+        setSubmitting(true);
+        setError('');
+        setSuccess('');
+      },
+      onSuccess: async () => {
+        const profile = await refreshProfile();
+        setSubmitting(false);
+        navigate(getRoleDashboardPath(profile?.role || role));
+      },
+      onError: (message) => {
+        setSubmitting(false);
+        setError(message);
+      },
+    }).catch((err) => setError(err instanceof Error ? err.message : 'Google sign-up failed.'));
+  }, [email, fullName, institutionName, inviteCode, navigate, platformType, refreshProfile, role]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
     setSuccess('');
-
-    const pendingPayload = {
-      email,
-      full_name: fullName,
-      role,
-      platform_type: platformType,
-      institution_name: institutionName.trim() || undefined,
-      invite_code: inviteCode.trim().toLowerCase() || undefined,
-    };
 
     try {
       persistPendingSignup({
@@ -56,7 +78,14 @@ const RegisterPage: React.FC = () => {
         email,
         password,
         options: {
-          data: pendingPayload,
+          data: {
+            email,
+            full_name: fullName,
+            role,
+            platform_type: platformType,
+            institution_name: institutionName.trim() || undefined,
+            invite_code: inviteCode.trim().toLowerCase() || undefined,
+          },
           emailRedirectTo: `${window.location.origin}/dashboard`,
         },
       });
@@ -76,34 +105,6 @@ const RegisterPage: React.FC = () => {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed.');
       setSubmitting(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setError('');
-    setSuccess('');
-    setSubmitting(true);
-
-    persistPendingSignup({
-      email,
-      full_name: fullName || 'Campus User',
-      role: role as any,
-      platform_type: platformType,
-      institution_name: institutionName.trim() || undefined,
-      invite_code: inviteCode.trim().toLowerCase() || undefined,
-    });
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/dashboard`,
-        queryParams: { access_type: 'offline', prompt: 'select_account' },
-      },
-    });
-
-    if (error) {
-      setSubmitting(false);
-      setError(error.message);
     }
   };
 
@@ -178,10 +179,11 @@ const RegisterPage: React.FC = () => {
           <Button type="submit" isLoading={submitting} className="w-full rounded-full" size="lg">
             Create account
           </Button>
-          <Button type="button" variant="outline" size="lg" className="w-full rounded-full" onClick={handleGoogleSignIn}>
-            Continue with Google
-          </Button>
         </form>
+
+        <div className="mt-4 flex justify-center">
+          <div ref={googleButtonRef} className="min-h-[44px]" />
+        </div>
 
         <p className="mt-6 text-center text-sm text-on-surface-variant">
           Already have an account? <Link to="/login" className="font-jakarta font-700 text-primary">Sign in</Link>
