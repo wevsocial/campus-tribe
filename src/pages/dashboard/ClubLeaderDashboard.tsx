@@ -21,6 +21,8 @@ type Booking = {
   approved_by?: string | null;
   ct_venues?: { name: string | null; building: string | null; institution_id?: string | null } | null;
 };
+type Budget = { id: string; club_id: string | null; total_allocated: number | null; total_spent: number | null; fiscal_year: string | null; notes: string | null };
+type FundingRequest = { id: string; club_id: string | null; amount: number | null; purpose: string | null; status: string; created_at: string };
 
 export default function ClubLeaderDashboard() {
   const { user, institutionId } = useAuth();
@@ -32,20 +34,31 @@ export default function ClubLeaderDashboard() {
       supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, approved_by, ct_venues(name, building, institution_id)').eq('booked_by', userId).order('created_at', { ascending: false }),
       supabase.from('ct_venues').select('id, name, building, capacity, institution_id').eq('institution_id', institutionId).eq('is_bookable', true).order('name'),
     ]);
+    const clubs = clubsRes.data ?? [];
+    const clubIds = clubs.map((c: any) => c.id);
     const venueIds = (venuesRes.data ?? []).map((venue: Venue) => venue.id);
-    const venueBookingsRes = venueIds.length
-      ? await supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, approved_by, ct_venues(name, building, institution_id)').in('venue_id', venueIds).order('start_time', { ascending: true })
-      : { data: [] };
+    const [venueBookingsRes, budgetsRes, fundingRes] = await Promise.all([
+      venueIds.length
+        ? supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, approved_by, ct_venues(name, building, institution_id)').in('venue_id', venueIds).order('start_time', { ascending: true })
+        : Promise.resolve({ data: [] }),
+      clubIds.length
+        ? supabase.from('ct_budgets').select('*').in('club_id', clubIds)
+        : Promise.resolve({ data: [] }),
+      clubIds.length
+        ? supabase.from('ct_funding_requests').select('*').in('club_id', clubIds).order('created_at', { ascending: false })
+        : Promise.resolve({ data: [] }),
+    ]);
     return {
-      clubs: clubsRes.data ?? [],
+      clubs,
       members: membersRes.data ?? [],
       events: eventsRes.data ?? [],
       bookings: (bookingsRes.data ?? []).map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues) })) as Booking[],
       venues: (venuesRes.data ?? []) as Venue[],
-      venueBookings: (venueBookingsRes.data ?? [])
-        .map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues) })) as Booking[],
+      venueBookings: (venueBookingsRes.data ?? []).map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues) })) as Booking[],
+      budgets: (budgetsRes.data ?? []) as Budget[],
+      fundingRequests: (fundingRes.data ?? []) as FundingRequest[],
     };
-  }, { clubs: [], members: [], events: [], bookings: [], venues: [], venueBookings: [] } as any);
+  }, { clubs: [], members: [], events: [], bookings: [], venues: [], venueBookings: [], budgets: [], fundingRequests: [] } as any);
 
   const [clubName, setClubName] = useState('');
   const [eventTitle, setEventTitle] = useState('');
@@ -56,6 +69,9 @@ export default function ClubLeaderDashboard() {
   const [bookingVenueId, setBookingVenueId] = useState('');
   const [bookingNotes, setBookingNotes] = useState('');
   const [message, setMessage] = useState('');
+  const [fundingAmount, setFundingAmount] = useState('');
+  const [fundingPurpose, setFundingPurpose] = useState('');
+  const [showHandoff, setShowHandoff] = useState(false);
   const firstClub = data.clubs[0];
 
   const detectedConflicts = useMemo(() => findVenueConflicts(data.venueBookings as Booking[], {
@@ -79,8 +95,7 @@ export default function ClubLeaderDashboard() {
     setEventTitle(''); setEventDate('');
   };
 
-  const createBooking = async () => {
-    if (!user?.id || !bookingPurpose.trim() || !bookingStart || !bookingEnd || !bookingVenueId) return;
+  const createBooking = async () => {    if (!user?.id || !bookingPurpose.trim() || !bookingStart || !bookingEnd || !bookingVenueId) return;
     setMessage('');
     const { data: booking } = await supabase.from('ct_venue_bookings').insert({ booked_by: user.id, venue_id: bookingVenueId, purpose: bookingPurpose.trim(), start_time: bookingStart, end_time: bookingEnd, status: 'pending', notes: bookingNotes || null }).select('id, purpose, status, start_time, end_time, venue_id, notes, approved_by, ct_venues(name, building, institution_id)').single();
     if (booking) {
@@ -91,6 +106,43 @@ export default function ClubLeaderDashboard() {
   };
 
   const memberCount = firstClub ? data.members.filter((member: any) => member.club_id === firstClub.id).length : 0;
+
+  const submitFundingRequest = async () => {
+    if (!user?.id || !institutionId || !firstClub?.id || !fundingAmount || !fundingPurpose.trim()) return;
+    const { data: req } = await supabase.from('ct_funding_requests').insert({
+      club_id: firstClub.id,
+      institution_id: institutionId,
+      submitted_by: user.id,
+      amount: Number(fundingAmount),
+      purpose: fundingPurpose.trim(),
+      status: 'pending',
+    }).select('*').single();
+    if (req) setData((current: any) => ({ ...current, fundingRequests: [req, ...current.fundingRequests] }));
+    setFundingAmount(''); setFundingPurpose('');
+    setMessage('Funding request submitted for review.');
+  };
+
+  const exportClubData = () => {
+    const exportData = {
+      club: firstClub,
+      members: data.members.filter((m: any) => m.club_id === firstClub?.id),
+      events: data.events,
+      bookings: data.bookings,
+      budgets: data.budgets,
+      fundingRequests: data.fundingRequests,
+      exportedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${firstClub?.name?.replace(/\s+/g, '-') || 'club'}-handoff.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setShowHandoff(false);
+  };
+
+  const budget = data.budgets.find((b: Budget) => b.club_id === firstClub?.id);
 
   return (
     <DashboardLayout>
@@ -152,6 +204,79 @@ export default function ClubLeaderDashboard() {
             </div>
           </Card>
         </div>
+
+        {/* Budget tracker + Funding requests */}
+        <div className="grid lg:grid-cols-2 gap-6">
+          <Card>
+            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Budget tracker</h2>
+            {budget ? (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-on-surface-variant">Allocated</span>
+                  <span className="font-jakarta font-700 text-on-surface">${(budget.total_allocated || 0).toLocaleString()}</span>
+                </div>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm text-on-surface-variant">Spent</span>
+                  <span className="font-jakarta font-700 text-secondary">${(budget.total_spent || 0).toLocaleString()}</span>
+                </div>
+                <div className="rounded-full bg-surface h-3 overflow-hidden">
+                  <div
+                    className="h-3 rounded-full bg-secondary transition-all"
+                    style={{ width: `${Math.min(100, ((budget.total_spent || 0) / (budget.total_allocated || 1)) * 100)}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-on-surface-variant">
+                  {Math.round(((budget.total_spent || 0) / (budget.total_allocated || 1)) * 100)}% used · FY {budget.fiscal_year || 'Current'}
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-on-surface-variant">No budget allocated yet. Contact your admin to set up a budget for this club.</p>
+            )}
+
+            <div className="mt-6">
+              <h3 className="mb-3 font-lexend text-base font-700 text-on-surface">Request funding</h3>
+              <div className="space-y-3">
+                <Input label="Amount ($)" type="number" value={fundingAmount} onChange={(e) => setFundingAmount(e.target.value)} placeholder="250" />
+                <Input label="Purpose" value={fundingPurpose} onChange={(e) => setFundingPurpose(e.target.value)} placeholder="Equipment purchase" />
+                <Button onClick={submitFundingRequest} disabled={!firstClub} className="w-full rounded-full">Submit funding request</Button>
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-lexend text-lg font-800 text-on-surface">Funding requests</h2>
+              {firstClub && (
+                <Button onClick={() => setShowHandoff(true)} variant="outline" className="rounded-full" size="sm">📦 Handoff export</Button>
+              )}
+            </div>
+            {data.fundingRequests.length === 0 ? (
+              <p className="text-sm text-on-surface-variant">No funding requests yet.</p>
+            ) : data.fundingRequests.map((req: FundingRequest) => (
+              <div key={req.id} className="mb-3 rounded-[1rem] bg-surface p-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-jakarta font-700 text-on-surface">{req.purpose}</p>
+                  <p className="text-sm text-on-surface-variant">${(req.amount || 0).toLocaleString()} · {new Date(req.created_at).toLocaleDateString()}</p>
+                </div>
+                <Badge label={req.status} variant={req.status === 'approved' ? 'tertiary' : req.status === 'rejected' ? 'secondary' : 'primary'} />
+              </div>
+            ))}
+          </Card>
+        </div>
+
+        {/* Handoff modal */}
+        {showHandoff && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowHandoff(false)}>
+            <div className="bg-surface-container-lowest rounded-[1.5rem] p-8 shadow-2xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+              <h2 className="font-lexend text-xl font-800 text-on-surface mb-2">Club handoff export</h2>
+              <p className="text-sm text-on-surface-variant mb-6">Download all club data (members, events, bookings, budget, funding requests) as a JSON file for leadership transition.</p>
+              <div className="flex gap-3">
+                <Button onClick={exportClubData} className="flex-1 rounded-full">Download JSON</Button>
+                <Button onClick={() => setShowHandoff(false)} variant="outline" className="flex-1 rounded-full">Cancel</Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-2 gap-6">
           <Card>

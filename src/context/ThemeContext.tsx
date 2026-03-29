@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useLayoutEffect, useState } from 'react';
 
 interface ThemeContextType {
   dark: boolean;
@@ -8,7 +8,7 @@ interface ThemeContextType {
 
 export const ThemeContext = createContext<ThemeContextType>({ dark: false, toggle: () => {}, setDark: () => {} });
 
-function resolveInitialTheme() {
+function resolveInitialTheme(): boolean {
   try {
     const stored = localStorage.getItem('theme');
     if (stored === 'dark') return true;
@@ -19,33 +19,39 @@ function resolveInitialTheme() {
   }
 }
 
-// Apply theme class immediately to avoid FOUC
-const initialDark = resolveInitialTheme();
-if (initialDark) {
-  document.documentElement.classList.add('dark');
-  document.documentElement.style.colorScheme = 'dark';
-} else {
-  document.documentElement.classList.remove('dark');
-  document.documentElement.style.colorScheme = 'light';
+// Apply dark class synchronously before first paint to avoid flash
+function applyTheme(dark: boolean) {
+  const root = document.documentElement;
+  if (dark) {
+    root.classList.add('dark');
+    root.style.colorScheme = 'dark';
+  } else {
+    root.classList.remove('dark');
+    root.style.colorScheme = 'light';
+  }
+  try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch {}
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [dark, setDark] = useState(initialDark);
+// Apply immediately on module load (before React renders)
+applyTheme(resolveInitialTheme());
 
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.toggle('dark', dark);
-    root.style.colorScheme = dark ? 'dark' : 'light';
-    document.body.classList.toggle('dark', dark);
-    try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch {}
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [dark, setDarkState] = useState(resolveInitialTheme);
+
+  // useLayoutEffect runs synchronously after DOM mutations, before paint
+  useLayoutEffect(() => {
+    applyTheme(dark);
   }, [dark]);
 
+  // Listen to OS preference changes (only if user hasn't manually set preference)
   useEffect(() => {
     try {
       const media = window.matchMedia('(prefers-color-scheme: dark)');
       const handler = (event: MediaQueryListEvent) => {
         const stored = localStorage.getItem('theme');
-        if (!stored) setDark(event.matches);
+        if (!stored) {
+          setDarkState(event.matches);
+        }
       };
       media.addEventListener('change', handler);
       return () => media.removeEventListener('change', handler);
@@ -54,8 +60,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const toggle = () => setDark((value) => !value);
-  return <ThemeContext.Provider value={{ dark, toggle, setDark }}>{children}</ThemeContext.Provider>;
+  const setDark = (value: boolean) => {
+    setDarkState(value);
+    applyTheme(value);
+  };
+
+  const toggle = () => {
+    const next = !dark;
+    setDarkState(next);
+    applyTheme(next);
+  };
+
+  return (
+    <ThemeContext.Provider value={{ dark, toggle, setDark }}>
+      {children}
+    </ThemeContext.Provider>
+  );
 }
 
 export const useTheme = () => useContext(ThemeContext);

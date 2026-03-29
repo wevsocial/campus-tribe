@@ -10,7 +10,7 @@ import { supabase } from '../../lib/supabase';
 import { formatDateTimeLocalInput } from '../../lib/dashboardData';
 
 type Team = { id: string; name: string; sport: string | null; season: string | null; coach_id: string | null; institution_id: string | null };
-type Athlete = { id: string; user_id?: string | null; team_id: string | null; position: string | null; jersey_number: string | null; ct_users?: { full_name: string | null; email: string | null } | null };
+type Athlete = { id: string; user_id?: string | null; team_id: string | null; position: string | null; jersey_number: string | null; waiver_signed?: boolean | null; ct_users?: { full_name: string | null; email: string | null } | null };
 type Game = { id: string; home_team_id: string; away_team_id: string; scheduled_at: string | null; home_score: number | null; away_score: number | null; status: string; notes: string | null };
 type TrainingSession = { id: string; team_id: string | null; title: string | null; scheduled_at: string | null };
 
@@ -27,7 +27,7 @@ export default function CoachDashboard() {
     const [gamesRes, athletesRes] = teamIds.length
       ? await Promise.all([
           supabase.from('ct_games').select('*').or(teamIds.map((teamId: string) => `home_team_id.eq.${teamId},away_team_id.eq.${teamId}`).join(',')).order('scheduled_at', { ascending: false }).limit(60),
-          supabase.from('ct_athletes').select('id, user_id, team_id, position, jersey_number, ct_users(full_name, email)').in('team_id', teamIds).order('created_at', { ascending: false }),
+          supabase.from('ct_athletes').select('id, user_id, team_id, position, jersey_number, waiver_signed, ct_users(full_name, email)').in('team_id', teamIds).order('created_at', { ascending: false }),
         ])
       : [{ data: [] }, { data: [] }];
     return { teams, games: gamesRes.data ?? [], training: trainingRes.data ?? [], athletes: athletesRes.data ?? [], users: usersRes.data ?? [] };
@@ -135,7 +135,7 @@ export default function CoachDashboard() {
 
   const addAthlete = async () => {
     if (!athleteUserId || !athleteTeamId) return;
-    const { data: athlete, error } = await supabase.from('ct_athletes').insert({ user_id: athleteUserId, team_id: athleteTeamId, position: athletePosition || null, jersey_number: athleteJersey || null }).select('id, user_id, team_id, position, jersey_number, ct_users(full_name, email)').single();
+    const { data: athlete, error } = await supabase.from('ct_athletes').insert({ user_id: athleteUserId, team_id: athleteTeamId, position: athletePosition || null, jersey_number: athleteJersey || null }).select('id, user_id, team_id, position, jersey_number, waiver_signed, ct_users(full_name, email)').single();
     if (error) {
       setMessage(error.message.includes('duplicate') ? 'That athlete is already on this roster.' : error.message);
       return;
@@ -154,7 +154,7 @@ export default function CoachDashboard() {
       team_id: edit.team_id ?? athlete.team_id,
       position: edit.position ?? athlete.position,
       jersey_number: edit.jersey_number ?? athlete.jersey_number,
-    }).eq('id', athlete.id).select('id, user_id, team_id, position, jersey_number, ct_users(full_name, email)').single();
+    }).eq('id', athlete.id).select('id, user_id, team_id, position, jersey_number, waiver_signed, ct_users(full_name, email)').single();
     if (updated) {
       setData((current: any) => ({ ...current, athletes: current.athletes.map((entry: Athlete) => entry.id === athlete.id ? updated : entry) }));
       setMessage('Roster entry updated.');
@@ -167,6 +167,12 @@ export default function CoachDashboard() {
     setMessage('Athlete removed from roster.');
   };
 
+  const toggleWaiver = async (athlete: Athlete) => {
+    const newValue = !athlete.waiver_signed;
+    await supabase.from('ct_athletes').update({ waiver_signed: newValue }).eq('id', athlete.id);
+    setData((current: any) => ({ ...current, athletes: current.athletes.map((a: Athlete) => a.id === athlete.id ? { ...a, waiver_signed: newValue } : a) }));
+    setMessage(newValue ? 'Waiver marked as signed.' : 'Waiver marked as unsigned.');
+  };
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -303,7 +309,7 @@ export default function CoachDashboard() {
               <div className="space-y-4">
                 {filteredAthletes.length === 0 ? <p className="text-sm text-on-surface-variant">No athletes in this filtered view yet.</p> : filteredAthletes.map((athlete: Athlete) => {
                   const edit = athleteEdits[athlete.id] || {};
-                  return <div key={athlete.id} className="rounded-[1rem] bg-surface p-4 space-y-3"><div className="flex items-center justify-between gap-3"><div><p className="font-jakarta font-700 text-on-surface">{athlete.ct_users?.full_name || athlete.ct_users?.email || 'Athlete'}</p><p className="text-sm text-on-surface-variant">{teamMap[(edit.team_id ?? athlete.team_id) || '']?.name || 'Unassigned team'}</p></div><Badge label={edit.position || athlete.position || 'Position TBD'} variant="primary" /></div><div className="grid md:grid-cols-3 gap-3"><div><label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Team</label><select value={edit.team_id ?? athlete.team_id ?? ''} onChange={(e) => setAthleteEdits((current) => ({ ...current, [athlete.id]: { ...current[athlete.id], team_id: e.target.value } }))} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm text-on-surface">{data.teams.map((team: Team) => <option key={team.id} value={team.id}>{team.name}</option>)}</select></div><Input label="Position" value={edit.position ?? athlete.position ?? ''} onChange={(e) => setAthleteEdits((current) => ({ ...current, [athlete.id]: { ...current[athlete.id], position: e.target.value } }))} placeholder="Forward" /><Input label="Jersey #" value={edit.jersey_number ?? athlete.jersey_number ?? ''} onChange={(e) => setAthleteEdits((current) => ({ ...current, [athlete.id]: { ...current[athlete.id], jersey_number: e.target.value } }))} placeholder="12" /></div><div className="flex gap-2"><Button size="sm" className="rounded-full" onClick={() => saveAthlete(athlete)}>Save athlete</Button><Button size="sm" variant="outline" className="rounded-full" onClick={() => removeAthlete(athlete.id)}>Remove</Button></div></div>;
+                  return <div key={athlete.id} className="rounded-[1rem] bg-surface p-4 space-y-3"><div className="flex items-center justify-between gap-3"><div><p className="font-jakarta font-700 text-on-surface">{athlete.ct_users?.full_name || athlete.ct_users?.email || 'Athlete'}</p><p className="text-sm text-on-surface-variant">{teamMap[(edit.team_id ?? athlete.team_id) || '']?.name || 'Unassigned team'}</p></div><div className="flex items-center gap-2"><Badge label={athlete.waiver_signed ? '✓ Waiver' : '⚠ No waiver'} variant={athlete.waiver_signed ? 'tertiary' : 'secondary'} /><Badge label={edit.position || athlete.position || 'Position TBD'} variant="primary" /></div></div><div className="grid md:grid-cols-3 gap-3"><div><label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Team</label><select value={edit.team_id ?? athlete.team_id ?? ''} onChange={(e) => setAthleteEdits((current) => ({ ...current, [athlete.id]: { ...current[athlete.id], team_id: e.target.value } }))} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm text-on-surface">{data.teams.map((team: Team) => <option key={team.id} value={team.id}>{team.name}</option>)}</select></div><Input label="Position" value={edit.position ?? athlete.position ?? ''} onChange={(e) => setAthleteEdits((current) => ({ ...current, [athlete.id]: { ...current[athlete.id], position: e.target.value } }))} placeholder="Forward" /><Input label="Jersey #" value={edit.jersey_number ?? athlete.jersey_number ?? ''} onChange={(e) => setAthleteEdits((current) => ({ ...current, [athlete.id]: { ...current[athlete.id], jersey_number: e.target.value } }))} placeholder="12" /></div><div className="flex flex-wrap gap-2"><Button size="sm" className="rounded-full" onClick={() => saveAthlete(athlete)}>Save athlete</Button><Button size="sm" variant="outline" className="rounded-full" onClick={() => toggleWaiver(athlete)}>{athlete.waiver_signed ? 'Revoke waiver' : 'Mark waiver signed'}</Button><Button size="sm" variant="outline" className="rounded-full" onClick={() => removeAthlete(athlete.id)}>Remove</Button></div></div>;
                 })}
                 <div className="rounded-[1rem] bg-surface p-4">
                   <p className="font-jakarta font-700 text-on-surface">Upcoming training</p>

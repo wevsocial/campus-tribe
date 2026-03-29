@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card } from '../../components/ui/Card';
 import { StatCard } from '../../components/ui/StatCard';
@@ -8,51 +8,236 @@ import { useAuth } from '../../context/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
 
+const INTEREST_OPTIONS = [
+  { id: 'sports', label: '⚽ Sports & Athletics', category: 'sports' },
+  { id: 'music', label: '🎵 Music & Arts', category: 'arts' },
+  { id: 'tech', label: '💻 Technology & Coding', category: 'academic' },
+  { id: 'volunteering', label: '🤝 Volunteering', category: 'social' },
+  { id: 'debate', label: '🎤 Debate & Public Speaking', category: 'academic' },
+  { id: 'fitness', label: '🏋️ Fitness & Wellness', category: 'sports' },
+  { id: 'photography', label: '📷 Photography & Film', category: 'arts' },
+  { id: 'gaming', label: '🎮 Gaming & Esports', category: 'social' },
+  { id: 'entrepreneurship', label: '🚀 Entrepreneurship', category: 'academic' },
+  { id: 'cultural', label: '🌍 Cultural Exchange', category: 'social' },
+  { id: 'environment', label: '🌱 Environment & Sustainability', category: 'social' },
+  { id: 'cooking', label: '👨‍🍳 Food & Cooking', category: 'arts' },
+];
+
+const MOOD_OPTIONS = [
+  { value: '5', emoji: '😄', label: 'Great' },
+  { value: '4', emoji: '😊', label: 'Good' },
+  { value: '3', emoji: '😐', label: 'Okay' },
+  { value: '2', emoji: '😔', label: 'Low' },
+  { value: '1', emoji: '😞', label: 'Very Low' },
+];
+
 export default function StudentDashboard() {
-  const { user, institutionId } = useAuth();
+  const { user, institutionId, profile, refreshProfile } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [onboardingStep, setOnboardingStep] = useState(0);
+  const [savingInterests, setSavingInterests] = useState(false);
+  const [mood, setMood] = useState('3');
+  const [flash, setFlash] = useState('');
+
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
-    const [clubsRes, membershipsRes, eventsRes, rsvpsRes, wellbeingRes] = await Promise.all([
-      supabase.from('ct_clubs').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(12),
+    const [clubsRes, membershipsRes, eventsRes, rsvpsRes, wellbeingRes, userRes] = await Promise.all([
+      supabase.from('ct_clubs').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(20),
       supabase.from('ct_club_members').select('*').eq('user_id', userId),
-      supabase.from('ct_events').select('*').eq('institution_id', institutionId).order('start_time', { ascending: true }).limit(12),
+      supabase.from('ct_events').select('*').eq('institution_id', institutionId).order('start_time', { ascending: true }).limit(15),
       supabase.from('ct_event_rsvps').select('*').eq('user_id', userId),
       supabase.from('ct_wellbeing_checks').select('*').eq('user_id', userId).order('date', { ascending: false }).limit(7),
+      supabase.from('ct_users').select('interests, onboarding_complete').eq('id', userId).maybeSingle(),
     ]);
-    return { clubs: clubsRes.data ?? [], memberships: membershipsRes.data ?? [], events: eventsRes.data ?? [], rsvps: rsvpsRes.data ?? [], wellbeing: wellbeingRes.data ?? [] };
-  }, { clubs: [], memberships: [], events: [], rsvps: [], wellbeing: [] } as any);
 
-  const [mood, setMood] = useState('3');
+    const userProfile = userRes.data;
+    const needsOnboarding = !userProfile?.onboarding_complete && (!userProfile?.interests || (userProfile.interests as string[]).length === 0);
+
+    return {
+      clubs: clubsRes.data ?? [],
+      memberships: membershipsRes.data ?? [],
+      events: eventsRes.data ?? [],
+      rsvps: rsvpsRes.data ?? [],
+      wellbeing: wellbeingRes.data ?? [],
+      userInterests: (userProfile?.interests as string[]) || [],
+      needsOnboarding,
+    };
+  }, { clubs: [], memberships: [], events: [], rsvps: [], wellbeing: [], userInterests: [], needsOnboarding: false } as any);
+
+  // Show onboarding if needed
+  React.useEffect(() => {
+    if (data.needsOnboarding) setShowOnboarding(true);
+  }, [data.needsOnboarding]);
+
+  // Club recommendations based on interests
+  const recommendedClubs = useMemo(() => {
+    const interests = data.userInterests as string[];
+    if (!interests || interests.length === 0) return data.clubs.slice(0, 6);
+    const interestCategories = INTEREST_OPTIONS
+      .filter(opt => interests.includes(opt.id))
+      .map(opt => opt.label.split(' ').slice(1).join(' ').toLowerCase());
+
+    const scored = (data.clubs as any[]).map((club: any) => {
+      const clubText = `${club.name} ${club.category || ''} ${club.description || ''}`.toLowerCase();
+      const score = interestCategories.filter(cat => clubText.includes(cat.split(' ')[0])).length;
+      return { ...club, score };
+    });
+
+    return scored.sort((a: any, b: any) => b.score - a.score).slice(0, 8);
+  }, [data.clubs, data.userInterests]);
+
+  const saveInterests = async () => {
+    if (!user?.id || selectedInterests.length === 0) return;
+    setSavingInterests(true);
+    await supabase.from('ct_users').update({ interests: selectedInterests, onboarding_complete: true }).eq('id', user.id);
+    setData((current: any) => ({ ...current, userInterests: selectedInterests, needsOnboarding: false }));
+    setShowOnboarding(false);
+    setSavingInterests(false);
+    setFlash('Welcome! We\'ve personalized your experience based on your interests.');
+    setTimeout(() => setFlash(''), 4000);
+  };
+
+  const toggleInterest = (id: string) => {
+    setSelectedInterests(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
 
   const joinClub = async (clubId: string) => {
     if (!user?.id || !institutionId) return;
-    const exists = data.memberships.some((membership: any) => membership.club_id === clubId);
-    if (exists) return;
-    const { data: membership } = await supabase.from('ct_club_members').insert({ club_id: clubId, user_id: user.id, institution_id: institutionId, role: 'member', status: 'active' }).select('*').single();
-    if (membership) setData((current: any) => ({ ...current, memberships: [...current.memberships, membership] }));
+    if (data.memberships.some((m: any) => m.club_id === clubId)) return;
+    const { data: membership } = await supabase
+      .from('ct_club_members')
+      .insert({ club_id: clubId, user_id: user.id, institution_id: institutionId, role: 'member', status: 'active' })
+      .select('*').single();
+    if (membership) {
+      setData((current: any) => ({ ...current, memberships: [...current.memberships, membership] }));
+      setFlash('You\'ve joined the club!');
+      setTimeout(() => setFlash(''), 3000);
+    }
   };
 
   const rsvpEvent = async (eventId: string) => {
     if (!user?.id) return;
-    const exists = data.rsvps.some((rsvp: any) => rsvp.event_id === eventId);
-    if (exists) return;
-    const { data: rsvp } = await supabase.from('ct_event_rsvps').insert({ event_id: eventId, user_id: user.id, status: 'going' }).select('*').single();
-    if (rsvp) setData((current: any) => ({ ...current, rsvps: [...current.rsvps, rsvp] }));
+    if (data.rsvps.some((r: any) => r.event_id === eventId)) return;
+    const { data: rsvp } = await supabase
+      .from('ct_event_rsvps')
+      .insert({ event_id: eventId, user_id: user.id, status: 'going' })
+      .select('*').single();
+    if (rsvp) {
+      setData((current: any) => ({ ...current, rsvps: [...current.rsvps, rsvp] }));
+      setFlash('RSVP confirmed! You\'ll get a reminder before the event.');
+      setTimeout(() => setFlash(''), 3000);
+    }
   };
 
   const submitWellbeing = async () => {
-    if (!user?.id || !institutionId) return;
-    const { data: checkin } = await supabase.from('ct_wellbeing_checks').insert({ user_id: user.id, date: new Date().toISOString().slice(0, 10), mood: Number(mood), energy: Number(mood), stress: 6 - Number(mood) }).select('*').single();
-    if (checkin) setData((current: any) => ({ ...current, wellbeing: [checkin, ...current.wellbeing] }));
+    if (!user?.id) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const exists = data.wellbeing.some((w: any) => w.date === today);
+    if (exists) { setFlash('You\'ve already checked in today. See you tomorrow!'); setTimeout(() => setFlash(''), 3000); return; }
+    const { data: checkin } = await supabase
+      .from('ct_wellbeing_checks')
+      .insert({ user_id: user.id, date: today, mood: Number(mood), energy: Number(mood), stress: 6 - Number(mood) })
+      .select('*').single();
+    if (checkin) {
+      setData((current: any) => ({ ...current, wellbeing: [checkin, ...current.wellbeing] }));
+      setFlash('Check-in saved! Keep it up — consistency builds insights.');
+      setTimeout(() => setFlash(''), 3000);
+    }
   };
+
+  // Onboarding Modal
+  if (showOnboarding) {
+    return (
+      <DashboardLayout>
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-surface-container-lowest rounded-[2rem] p-8 max-w-2xl w-full shadow-2xl">
+            <div className="text-center mb-8">
+              <div className="text-5xl mb-4">🎓</div>
+              <h2 className="font-lexend text-3xl font-900 text-on-surface">Welcome to Campus Tribe!</h2>
+              <p className="mt-2 text-on-surface-variant">Tell us what you love and we'll help you find your community.</p>
+            </div>
+
+            {onboardingStep === 0 && (
+              <>
+                <p className="font-jakarta font-700 text-sm text-on-surface-variant uppercase tracking-widest mb-4">
+                  What are your interests? (pick all that apply)
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {INTEREST_OPTIONS.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => toggleInterest(option.id)}
+                      className={`p-4 rounded-[1rem] text-left transition-all text-sm font-jakarta font-700 ${
+                        selectedInterests.includes(option.id)
+                          ? 'bg-primary text-white'
+                          : 'bg-surface text-on-surface hover:bg-primary-container'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-6 flex gap-3">
+                  <Button
+                    onClick={saveInterests}
+                    disabled={selectedInterests.length === 0 || savingInterests}
+                    isLoading={savingInterests}
+                    className="flex-1 rounded-full"
+                  >
+                    {selectedInterests.length === 0 ? 'Select at least one' : `Find My Clubs (${selectedInterests.length} selected)`}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => { setShowOnboarding(false); }}
+                    className="rounded-full"
+                  >
+                    Skip
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+        {/* Background dashboard */}
+        <div className="opacity-30 pointer-events-none space-y-6">
+          <div className="rounded-[1.5rem] bg-primary p-8 text-white h-32" />
+          <div className="grid grid-cols-4 gap-4">{[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-surface-container rounded-xl" />)}</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="rounded-[1.5rem] bg-primary p-8 text-white">
-          <h1 className="font-lexend text-3xl font-900">Student Hub</h1>
-          <p className="mt-2 text-white/80">Browse clubs, RSVP events, and log a wellbeing check-in with live Supabase data.</p>
+        {/* Hero header */}
+        <div className="rounded-[1.5rem] bg-primary p-8 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/4" />
+          <h1 className="font-lexend text-3xl font-900">
+            Hey {profile?.full_name?.split(' ')[0] || 'there'} 👋
+          </h1>
+          <p className="mt-2 text-white/80">Your campus life, all in one place.</p>
+          <div className="mt-4 flex gap-3 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setShowOnboarding(true)}
+              className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-full text-sm font-jakarta font-700 transition-all"
+            >
+              ✨ Update interests
+            </button>
+          </div>
         </div>
 
+        {flash && (
+          <div className="rounded-[1rem] bg-primary/10 p-4 text-sm text-primary font-jakarta font-700">
+            {flash}
+          </div>
+        )}
+
+        {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Clubs joined" value={data.memberships.length} color="primary" />
           <StatCard label="Event RSVPs" value={data.rsvps.length} color="secondary" />
@@ -61,38 +246,141 @@ export default function StudentDashboard() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
+          {/* Wellbeing check-in */}
           <Card>
-            <h2 className="mb-3 font-lexend text-lg font-800 text-on-surface">Today’s wellbeing check-in</h2>
-            <select value={mood} onChange={(e) => setMood(e.target.value)} className="w-full rounded-[1rem] bg-surface px-4 py-3 text-sm text-on-surface focus:outline-none">
-              <option value="1">1 · Very low</option>
-              <option value="2">2 · Low</option>
-              <option value="3">3 · Okay</option>
-              <option value="4">4 · Good</option>
-              <option value="5">5 · Great</option>
-            </select>
-            <Button onClick={submitWellbeing} className="mt-3 w-full rounded-full">Save check-in</Button>
+            <h2 className="mb-3 font-lexend text-lg font-800 text-on-surface">Today's check-in</h2>
+            <div className="flex gap-2 flex-wrap mb-3">
+              {MOOD_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setMood(option.value)}
+                  className={`flex flex-col items-center gap-1 px-3 py-2 rounded-[1rem] transition-all ${
+                    mood === option.value ? 'bg-primary text-white' : 'bg-surface hover:bg-primary-container'
+                  }`}
+                >
+                  <span className="text-2xl">{option.emoji}</span>
+                  <span className="text-xs font-jakarta font-700">{option.label}</span>
+                </button>
+              ))}
+            </div>
+            <Button onClick={submitWellbeing} className="w-full rounded-full">Save check-in</Button>
+            {data.wellbeing.length > 0 && (
+              <div className="mt-4">
+                <p className="text-xs font-jakarta font-700 text-on-surface-variant uppercase tracking-widest mb-2">Last 7 days</p>
+                <div className="flex gap-1 items-end h-12">
+                  {(data.wellbeing as any[]).slice(0, 7).reverse().map((entry: any, i: number) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                      <div
+                        className="w-full bg-primary rounded-full"
+                        style={{ height: `${(entry.mood / 5) * 100}%`, minHeight: '4px' }}
+                        title={`Mood: ${entry.mood}/5 on ${entry.date}`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </Card>
 
+          {/* Recommended clubs */}
           <Card className="lg:col-span-2">
-            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Club directory</h2>
-            {data.clubs.length === 0 ? <p className="text-sm text-on-surface-variant">No clubs have been created yet. Check back after your institution publishes its first club.</p> : data.clubs.map((club: any) => {
-              const joined = data.memberships.some((membership: any) => membership.club_id === club.id);
-              return <div key={club.id} className="mb-3 rounded-[1rem] bg-surface p-4 flex items-center justify-between gap-4"><div><p className="font-jakarta font-700 text-on-surface">{club.name}</p><p className="text-sm text-on-surface-variant">{club.category || 'General'} · {club.description || 'No description yet'}</p></div><Button onClick={() => joinClub(club.id)} disabled={joined} className="rounded-full">{joined ? 'Joined' : 'Join club'}</Button></div>;
-            })}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-lexend text-lg font-800 text-on-surface">
+                {data.userInterests?.length > 0 ? '✨ Recommended for you' : 'Club directory'}
+              </h2>
+              {data.userInterests?.length > 0 && (
+                <span className="text-xs text-on-surface-variant">Based on your interests</span>
+              )}
+            </div>
+            {recommendedClubs.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-4xl mb-3">🏛️</p>
+                <p className="text-sm text-on-surface-variant">No clubs yet. Ask your admin to create some!</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {recommendedClubs.map((club: any) => {
+                  const joined = data.memberships.some((m: any) => m.club_id === club.id);
+                  return (
+                    <div key={club.id} className="rounded-[1rem] bg-surface p-4 flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-jakarta font-700 text-on-surface truncate">{club.name}</p>
+                        <p className="text-sm text-on-surface-variant truncate">{club.category || 'General'}</p>
+                      </div>
+                      <Button onClick={() => joinClub(club.id)} disabled={joined} className="rounded-full shrink-0" size="sm">
+                        {joined ? '✓ Joined' : 'Join'}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </Card>
         </div>
 
+        {/* Events feed */}
         <div className="grid lg:grid-cols-2 gap-6">
           <Card>
-            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Event feed</h2>
-            {data.events.length === 0 ? <p className="text-sm text-on-surface-variant">No events yet. Your campus admin or club leaders need to publish the first event.</p> : data.events.map((event: any) => {
-              const going = data.rsvps.some((rsvp: any) => rsvp.event_id === event.id);
-              return <div key={event.id} className="mb-3 rounded-[1rem] bg-surface p-4 flex items-center justify-between gap-4"><div><p className="font-jakarta font-700 text-on-surface">{event.title}</p><p className="text-sm text-on-surface-variant">{event.start_time ? new Date(event.start_time).toLocaleString() : 'TBD'} · {event.location || 'Campus'}</p></div><div className="flex items-center gap-3"><Badge label={event.status || 'upcoming'} variant="secondary" /><Button onClick={() => rsvpEvent(event.id)} disabled={going} className="rounded-full">{going ? 'Going' : 'RSVP'}</Button></div></div>;
-            })}
+            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">🗓️ Upcoming events</h2>
+            {data.events.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-4xl mb-3">📅</p>
+                <p className="text-sm text-on-surface-variant">No events yet. Check back soon!</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {(data.events as any[]).map((event: any) => {
+                  const going = data.rsvps.some((r: any) => r.event_id === event.id);
+                  return (
+                    <div key={event.id} className="rounded-[1rem] bg-surface p-4 flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-jakarta font-700 text-on-surface truncate">{event.title}</p>
+                        <p className="text-sm text-on-surface-variant">
+                          {event.start_time ? new Date(event.start_time).toLocaleDateString('en', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'TBD'}
+                          {event.location ? ` · ${event.location}` : ''}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Badge label={event.status || 'upcoming'} variant="secondary" />
+                        <Button onClick={() => rsvpEvent(event.id)} disabled={going} className="rounded-full" size="sm">
+                          {going ? '✓ Going' : 'RSVP'}
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </Card>
+
+          {/* Recent check-ins */}
           <Card>
-            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Recent check-ins</h2>
-            {data.wellbeing.length === 0 ? <p className="text-sm text-on-surface-variant">No wellbeing entries yet. Submit your first check-in to start your trend history.</p> : data.wellbeing.map((entry: any) => <div key={entry.id} className="mb-3 rounded-[1rem] bg-surface p-4 flex items-center justify-between"><p className="font-jakarta font-700 text-on-surface">{entry.date}</p><Badge label={`Mood ${entry.mood}`} variant="tertiary" /></div>)}
+            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">💚 Wellbeing history</h2>
+            {data.wellbeing.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-4xl mb-3">💚</p>
+                <p className="text-sm text-on-surface-variant">Submit your first check-in to start tracking your wellbeing.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {(data.wellbeing as any[]).map((entry: any) => {
+                  const moodOption = MOOD_OPTIONS.find(m => m.value === String(entry.mood));
+                  return (
+                    <div key={entry.id} className="rounded-[1rem] bg-surface p-4 flex items-center justify-between">
+                      <div>
+                        <p className="font-jakarta font-700 text-on-surface">{entry.date}</p>
+                        <p className="text-sm text-on-surface-variant">Energy: {entry.energy}/5 · Stress: {entry.stress}/5</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-2xl">{moodOption?.emoji || '😐'}</span>
+                        <p className="text-xs text-on-surface-variant">{moodOption?.label || 'Okay'}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </Card>
         </div>
       </div>

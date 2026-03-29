@@ -51,7 +51,7 @@ export default function PublicNav() {
             className="inline-flex items-center gap-2 rounded-full border border-outline-variant/30 bg-surface-container-lowest dark:bg-slate-800 px-3 py-2 text-sm font-jakarta font-700 text-on-surface dark:text-slate-200 transition-colors hover:bg-surface-container-low dark:hover:bg-slate-700"
             title="Toggle day and night mode"
           >
-            <span className="material-symbols-outlined text-base leading-none">{dark ? 'light_mode' : 'dark_mode'}</span>
+            {dark ? <Sun size={16} /> : <Moon size={16} />}
             <span>{dark ? 'Day' : 'Night'}</span>
           </button>
           <Link to="/login" className="hidden lg:block text-slate-600 dark:text-slate-300 font-headline font-semibold px-4 py-2 hover:bg-primary/10 rounded-full transition-all">Login</Link>

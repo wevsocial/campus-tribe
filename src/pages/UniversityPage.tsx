@@ -50,7 +50,7 @@ export default function UniversityPage() {
                   <img
                     alt="Student Library"
                     className="w-full h-full object-cover"
-                    src="/assets/campus-surveys.jpg"
+                    src="/assets/campus-university.jpg"
                   />
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-xl flex items-center gap-4">
