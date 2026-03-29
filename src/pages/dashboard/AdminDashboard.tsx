@@ -196,6 +196,77 @@ export default function AdminDashboard() {
             {data.settings.length === 0 ? <p className="text-sm text-on-surface-variant">No settings saved yet.</p> : data.settings.map((setting: PlatformSetting) => <div key={setting.id} className="mb-3 rounded-[1rem] bg-surface p-4"><div className="flex items-center justify-between"><div><p className="font-jakarta font-700 text-on-surface">{setting.provider}</p><p className="text-sm text-on-surface-variant">{setting.category}</p></div><Badge label={setting.status} variant="secondary" /></div><p className="mt-2 text-sm text-on-surface-variant">{setting.notes || 'No notes yet.'}</p><p className="mt-2 text-xs text-on-surface-variant">Review surface: {(setting.config?.reviewSurface || []).join(', ') || 'n/a'}</p></div>)}
           </Card>
         </div>
+        {/* Survey Analytics */}
+        <Card>
+          <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
+            <h2 className="font-lexend text-lg font-800 text-on-surface">📊 Survey Analytics</h2>
+            <select
+              value={selectedSurveyId}
+              onChange={e => setSelectedSurveyId(e.target.value)}
+              className="rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm text-on-surface"
+            >
+              <option value="">Select a survey</option>
+              {(data.surveys as AdminSurvey[]).map((s) => <option key={s.id} value={s.id}>{s.title}</option>)}
+            </select>
+          </div>
+          {!selectedSurveyId ? (
+            <p className="text-sm text-on-surface-variant">Select a survey to view analytics.</p>
+          ) : (() => {
+            const survey = (data.surveys as AdminSurvey[]).find(s => s.id === selectedSurveyId);
+            const questions = (data.surveyQuestions as SurveyQuestion[]).filter(q => q.survey_id === selectedSurveyId).sort((a, b) => a.position - b.position);
+            const responses = (data.surveyResponses as SurveyResponse[]).filter(r => r.survey_id === selectedSurveyId);
+            const studentCount = (data.members as any[]).filter(m => m.role === 'student').length;
+            const responseRate = studentCount > 0 ? Math.round((responses.length / studentCount) * 100) : 0;
+            return (
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-4">
+                  <div className="rounded-[1rem] bg-primary-container p-4 flex-1 min-w-[120px]">
+                    <p className="text-xs font-jakarta font-700 text-on-primary-cont uppercase tracking-widest">Responses</p>
+                    <p className="font-lexend text-3xl font-900 text-primary mt-1">{responses.length}</p>
+                  </div>
+                  <div className="rounded-[1rem] bg-secondary-container p-4 flex-1 min-w-[120px]">
+                    <p className="text-xs font-jakarta font-700 text-on-sec-cont uppercase tracking-widest">Response Rate</p>
+                    <p className="font-lexend text-3xl font-900 text-secondary mt-1">{responseRate}%</p>
+                  </div>
+                  <div className="rounded-[1rem] bg-tertiary-container p-4 flex-1 min-w-[120px]">
+                    <p className="text-xs font-jakarta font-700 text-on-tert-cont uppercase tracking-widest">Questions</p>
+                    <p className="font-lexend text-3xl font-900 text-tertiary mt-1">{questions.length}</p>
+                  </div>
+                  {survey?.anonymous && <div className="rounded-[1rem] bg-surface p-4 flex items-center gap-2"><span className="text-xs font-jakarta font-700 text-on-surface-variant uppercase tracking-widest">Anonymous</span><Badge label="Yes" variant="tertiary" /></div>}
+                </div>
+                {questions.map(q => {
+                  const dist: Record<string, number> = {};
+                  responses.forEach(r => {
+                    const val = r.answers?.[q.id];
+                    if (val != null && val !== '') {
+                      const key = String(val);
+                      dist[key] = (dist[key] || 0) + 1;
+                    }
+                  });
+                  const chartData = Object.entries(dist).sort((a, b) => Number(a[0]) - Number(b[0])).map(([name, value]) => ({ name, value }));
+                  return (
+                    <div key={q.id} className="rounded-[1rem] bg-surface p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-jakarta font-700 text-on-surface text-sm">{q.prompt}</p>
+                        <Badge label={q.question_type.replace('_', ' ')} variant="secondary" />
+                      </div>
+                      {chartData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={120}>
+                          <BarChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                            <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                            <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                            <Tooltip />
+                            <Bar dataKey="value" fill="#0047AB" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      ) : <p className="text-xs text-on-surface-variant">No responses yet.</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </Card>
       </div>
     </DashboardLayout>
   );
