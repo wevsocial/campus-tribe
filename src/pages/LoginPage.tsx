@@ -42,23 +42,26 @@ const LoginPage: React.FC = () => {
     setError('');
     setSubmitting(true);
 
-    const result = await signIn(email, password);
-    if (!result.success) {
-      setSubmitting(false);
-      const msg = result.error || 'Sign in failed.';
-      if (/email not confirmed/i.test(msg)) {
-        setError('Your email is not yet confirmed. Check your inbox for the confirmation link, or sign up again — email confirmation is now instant.');
-      } else if (/invalid login credentials/i.test(msg)) {
-        setError('Invalid email or password. Please check your credentials and try again.');
-      } else {
-        setError(msg);
+    try {
+      const result = await signIn(email, password);
+      if (!result.success) {
+        const msg = result.error || 'Sign in failed.';
+        if (/email not confirmed/i.test(msg)) {
+          setError('Your email is not yet confirmed. Check your inbox for the confirmation link, or sign up again — email confirmation is now instant.');
+        } else if (/invalid login credentials/i.test(msg)) {
+          setError('Invalid email or password. Please check your credentials and try again.');
+        } else {
+          setError(msg);
+        }
+        return;
       }
-      return;
-    }
 
-    const profile = await refreshProfile();
-    setSubmitting(false);
-    navigate(getRoleDashboardPath(profile?.role));
+      // Navigate immediately; AuthContext + DashboardRedirect will resolve role safely.
+      navigate('/dashboard');
+      void refreshProfile();
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
