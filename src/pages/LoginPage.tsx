@@ -2,9 +2,35 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Eye, EyeOff, Mail } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { getRoleDashboardPath, useAuth } from '../context/AuthContext';
 import { initializeGoogleButton } from '../lib/googleIdentity';
+
+const PLATFORM_CARDS = [
+  {
+    emoji: '🎓',
+    label: 'University',
+    desc: 'Students, faculty, clubs, sports, surveys, venue booking',
+  },
+  {
+    emoji: '🏫',
+    label: 'School',
+    desc: 'Students, teachers, parents, clubs, events',
+  },
+  {
+    emoji: '🧸',
+    label: 'Preschool',
+    desc: 'Parents, teachers, staff, daily reports',
+  },
+];
+
+const ALL_ROLES = ['Student', 'Student Rep', 'Teacher', 'Club Leader', 'Coach', 'IT Director', 'Staff', 'Admin', 'Parent'];
+
+const STATS = [
+  { val: '12K+', label: 'Students' },
+  { val: '200+', label: 'Institutions' },
+  { val: '4K+', label: 'Events/mo' },
+];
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,19 +47,13 @@ const LoginPage: React.FC = () => {
     if (!googleButtonRef.current) return;
     initializeGoogleButton({
       element: googleButtonRef.current,
-      onBeforeAuth: () => {
-        setSubmitting(true);
-        setError('');
-      },
+      onBeforeAuth: () => { setSubmitting(true); setError(''); },
       onSuccess: async () => {
         const profile = await refreshProfile();
         setSubmitting(false);
         navigate(getRoleDashboardPath(profile?.role));
       },
-      onError: (message) => {
-        setSubmitting(false);
-        setError(message);
-      },
+      onError: (message) => { setSubmitting(false); setError(message); },
     }).catch((err) => setError(err instanceof Error ? err.message : 'Google sign-in failed.'));
   }, [navigate, refreshProfile]);
 
@@ -41,13 +61,12 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setError('');
     setSubmitting(true);
-
     try {
       const result = await signIn(email, password);
       if (!result.success) {
         const msg = result.error || 'Sign in failed.';
         if (/email not confirmed/i.test(msg)) {
-          setError('Your email is not yet confirmed. Check your inbox for the confirmation link, or sign up again — email confirmation is now instant.');
+          setError('Your email is not yet confirmed. Check your inbox for the confirmation link.');
         } else if (/invalid login credentials/i.test(msg)) {
           setError('Invalid email or password. Please check your credentials and try again.');
         } else {
@@ -55,8 +74,6 @@ const LoginPage: React.FC = () => {
         }
         return;
       }
-
-      // Navigate immediately; AuthContext + DashboardRedirect will resolve role safely.
       navigate('/dashboard');
       void refreshProfile();
     } finally {
@@ -67,103 +84,147 @@ const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       {/* Left: brand panel */}
-      <div className="hidden lg:flex flex-col justify-between p-12 bg-hero-gradient relative overflow-hidden">
+      <div
+        className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #0047AB 0%, #3A6FD0 100%)' }}
+      >
         {/* Decorative orbs */}
-        <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/3" />
-        <div className="absolute bottom-0 left-0 w-60 h-60 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/3" />
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/3" />
+        <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/3" />
 
         <div className="relative z-10">
-          <Link to="/" className="font-lexend font-900 italic text-2xl text-white">Campus Tribe</Link>
-          <p className="text-white/60 text-xs mt-1">by WevSocial</p>
+          <Link to="/" className="font-lexend font-900 text-2xl text-white">Campus Tribe</Link>
+          <p className="text-white/50 text-xs mt-1 font-jakarta">by WevSocial</p>
         </div>
 
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-jakarta font-700 uppercase tracking-widest mb-6">
-            <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-            Live Platform
+        <div className="relative z-10 space-y-6">
+          <div>
+            <h1 className="text-white text-4xl font-lexend font-900 leading-tight">
+              One login.<br />Every platform.
+            </h1>
+            <p className="text-white/70 font-jakarta text-lg mt-2">University · School · Preschool</p>
           </div>
-          <blockquote className="text-white text-3xl font-lexend font-800 leading-tight mb-6">
-            All student life, teaching, clubs, sports, and family communication in one place.
-          </blockquote>
-          <p className="text-white/70 text-sm font-jakarta">Built for universities, schools, and preschools.</p>
 
-          <div className="mt-8 grid grid-cols-3 gap-4">
-            {[
-              { label: 'Students', val: '12K+' },
-              { label: 'Institutions', val: '200+' },
-              { label: 'Events/mo', val: '4K+' },
-            ].map((s) => (
-              <div key={s.label} className="bg-white/10 rounded-2xl p-4 text-center">
+          {/* Platform cards */}
+          <div className="grid grid-cols-3 gap-3">
+            {PLATFORM_CARDS.map((p) => (
+              <div key={p.label} className="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/10">
+                <span className="text-2xl">{p.emoji}</span>
+                <p className="font-lexend font-700 text-white text-sm mt-2">{p.label}</p>
+                <p className="text-white/60 text-xs mt-1 font-jakarta leading-relaxed">{p.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Role chips */}
+          <div className="flex flex-wrap gap-2">
+            {ALL_ROLES.map((r) => (
+              <span
+                key={r}
+                className="px-3 py-1 rounded-full bg-white/15 text-white text-xs font-jakarta font-700 border border-white/20"
+              >
+                {r}
+              </span>
+            ))}
+          </div>
+
+          {/* Live stats */}
+          <div className="grid grid-cols-3 gap-4">
+            {STATS.map((s) => (
+              <div key={s.label} className="text-center bg-white/10 rounded-2xl py-4">
+                <div className="flex items-center justify-center gap-1.5 mb-1">
+                  <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+                </div>
                 <p className="font-lexend font-900 text-2xl text-white">{s.val}</p>
-                <p className="text-white/60 text-xs mt-1 font-jakarta">{s.label}</p>
+                <p className="text-white/60 text-xs font-jakarta mt-0.5">{s.label}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="text-white/30 text-xs relative z-10">© 2026 WevSocial Inc.</p>
+        <p className="text-white/30 text-xs relative z-10 font-jakarta">© 2026 WevSocial Inc.</p>
       </div>
 
       {/* Right: form */}
-      <div className="flex items-center justify-center p-8 bg-surface-lowest dark:bg-slate-950">
+      <div className="flex items-center justify-center p-8 bg-white dark:bg-slate-950">
         <div className="w-full max-w-md">
           <div className="mb-8">
-            <Link to="/" className="font-lexend font-900 italic text-xl text-primary lg:hidden">Campus Tribe</Link>
-            <h1 className="font-lexend font-900 text-4xl text-on-surface mt-2 tracking-tight">Welcome back</h1>
-            <p className="text-on-surface-variant text-sm mt-2">Sign in to your Campus Tribe account.</p>
+            <Link to="/" className="font-lexend font-900 text-xl text-primary lg:hidden">Campus Tribe</Link>
+            <h1 className="font-lexend font-900 text-4xl text-gray-900 dark:text-white mt-2 tracking-tight">Welcome back</h1>
+            <p className="text-gray-500 dark:text-slate-400 text-sm mt-2 font-jakarta">Sign in to your Campus Tribe account.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <Input
-              label="Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@campus.edu"
-              icon={<Mail size={16} />}
-              required
-              autoComplete="email"
-            />
-            <Input
-              label="Password"
-              type={showPw ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              icon={
-                <button type="button" onClick={() => setShowPw(!showPw)} className="text-on-surface-variant">
+            <div className="space-y-1">
+              <label className="font-jakarta text-sm font-700 text-gray-700 dark:text-slate-300">Email</label>
+              <div className="relative">
+                <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@campus.edu"
+                  required
+                  autoComplete="email"
+                  className="w-full pl-9 pr-4 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 font-jakarta text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-jakarta text-sm font-700 text-gray-700 dark:text-slate-300">Password</label>
+              <div className="relative">
+                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type={showPw ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                  className="w-full pl-9 pr-10 py-3 rounded-xl border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 font-jakarta text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw(!showPw)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
                   {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
-              }
-              iconPosition="right"
-              required
-              autoComplete="current-password"
-            />
+              </div>
+              <div className="text-right">
+                <span className="text-xs text-blue-600 dark:text-blue-400 hover:underline cursor-pointer font-jakarta">Forgot password?</span>
+              </div>
+            </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-100 text-red-700 text-sm px-4 py-3 rounded-2xl font-jakarta">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm px-4 py-3 rounded-2xl font-jakarta">
                 {error}
               </div>
             )}
 
-            <Button type="submit" variant="primary" size="lg" isLoading={submitting} className="w-full rounded-full">
-              Sign in →
-            </Button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-3 rounded-full bg-blue-700 hover:bg-blue-800 text-white font-jakarta font-700 text-sm transition-colors disabled:opacity-60"
+            >
+              {submitting ? 'Signing in…' : 'Sign in →'}
+            </button>
           </form>
 
           <div className="relative flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-outline-variant/30" />
-            <span className="text-xs font-jakarta font-700 text-on-surface-variant uppercase tracking-widest">or</span>
-            <div className="flex-1 h-px bg-outline-variant/30" />
+            <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700" />
+            <span className="text-xs font-jakarta font-700 text-gray-400 dark:text-slate-500 uppercase tracking-widest">or</span>
+            <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700" />
           </div>
 
           <div className="flex justify-center">
             <div ref={googleButtonRef} className="min-h-[44px]" />
           </div>
 
-          <p className="text-center text-sm text-on-surface-variant mt-8">
+          <p className="text-center text-sm text-gray-500 dark:text-slate-400 font-jakarta mt-8">
             Don't have an account?{' '}
-            <Link to="/register" className="text-primary font-jakarta font-700 hover:underline">Register free</Link>
+            <Link to="/register" className="text-blue-700 dark:text-blue-400 font-700 hover:underline">Register free</Link>
           </p>
         </div>
       </div>

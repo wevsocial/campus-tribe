@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import {
+  LayoutDashboard, Home, Users, Calendar, MapPin, Trophy, BarChart2, Settings,
+  Compass, Heart, ClipboardList, UserCog, Key, History, Puzzle, Award,
+  CalendarDays, User, GraduationCap, Wallet, Megaphone, Baby, FileText,
+  MessageSquare, Bell, LogOut, Menu
+} from 'lucide-react';
 
 type Role =
   | 'admin'
@@ -16,69 +22,69 @@ type Role =
 interface NavItem {
   label: string;
   path: string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 const navConfig: Record<Role, NavItem[]> = {
   admin: [
-    { label: 'Overview', path: '/dashboard/admin/overview', icon: 'dashboard' },
-    { label: 'Clubs', path: '/dashboard/admin/clubs', icon: 'groups' },
-    { label: 'Events', path: '/dashboard/admin/events', icon: 'event' },
-    { label: 'Venues', path: '/dashboard/admin/venues', icon: 'place' },
-    { label: 'Sports', path: '/dashboard/admin/sports', icon: 'sports' },
-    { label: 'Reports', path: '/dashboard/admin/reports', icon: 'bar_chart' },
-    { label: 'Settings', path: '/dashboard/admin/settings', icon: 'settings' },
+    { label: 'Overview', path: '/dashboard/admin/overview', icon: <LayoutDashboard size={18} /> },
+    { label: 'Clubs', path: '/dashboard/admin/clubs', icon: <Users size={18} /> },
+    { label: 'Events', path: '/dashboard/admin/events', icon: <Calendar size={18} /> },
+    { label: 'Venues', path: '/dashboard/admin/venues', icon: <MapPin size={18} /> },
+    { label: 'Sports', path: '/dashboard/admin/sports', icon: <Trophy size={18} /> },
+    { label: 'Reports', path: '/dashboard/admin/reports', icon: <BarChart2 size={18} /> },
+    { label: 'Settings', path: '/dashboard/admin/settings', icon: <Settings size={18} /> },
   ],
   student: [
-    { label: 'Home', path: '/dashboard/student/home', icon: 'home' },
-    { label: 'Discover', path: '/dashboard/student/discover', icon: 'explore' },
-    { label: 'Events', path: '/dashboard/student/events', icon: 'event' },
-    { label: 'Sports', path: '/dashboard/student/sports', icon: 'sports' },
-    { label: 'Wellness', path: '/dashboard/student/wellness', icon: 'favorite' },
-    { label: 'Surveys', path: '/dashboard/student/surveys', icon: 'assignment' },
+    { label: 'Home', path: '/dashboard/student/home', icon: <Home size={18} /> },
+    { label: 'Discover', path: '/dashboard/student/discover', icon: <Compass size={18} /> },
+    { label: 'Events', path: '/dashboard/student/events', icon: <Calendar size={18} /> },
+    { label: 'Sports', path: '/dashboard/student/sports', icon: <Trophy size={18} /> },
+    { label: 'Wellness', path: '/dashboard/student/wellness', icon: <Heart size={18} /> },
+    { label: 'Surveys', path: '/dashboard/student/surveys', icon: <ClipboardList size={18} /> },
   ],
   it_director: [
-    { label: 'Overview', path: '/dashboard/it/overview', icon: 'dashboard' },
-    { label: 'Users', path: '/dashboard/it/users', icon: 'manage_accounts' },
-    { label: 'API Keys', path: '/dashboard/it/api-keys', icon: 'key' },
-    { label: 'Audit', path: '/dashboard/it/audit', icon: 'history' },
-    { label: 'Integrations', path: '/dashboard/it/integrations', icon: 'integration_instructions' },
-    { label: 'Settings', path: '/dashboard/it/settings', icon: 'settings' },
+    { label: 'Overview', path: '/dashboard/it/overview', icon: <LayoutDashboard size={18} /> },
+    { label: 'Users', path: '/dashboard/it/users', icon: <UserCog size={18} /> },
+    { label: 'API Keys', path: '/dashboard/it/api-keys', icon: <Key size={18} /> },
+    { label: 'Audit', path: '/dashboard/it/audit', icon: <History size={18} /> },
+    { label: 'Integrations', path: '/dashboard/it/integrations', icon: <Puzzle size={18} /> },
+    { label: 'Settings', path: '/dashboard/it/settings', icon: <Settings size={18} /> },
   ],
   coach: [
-    { label: 'Overview', path: '/dashboard/coach/overview', icon: 'dashboard' },
-    { label: 'Leagues', path: '/dashboard/coach/leagues', icon: 'emoji_events' },
-    { label: 'Teams', path: '/dashboard/coach/teams', icon: 'groups' },
-    { label: 'Schedule', path: '/dashboard/coach/schedule', icon: 'calendar_month' },
-    { label: 'Athletes', path: '/dashboard/coach/athletes', icon: 'person' },
+    { label: 'Overview', path: '/dashboard/coach/overview', icon: <LayoutDashboard size={18} /> },
+    { label: 'Leagues', path: '/dashboard/coach/leagues', icon: <Award size={18} /> },
+    { label: 'Teams', path: '/dashboard/coach/teams', icon: <Users size={18} /> },
+    { label: 'Schedule', path: '/dashboard/coach/schedule', icon: <CalendarDays size={18} /> },
+    { label: 'Athletes', path: '/dashboard/coach/athletes', icon: <User size={18} /> },
   ],
   teacher: [
-    { label: 'Overview', path: '/dashboard/teacher/overview', icon: 'dashboard' },
-    { label: 'Courses', path: '/dashboard/teacher/courses', icon: 'school' },
-    { label: 'Surveys', path: '/dashboard/teacher/surveys', icon: 'assignment' },
+    { label: 'Overview', path: '/dashboard/teacher/overview', icon: <LayoutDashboard size={18} /> },
+    { label: 'Courses', path: '/dashboard/teacher/courses', icon: <GraduationCap size={18} /> },
+    { label: 'Surveys', path: '/dashboard/teacher/surveys', icon: <ClipboardList size={18} /> },
   ],
   club_leader: [
-    { label: 'Overview', path: '/dashboard/club/overview', icon: 'dashboard' },
-    { label: 'Members', path: '/dashboard/club/members', icon: 'group' },
-    { label: 'Events', path: '/dashboard/club/events', icon: 'event' },
-    { label: 'Budget', path: '/dashboard/club/budget', icon: 'account_balance_wallet' },
+    { label: 'Overview', path: '/dashboard/club/overview', icon: <LayoutDashboard size={18} /> },
+    { label: 'Members', path: '/dashboard/club/members', icon: <Users size={18} /> },
+    { label: 'Events', path: '/dashboard/club/events', icon: <Calendar size={18} /> },
+    { label: 'Budget', path: '/dashboard/club/budget', icon: <Wallet size={18} /> },
   ],
   student_rep: [
-    { label: 'Overview', path: '/dashboard/student-rep/overview', icon: 'dashboard' },
-    { label: 'Venues', path: '/dashboard/student-rep/venues', icon: 'place' },
-    { label: 'Events', path: '/dashboard/student-rep/events', icon: 'event' },
-    { label: 'Announcements', path: '/dashboard/student-rep/announcements', icon: 'campaign' },
+    { label: 'Overview', path: '/dashboard/student-rep/overview', icon: <LayoutDashboard size={18} /> },
+    { label: 'Venues', path: '/dashboard/student-rep/venues', icon: <MapPin size={18} /> },
+    { label: 'Events', path: '/dashboard/student-rep/events', icon: <Calendar size={18} /> },
+    { label: 'Announcements', path: '/dashboard/student-rep/announcements', icon: <Megaphone size={18} /> },
   ],
   parent: [
-    { label: 'Overview', path: '/dashboard/parent/overview', icon: 'dashboard' },
-    { label: 'Children', path: '/dashboard/parent/children', icon: 'child_care' },
-    { label: 'Reports', path: '/dashboard/parent/reports', icon: 'description' },
-    { label: 'Messages', path: '/dashboard/parent/messages', icon: 'message' },
+    { label: 'Overview', path: '/dashboard/parent/overview', icon: <LayoutDashboard size={18} /> },
+    { label: 'Children', path: '/dashboard/parent/children', icon: <Baby size={18} /> },
+    { label: 'Reports', path: '/dashboard/parent/reports', icon: <FileText size={18} /> },
+    { label: 'Messages', path: '/dashboard/parent/messages', icon: <MessageSquare size={18} /> },
   ],
   staff: [
-    { label: 'Overview', path: '/dashboard/staff/overview', icon: 'dashboard' },
-    { label: 'Reports', path: '/dashboard/staff/reports', icon: 'description' },
-    { label: 'Updates', path: '/dashboard/staff/updates', icon: 'notifications' },
+    { label: 'Overview', path: '/dashboard/staff/overview', icon: <LayoutDashboard size={18} /> },
+    { label: 'Reports', path: '/dashboard/staff/reports', icon: <FileText size={18} /> },
+    { label: 'Updates', path: '/dashboard/staff/updates', icon: <Bell size={18} /> },
   ],
 };
 
@@ -145,7 +151,7 @@ export default function DashboardShell({ role }: DashboardShellProps) {
                     }`
                   }
                 >
-                  <span className="material-symbols-outlined text-xl">{item.icon}</span>
+                  {item.icon}
                   {item.label}
                 </NavLink>
               </li>
@@ -167,7 +173,7 @@ export default function DashboardShell({ role }: DashboardShellProps) {
             onClick={handleSignOut}
             className="mt-2 w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-jakarta text-on-surface-variant hover:bg-red-50 hover:text-red-600 transition-colors"
           >
-            <span className="material-symbols-outlined text-xl">logout</span>
+            <LogOut size={18} />
             Sign out
           </button>
         </div>
@@ -176,7 +182,7 @@ export default function DashboardShell({ role }: DashboardShellProps) {
       {/* Mobile header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-surface-lowest border-b border-outline-variant/30 flex items-center gap-3 px-4 py-3">
         <button onClick={() => setMobileOpen(!mobileOpen)} className="p-1">
-          <span className="material-symbols-outlined text-on-surface">menu</span>
+          <Menu size={22} className="text-on-surface" />
         </button>
         <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
           <span className="text-white text-xs font-lexend font-900">CT</span>
@@ -213,7 +219,7 @@ export default function DashboardShell({ role }: DashboardShellProps) {
                         }`
                       }
                     >
-                      <span className="material-symbols-outlined text-xl">{item.icon}</span>
+                      {item.icon}
                       {item.label}
                     </NavLink>
                   </li>
@@ -224,7 +230,7 @@ export default function DashboardShell({ role }: DashboardShellProps) {
               onClick={handleSignOut}
               className="m-3 flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-jakarta text-on-surface-variant hover:bg-red-50 hover:text-red-600 transition-colors"
             >
-              <span className="material-symbols-outlined text-xl">logout</span>
+              <LogOut size={18} />
               Sign out
             </button>
           </aside>
@@ -250,7 +256,7 @@ export default function DashboardShell({ role }: DashboardShellProps) {
               }`
             }
           >
-            <span className="material-symbols-outlined text-xl">{item.icon}</span>
+            {React.cloneElement(item.icon as React.ReactElement<{ size?: number }>, { size: 20 })}
             <span className="truncate text-center w-full px-1" style={{ fontSize: '10px' }}>{item.label}</span>
           </NavLink>
         ))}

@@ -111,6 +111,37 @@ export default function AdminSports() {
           </Card>
         )}
       </div>
+
+      {/* Title IX Participation Report — Module 8 */}
+      <div>
+        <h2 className="font-lexend font-bold text-on-surface mb-3">Title IX Participation Report</h2>
+        <div className="overflow-x-auto rounded-2xl border border-outline-variant/30">
+          <table className="w-full">
+            <thead className="bg-surface-low">
+              <tr>
+                {['Sport / League', 'Male', 'Female', 'Non-binary', 'Unknown', 'Total'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left font-jakarta text-xs font-bold text-on-surface-variant uppercase">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-outline-variant/20">
+              {leagues.length === 0 ? (
+                <tr><td colSpan={6} className="px-4 py-6 text-center text-on-surface-variant font-jakarta text-sm">No leagues data</td></tr>
+              ) : leagues.map(l => (
+                <tr key={l.id} className="bg-surface-lowest">
+                  <td className="px-4 py-3 font-jakarta font-700 text-on-surface text-sm">{l.name} ({l.sport || 'N/A'})</td>
+                  <td className="px-4 py-3 text-on-surface-variant text-sm">—</td>
+                  <td className="px-4 py-3 text-on-surface-variant text-sm">—</td>
+                  <td className="px-4 py-3 text-on-surface-variant text-sm">—</td>
+                  <td className="px-4 py-3 text-on-surface-variant text-sm">—</td>
+                  <td className="px-4 py-3 font-jakarta font-700 text-on-surface text-sm">—</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-xs text-on-surface-variant font-jakarta mt-2">Gender data sourced from user profiles. Update profiles to populate this report.</p>
+      </div>
     </div>
   );
 }

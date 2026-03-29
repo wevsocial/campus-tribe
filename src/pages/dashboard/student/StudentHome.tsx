@@ -97,6 +97,25 @@ export default function StudentHome() {
           </div>
         )}
       </div>
+
+      {/* Campus-wide boards — Module 6 */}
+      <div>
+        <h2 className="font-lexend font-bold text-on-surface mb-3">Campus Boards</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {[
+            { icon: '🏠', label: 'Housing', desc: 'Find roommates, sublets, and off-campus housing', color: 'bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800' },
+            { icon: '🚗', label: 'Rides', desc: 'Carpool, share rides, or post your route', color: 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800' },
+            { icon: '📚', label: 'Study Groups', desc: 'Join or start a study group for your courses', color: 'bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800' },
+          ].map(b => (
+            <div key={b.label} className={`p-4 rounded-2xl border ${b.color} cursor-pointer hover:shadow-md transition-shadow`}>
+              <span className="text-2xl">{b.icon}</span>
+              <p className="font-jakarta font-700 text-on-surface text-sm mt-2">{b.label}</p>
+              <p className="text-xs text-on-surface-variant font-jakarta mt-1">{b.desc}</p>
+              <span className="text-xs text-primary font-jakarta font-700 mt-2 inline-block">Browse →</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

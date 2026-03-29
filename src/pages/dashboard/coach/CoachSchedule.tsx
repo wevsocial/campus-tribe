@@ -15,6 +15,8 @@ interface Game {
   away_score: number | null;
   home_team_id: string | null;
   away_team_id: string | null;
+  home_sportsmanship?: number | null;
+  away_sportsmanship?: number | null;
   home_team?: { name: string } | null;
   away_team?: { name: string } | null;
 }
@@ -23,7 +25,7 @@ export default function CoachSchedule() {
   const { institutionId } = useAuth();
   const [games, setGames] = useState<Game[]>([]);
   const [loading, setLoading] = useState(true);
-  const [scores, setScores] = useState<Record<string, { home: string; away: string }>>({});
+  const [scores, setScores] = useState<Record<string, { home: string; away: string; homeSport: string; awaySport: string }>>({});
 
   useEffect(() => {
     if (!institutionId) return;
@@ -37,8 +39,16 @@ export default function CoachSchedule() {
   const submitScore = async (gameId: string) => {
     const s = scores[gameId];
     if (!s) return;
-    await supabase.from('ct_sports_games').update({ home_score: +s.home, away_score: +s.away, status: 'completed' }).eq('id', gameId);
-    setGames(games.map(g => g.id === gameId ? { ...g, home_score: +s.home, away_score: +s.away, status: 'completed' } : g));
+    await supabase.from('ct_sports_games').update({
+      home_score: +s.home, away_score: +s.away, status: 'completed',
+      home_sportsmanship: s.homeSport ? +s.homeSport : null,
+      away_sportsmanship: s.awaySport ? +s.awaySport : null,
+    }).eq('id', gameId);
+    setGames(games.map(g => g.id === gameId ? {
+      ...g, home_score: +s.home, away_score: +s.away, status: 'completed',
+      home_sportsmanship: s.homeSport ? +s.homeSport : null,
+      away_sportsmanship: s.awaySport ? +s.awaySport : null,
+    } : g));
   };
 
   if (loading) return <LoadingSkeleton />;
@@ -68,13 +78,27 @@ export default function CoachSchedule() {
                 </div>
               </div>
               {g.status !== 'completed' && (
-                <div className="flex items-center gap-2 mt-2 pt-2 border-t border-outline-variant/20">
-                  <input type="number" placeholder="Home" value={scores[g.id]?.home || ''} onChange={e => setScores({ ...scores, [g.id]: { ...scores[g.id], home: e.target.value } })}
-                    className="flex-1 px-3 py-2 rounded-xl bg-surface-low border border-outline-variant/50 font-jakarta text-sm text-on-surface focus:outline-none" min={0} />
-                  <input type="number" placeholder="Away" value={scores[g.id]?.away || ''} onChange={e => setScores({ ...scores, [g.id]: { ...scores[g.id], away: e.target.value } })}
-                    className="flex-1 px-3 py-2 rounded-xl bg-surface-low border border-outline-variant/50 font-jakarta text-sm text-on-surface focus:outline-none" min={0} />
-                  <Button size="sm" onClick={() => submitScore(g.id)} className="rounded-full">Save Score</Button>
+                <div className="space-y-2 mt-2 pt-2 border-t border-outline-variant/20">
+                  <div className="flex items-center gap-2">
+                    <input type="number" placeholder="Home score" value={scores[g.id]?.home || ''} onChange={e => setScores({ ...scores, [g.id]: { ...scores[g.id], home: e.target.value, away: scores[g.id]?.away || '', homeSport: scores[g.id]?.homeSport || '', awaySport: scores[g.id]?.awaySport || '' } })}
+                      className="flex-1 px-3 py-2 rounded-xl bg-surface-low border border-outline-variant/50 font-jakarta text-sm text-on-surface focus:outline-none" min={0} />
+                    <input type="number" placeholder="Away score" value={scores[g.id]?.away || ''} onChange={e => setScores({ ...scores, [g.id]: { ...scores[g.id], away: e.target.value, home: scores[g.id]?.home || '', homeSport: scores[g.id]?.homeSport || '', awaySport: scores[g.id]?.awaySport || '' } })}
+                      className="flex-1 px-3 py-2 rounded-xl bg-surface-low border border-outline-variant/50 font-jakarta text-sm text-on-surface focus:outline-none" min={0} />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-jakarta text-on-surface-variant">Sportsmanship (1-5):</label>
+                    <input type="number" placeholder="Home" min={1} max={5} value={scores[g.id]?.homeSport || ''} onChange={e => setScores({ ...scores, [g.id]: { ...scores[g.id], homeSport: e.target.value, home: scores[g.id]?.home || '', away: scores[g.id]?.away || '', awaySport: scores[g.id]?.awaySport || '' } })}
+                      className="w-16 px-2 py-1.5 rounded-xl bg-surface-low border border-outline-variant/50 font-jakarta text-sm text-on-surface focus:outline-none" />
+                    <input type="number" placeholder="Away" min={1} max={5} value={scores[g.id]?.awaySport || ''} onChange={e => setScores({ ...scores, [g.id]: { ...scores[g.id], awaySport: e.target.value, home: scores[g.id]?.home || '', away: scores[g.id]?.away || '', homeSport: scores[g.id]?.homeSport || '' } })}
+                      className="w-16 px-2 py-1.5 rounded-xl bg-surface-low border border-outline-variant/50 font-jakarta text-sm text-on-surface focus:outline-none" />
+                    <Button size="sm" onClick={() => submitScore(g.id)} className="rounded-full ml-auto">Save Score</Button>
+                  </div>
                 </div>
+              )}
+              {g.status === 'completed' && (g.home_sportsmanship || g.away_sportsmanship) && (
+                <p className="text-xs text-on-surface-variant font-jakarta mt-2 pt-2 border-t border-outline-variant/20">
+                  ⭐ Sportsmanship — Home: {g.home_sportsmanship ?? '–'}/5 · Away: {g.away_sportsmanship ?? '–'}/5
+                </p>
               )}
             </Card>
           ))}

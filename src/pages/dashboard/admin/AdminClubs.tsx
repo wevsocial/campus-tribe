@@ -143,6 +143,41 @@ export default function AdminClubs() {
           </div>
         </div>
       )}
+
+      {/* Club compliance scorecard — Module 9 */}
+      <div>
+        <h2 className="font-lexend font-bold text-on-surface mb-3">Compliance Scorecard</h2>
+        <div className="overflow-x-auto rounded-2xl border border-outline-variant/30">
+          <table className="w-full">
+            <thead className="bg-surface-low">
+              <tr>
+                {['Club', 'Status', 'Activity', 'Funding', 'Advisor', 'Score'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left font-jakarta text-xs font-bold text-on-surface-variant uppercase">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-outline-variant/20">
+              {active.map(club => {
+                const score = (club.is_approved ? 1 : 0);
+                const scoreLabel = score >= 1 ? '✅ Good' : '⚠️ Review';
+                return (
+                  <tr key={club.id} className="bg-surface-lowest hover:bg-surface-low transition-colors">
+                    <td className="px-4 py-3 font-jakarta font-700 text-on-surface text-sm">{club.name}</td>
+                    <td className="px-4 py-3"><Badge label={club.status || 'active'} variant="success" /></td>
+                    <td className="px-4 py-3 text-xs text-on-surface-variant">—</td>
+                    <td className="px-4 py-3 text-xs text-on-surface-variant">—</td>
+                    <td className="px-4 py-3 text-xs text-on-surface-variant">—</td>
+                    <td className="px-4 py-3 text-xs font-jakarta font-700">{scoreLabel}</td>
+                  </tr>
+                );
+              })}
+              {active.length === 0 && (
+                <tr><td colSpan={6} className="px-4 py-6 text-center text-on-surface-variant font-jakarta text-sm">No active clubs</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

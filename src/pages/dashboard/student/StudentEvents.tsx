@@ -98,6 +98,9 @@ export default function StudentEvents() {
           })}
         </div>
       )}
+      <div className="mt-4 p-4 rounded-2xl bg-surface-low border border-outline-variant/20 text-center">
+        <p className="text-xs text-on-surface-variant font-jakarta">📍 QR code check-in available at the event venue. Show your student ID QR at the door to check in automatically.</p>
+      </div>
     </div>
   );
 }

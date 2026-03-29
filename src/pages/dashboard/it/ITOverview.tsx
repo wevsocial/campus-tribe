@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { supabase } from '../../../lib/supabase';
 import StatCard from '../../../components/ui/StatCard';
+import Card from '../../../components/ui/Card';
 import { StatSkeleton } from '../../../components/ui/LoadingSkeleton';
+import { ShieldCheck } from 'lucide-react';
 
 export default function ITOverview() {
   const { institutionId } = useAuth();
@@ -45,6 +47,24 @@ export default function ITOverview() {
           {Object.keys(stats.roles).length === 0 && <p className="text-on-surface-variant font-jakarta text-sm col-span-3">No user data</p>}
         </div>
       </div>
+
+      {/* SOC 2 Status — Module 15 */}
+      <Card>
+        <div className="flex items-center gap-3">
+          <ShieldCheck size={20} className="text-amber-500" />
+          <div className="flex-1">
+            <p className="font-jakarta font-700 text-on-surface text-sm">SOC 2 Type II Certification</p>
+            <p className="text-xs text-on-surface-variant font-jakarta">Certification in progress — expected Q3 2026</p>
+          </div>
+          <span className="px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/20 text-amber-800 dark:text-amber-400 text-xs font-jakarta font-700 border border-amber-200 dark:border-amber-700">
+            In Progress
+          </span>
+        </div>
+        <div className="mt-3 h-2 bg-surface-high rounded-full overflow-hidden">
+          <div className="h-full bg-amber-400 rounded-full" style={{ width: '65%' }} />
+        </div>
+        <p className="text-xs text-on-surface-variant font-jakarta mt-1">65% complete</p>
+      </Card>
     </div>
   );
 }

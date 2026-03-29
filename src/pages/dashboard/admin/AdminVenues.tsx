@@ -5,26 +5,22 @@ import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
 import { LoadingSkeleton } from '../../../components/ui/LoadingSkeleton';
 import EmptyState from '../../../components/ui/EmptyState';
+import { BarChart2 } from 'lucide-react';
 
 interface Booking {
-  id: string;
-  purpose: string | null;
-  status: string;
-  start_time: string | null;
-  end_time: string | null;
-  notes: string | null;
-  venue_id: string | null;
+  id: string; purpose: string | null; status: string; start_time: string | null;
+  end_time: string | null; notes: string | null; venue_id: string | null;
   venue?: { name: string } | null;
 }
+
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function AdminVenues() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.from('ct_venue_bookings')
-      .select('*, venue:ct_venues(name)')
-      .order('start_time', { ascending: true })
+    supabase.from('ct_venue_bookings').select('*, venue:ct_venues(name)').order('start_time', { ascending: true })
       .then(({ data }) => { setBookings((data as Booking[]) ?? []); setLoading(false); });
   }, []);
 
@@ -32,6 +28,12 @@ export default function AdminVenues() {
     await supabase.from('ct_venue_bookings').update({ status }).eq('id', id);
     setBookings(bookings.map(b => b.id === id ? { ...b, status } : b));
   };
+
+  // Utilization chart — bookings per day of week
+  const dayCount = DAYS.map((_, idx) =>
+    bookings.filter(b => b.start_time && new Date(b.start_time).getDay() === idx).length
+  );
+  const maxCount = Math.max(...dayCount, 1);
 
   if (loading) return <LoadingSkeleton />;
 
@@ -68,6 +70,23 @@ export default function AdminVenues() {
   return (
     <div className="space-y-6">
       <h1 className="font-lexend text-2xl font-extrabold text-on-surface">Venue Bookings</h1>
+
+      {/* Utilization chart — Module 10 */}
+      <Card>
+        <div className="flex items-center gap-2 mb-4">
+          <BarChart2 size={18} className="text-primary" />
+          <h2 className="font-lexend font-bold text-on-surface">Utilization by Day of Week</h2>
+        </div>
+        <div className="flex items-end gap-2 h-28">
+          {DAYS.map((day, idx) => (
+            <div key={day} className="flex-1 flex flex-col items-center gap-1">
+              <span className="text-xs font-jakarta text-on-surface-variant">{dayCount[idx]}</span>
+              <div className="w-full rounded-t-lg bg-primary/80 transition-all" style={{ height: `${Math.max(4, (dayCount[idx] / maxCount) * 80)}px` }} />
+              <span className="text-xs font-jakarta text-on-surface-variant">{day}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       <div>
         <h2 className="font-lexend font-bold text-on-surface mb-3">Pending ({pending.length})</h2>
