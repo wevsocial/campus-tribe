@@ -6,116 +6,161 @@ import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
 import { LoadingSkeleton } from '../../../components/ui/LoadingSkeleton';
 import EmptyState from '../../../components/ui/EmptyState';
-import { FileText, Check } from 'lucide-react';
+import { X, Bell } from 'lucide-react';
 
 interface Athlete {
-  id: string; user_id: string; is_free_agent: boolean; league_id: string; waiver_signed?: boolean;
-  user?: { full_name: string; email: string } | null;
+  id: string; user_id: string; team_id: string | null; is_free_agent: boolean; waiver_signed: boolean;
+  user?: { full_name: string; email: string; gender: string | null } | null;
+  team?: { name: string } | null;
 }
 
-const WAIVER_TEXT = `ATHLETIC PARTICIPATION WAIVER AND RELEASE OF LIABILITY
-
-I, the undersigned participant, acknowledge that participation in intramural sports and athletic activities involves inherent risks including but not limited to physical injury, illness, or property damage.
-
-By signing below, I hereby:
-1. Voluntarily agree to participate in intramural athletics.
-2. Release, waive, and discharge the institution, its officers, employees, and agents from any and all claims arising from participation.
-3. Agree to abide by all rules and codes of conduct set forth by the Athletics Department.
-4. Confirm I am physically fit and have no medical conditions that would prevent safe participation.
-5. Consent to emergency medical treatment if required.
-
-This waiver is binding on my heirs, assigns, and legal representatives.`;
-
 export default function CoachAthletes() {
-  const { institutionId } = useAuth();
+  const { institutionId, user } = useAuth();
   const [athletes, setAthletes] = useState<Athlete[]>([]);
   const [loading, setLoading] = useState(true);
   const [waiverAthlete, setWaiverAthlete] = useState<Athlete | null>(null);
-  const [waiverAgreed, setWaiverAgreed] = useState(false);
+  const [waiverChecked, setWaiverChecked] = useState(false);
   const [signing, setSigning] = useState(false);
+  const [institutionName, setInstitutionName] = useState('Campus Tribe');
 
   useEffect(() => {
     if (!institutionId) return;
-    supabase.from('ct_sport_participants')
-      .select('*, user:ct_users(full_name,email)')
-      .eq('institution_id', institutionId)
-      .then(({ data }) => { setAthletes((data as Athlete[]) ?? []); setLoading(false); });
+    Promise.all([
+      supabase.from('ct_sport_participants').select('*, user:ct_users(full_name, email, gender), team:ct_sports_teams(name)').eq('institution_id', institutionId),
+      supabase.from('ct_institutions').select('name').eq('id', institutionId).maybeSingle(),
+    ]).then(([a, inst]) => {
+      setAthletes((a.data as Athlete[]) ?? []);
+      if (inst.data?.name) setInstitutionName(inst.data.name);
+      setLoading(false);
+    });
   }, [institutionId]);
 
-  const signWaiver = async () => {
-    if (!waiverAthlete || !waiverAgreed) return;
+  const recordSignature = async () => {
+    if (!waiverAthlete || !waiverChecked) return;
     setSigning(true);
     await supabase.from('ct_sport_participants').update({ waiver_signed: true }).eq('id', waiverAthlete.id);
-    setAthletes(athletes.map(a => a.id === waiverAthlete.id ? { ...a, waiver_signed: true } : a));
+    setAthletes(prev => prev.map(a => a.id === waiverAthlete.id ? { ...a, waiver_signed: true } : a));
     setSigning(false);
     setWaiverAthlete(null);
-    setWaiverAgreed(false);
+    setWaiverChecked(false);
   };
+
+  const sendReminder = async (a: Athlete) => {
+    if (!institutionId || !user) return;
+    await supabase.from('ct_audit_logs').insert({
+      institution_id: institutionId,
+      actor_id: user.id,
+      action: 'waiver.reminder_sent',
+      resource_type: 'sport_participant',
+      resource_id: a.id,
+      severity: 'info',
+      metadata: { athlete_name: a.user?.full_name, athlete_email: a.user?.email },
+    });
+    alert(`Reminder logged for ${a.user?.full_name || 'athlete'}`);
+  };
+
+  const totalMale = athletes.filter(a => a.user?.gender === 'male').length;
+  const totalFemale = athletes.filter(a => a.user?.gender === 'female').length;
+  const totalUnknown = athletes.filter(a => !a.user?.gender || !['male','female','non_binary'].includes(a.user.gender)).length;
 
   if (loading) return <LoadingSkeleton />;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="font-lexend text-2xl font-extrabold text-on-surface">Athletes</h1>
-        <span className="font-jakarta text-sm text-on-surface-variant">
-          {athletes.length} registered · {athletes.filter(a => a.waiver_signed).length} waiver signed
-        </span>
-      </div>
+      <h1 className="font-lexend text-2xl font-extrabold text-on-surface">Athletes</h1>
 
-      {/* Waiver modal */}
-      {waiverAthlete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-surface-lowest rounded-2xl shadow-xl max-w-lg w-full p-6 space-y-4">
-            <div className="flex items-center gap-2 mb-2">
-              <FileText size={18} className="text-primary" />
-              <h2 className="font-lexend font-bold text-on-surface">Athletic Participation Waiver</h2>
-            </div>
-            <p className="text-xs text-on-surface-variant font-jakarta">For: {waiverAthlete.user?.full_name || waiverAthlete.user?.email}</p>
-            <div className="bg-surface-low rounded-xl p-4 max-h-48 overflow-y-auto">
-              <pre className="text-xs font-jakarta text-on-surface-variant whitespace-pre-wrap leading-relaxed">{WAIVER_TEXT}</pre>
-            </div>
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" checked={waiverAgreed} onChange={e => setWaiverAgreed(e.target.checked)} className="w-4 h-4 accent-primary" />
-              <span className="font-jakarta text-sm text-on-surface">I agree to the terms of this waiver</span>
-            </label>
-            <div className="flex gap-3">
-              <Button onClick={signWaiver} isLoading={signing} disabled={!waiverAgreed} className="rounded-full flex-1 flex items-center gap-2">
-                <Check size={14} /> Sign Waiver
-              </Button>
-              <Button variant="outline" onClick={() => { setWaiverAthlete(null); setWaiverAgreed(false); }} className="rounded-full">Cancel</Button>
-            </div>
+      {/* Title IX Panel */}
+      <Card>
+        <h2 className="font-lexend font-bold text-on-surface mb-3">Title IX Summary</h2>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center p-3 bg-blue-50 rounded-xl">
+            <p className="text-2xl font-lexend font-black text-blue-700">{totalMale}</p>
+            <p className="text-sm text-blue-600">Male</p>
+          </div>
+          <div className="text-center p-3 bg-pink-50 rounded-xl">
+            <p className="text-2xl font-lexend font-black text-pink-700">{totalFemale}</p>
+            <p className="text-sm text-pink-600">Female</p>
+          </div>
+          <div className="text-center p-3 bg-gray-50 rounded-xl">
+            <p className="text-2xl font-lexend font-black text-gray-700">{totalUnknown}</p>
+            <p className="text-sm text-gray-600">Unknown/NB</p>
           </div>
         </div>
+      </Card>
+
+      {athletes.length === 0 ? <EmptyState message="No athletes registered yet." /> : (
+        <Card padding="none">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-surface-low">
+                <tr>
+                  {['Name', 'Email', 'Team', 'Free Agent', 'Waiver', 'Actions'].map(h => (
+                    <th key={h} className="px-4 py-3 text-left font-jakarta text-xs font-bold text-on-surface-variant uppercase">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-outline-variant/20">
+                {athletes.map(a => (
+                  <tr key={a.id} className="hover:bg-surface-low/50">
+                    <td className="px-4 py-3 font-jakarta font-bold text-on-surface text-sm">{a.user?.full_name || 'Unknown'}</td>
+                    <td className="px-4 py-3 text-on-surface-variant text-sm">{a.user?.email || '—'}</td>
+                    <td className="px-4 py-3 text-on-surface-variant text-sm">{a.team?.name || '—'}</td>
+                    <td className="px-4 py-3">
+                      <Badge label={a.is_free_agent ? 'Yes' : 'No'} variant={a.is_free_agent ? 'warning' : 'neutral'} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge label={a.waiver_signed ? 'Signed' : 'Pending'} variant={a.waiver_signed ? 'success' : 'warning'} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        {!a.waiver_signed && (
+                          <Button size="sm" onClick={() => { setWaiverAthlete(a); setWaiverChecked(false); }}>
+                            Sign Waiver
+                          </Button>
+                        )}
+                        <Button size="sm" variant="outline" onClick={() => sendReminder(a)} className="flex items-center gap-1">
+                          <Bell size={12} /> Remind
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       )}
 
-      {athletes.length === 0 ? <EmptyState icon="🏃" message="No athletes registered yet." /> : (
-        <div className="space-y-2">
-          {athletes.map(a => (
-            <Card key={a.id} className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-9 h-9 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
-                  <span className="font-jakarta font-bold text-secondary text-xs">
-                    {(a.user?.full_name || a.user?.email || '?').slice(0, 2).toUpperCase()}
-                  </span>
-                </div>
-                <div className="min-w-0">
-                  <p className="font-jakarta font-bold text-on-surface text-sm truncate">{a.user?.full_name || 'Unknown'}</p>
-                  <p className="text-xs text-on-surface-variant truncate">{a.user?.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {a.is_free_agent && <Badge label="Free Agent" variant="warning" />}
-                {a.waiver_signed ? (
-                  <Badge label="Waiver ✓" variant="success" />
-                ) : (
-                  <Button size="sm" variant="outline" className="rounded-full" onClick={() => { setWaiverAthlete(a); setWaiverAgreed(false); }}>
-                    Sign Waiver
-                  </Button>
-                )}
-              </div>
-            </Card>
-          ))}
+      {/* Waiver Modal */}
+      {waiverAthlete && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-lexend font-black text-xl text-gray-900">Sign Waiver</h2>
+              <button onClick={() => setWaiverAthlete(null)}><X size={20} className="text-gray-500" /></button>
+            </div>
+            <p className="font-bold text-gray-800 mb-3">{waiverAthlete.user?.full_name || 'Athlete'}</p>
+            <div className="bg-gray-50 rounded-xl p-4 mb-4">
+              <p className="text-sm text-gray-700 leading-relaxed">
+                I, the undersigned, acknowledge the inherent risks of athletic participation and agree to hold Campus Tribe and {institutionName} harmless from injury claims arising from my participation in intramural sports activities.
+              </p>
+            </div>
+            <label className="flex items-start gap-3 cursor-pointer mb-6">
+              <input
+                type="checkbox"
+                checked={waiverChecked}
+                onChange={e => setWaiverChecked(e.target.checked)}
+                className="mt-1"
+              />
+              <span className="text-sm text-gray-700">Athlete has acknowledged and signed this waiver in person.</span>
+            </label>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setWaiverAthlete(null)}>Cancel</Button>
+              <Button onClick={recordSignature} disabled={!waiverChecked || signing}>
+                {signing ? 'Recording...' : 'Record Signature'}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

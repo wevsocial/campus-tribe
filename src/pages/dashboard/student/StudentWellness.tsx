@@ -110,7 +110,7 @@ export default function StudentWellness() {
           </div>
         </>
       )}
-      {checks.length === 0 && !todayDone && <EmptyState icon="💚" message="No wellness history yet. Check in daily!" />}
+      {checks.length === 0 && !todayDone && <EmptyState message="No wellness history yet. Check in daily!" />}
     </div>
   );
 }

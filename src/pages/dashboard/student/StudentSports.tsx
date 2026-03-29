@@ -60,7 +60,7 @@ export default function StudentSports() {
 
       <div>
         <h2 className="font-lexend font-bold text-on-surface mb-3">Active Leagues</h2>
-        {leagues.length === 0 ? <EmptyState icon="🏆" message="No active leagues right now." /> : (
+        {leagues.length === 0 ? <EmptyState message="No active leagues right now." /> : (
           <div className="space-y-3">
             {leagues.map(l => (
               <Card key={l.id} className="flex items-center justify-between">
@@ -77,7 +77,7 @@ export default function StudentSports() {
 
       <div>
         <h2 className="font-lexend font-bold text-on-surface mb-3">Standings</h2>
-        {teams.length === 0 ? <EmptyState icon="👥" message="No team standings yet." /> : (
+        {teams.length === 0 ? <EmptyState message="No team standings yet." /> : (
           <Card padding="none">
             <table className="w-full">
               <thead className="bg-surface-low"><tr>{['#','Team','W','L','Pts'].map(h=><th key={h} className="px-4 py-3 text-left font-jakarta text-xs font-bold text-on-surface-variant uppercase">{h}</th>)}</tr></thead>

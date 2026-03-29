@@ -26,8 +26,8 @@ export default function TeacherOverview() {
     <div className="space-y-6">
       <h1 className="font-lexend text-2xl font-extrabold text-on-surface">Teacher Overview</h1>
       <div className="grid grid-cols-2 gap-4">
-        <StatCard value={stats.surveys} label="Surveys" icon="assignment" color="primary" />
-        <StatCard value={stats.responses} label="Total Responses" icon="bar_chart" color="secondary" />
+        <StatCard value={stats.surveys} label="Surveys" color="primary" />
+        <StatCard value={stats.responses} label="Total Responses" color="secondary" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         {[

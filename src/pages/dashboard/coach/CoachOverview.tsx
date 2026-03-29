@@ -28,10 +28,10 @@ export default function CoachOverview() {
     <div className="space-y-6">
       <h1 className="font-lexend text-2xl font-extrabold text-on-surface">Coach Overview</h1>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard value={stats.leagues} label="Leagues" icon="emoji_events" color="primary" />
-        <StatCard value={stats.teams} label="Teams" icon="groups" color="secondary" />
-        <StatCard value={stats.games} label="Games" icon="sports" color="tertiary" />
-        <StatCard value={stats.athletes} label="Athletes" icon="person" color="neutral" />
+        <StatCard value={stats.leagues} label="Leagues" color="primary" />
+        <StatCard value={stats.teams} label="Teams" color="secondary" />
+        <StatCard value={stats.games} label="Games" color="tertiary" />
+        <StatCard value={stats.athletes} label="Athletes" color="neutral" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         {[

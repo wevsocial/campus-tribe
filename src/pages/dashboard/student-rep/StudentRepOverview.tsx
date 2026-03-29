@@ -27,9 +27,9 @@ export default function StudentRepOverview() {
     <div className="space-y-6">
       <h1 className="font-lexend text-2xl font-extrabold text-on-surface">Student Rep Overview</h1>
       <div className="grid grid-cols-3 gap-4">
-        <StatCard value={stats.venues} label="Venues" icon="place" color="primary" />
-        <StatCard value={stats.events} label="Events" icon="event" color="secondary" />
-        <StatCard value={stats.announcements} label="Announcements" icon="campaign" color="tertiary" />
+        <StatCard value={stats.venues} label="Venues" color="primary" />
+        <StatCard value={stats.events} label="Events" color="secondary" />
+        <StatCard value={stats.announcements} label="Announcements" color="tertiary" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         {[

@@ -53,7 +53,7 @@ export default function ITApiKeys() {
           <Button onClick={createKey} isLoading={creating} className="rounded-full">Generate</Button>
         </div>
       </Card>
-      {keys.length === 0 ? <EmptyState icon="🔑" message="No API keys yet." /> : (
+      {keys.length === 0 ? <EmptyState message="No API keys yet." /> : (
         <div className="space-y-3">
           {keys.map(k => (
             <Card key={k.id} className="flex items-center justify-between gap-3">

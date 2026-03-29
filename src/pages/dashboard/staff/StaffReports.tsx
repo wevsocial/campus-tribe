@@ -28,7 +28,7 @@ export default function StaffReports() {
           <Button onClick={submit} className="rounded-full">Submit Report</Button>
         </div>
       </Card>
-      {reports.length === 0 ? <EmptyState icon="📋" message="No reports today." /> : (
+      {reports.length === 0 ? <EmptyState message="No reports today." /> : (
         <div className="space-y-3">
           {reports.map(r => (
             <Card key={r.id}>

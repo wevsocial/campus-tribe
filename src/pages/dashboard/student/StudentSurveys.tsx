@@ -90,7 +90,7 @@ export default function StudentSurveys() {
   return (
     <div className="space-y-6">
       <h1 className="font-lexend text-2xl font-extrabold text-on-surface">Surveys</h1>
-      {surveys.length === 0 ? <EmptyState icon="📋" message="No active surveys right now." /> : (
+      {surveys.length === 0 ? <EmptyState message="No active surveys right now." /> : (
         <div className="space-y-3">
           {surveys.map(s => {
             const done = completedIds.has(s.id);

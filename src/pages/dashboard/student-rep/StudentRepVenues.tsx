@@ -5,153 +5,227 @@ import Card from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
 import Button from '../../../components/ui/Button';
 import { LoadingSkeleton } from '../../../components/ui/LoadingSkeleton';
-import EmptyState from '../../../components/ui/EmptyState';
-import { RefreshCw, Monitor } from 'lucide-react';
+import { MapPin, Clock } from 'lucide-react';
 
 interface Venue { id: string; name: string; capacity: number | null; location: string | null; is_bookable: boolean; }
+interface Booking {
+  id: string; venue_id: string; purpose: string; start_time: string; end_time: string;
+  status: string; attendee_count: number | null; resources_requested: string[] | null; booked_by: string;
+  venue?: { name: string } | null;
+}
 
-const RESOURCES = ['Projector/AV', 'Microphone', 'Chairs (extra)', 'Tables', 'Whiteboard', 'Video conferencing', 'PA System'];
+const RESOURCES = ['AV Equipment', 'Microphone', 'Chairs/Tables', 'Projector', 'Whiteboard', 'Catering Setup'];
+const RECURRENCE_OPTIONS = ['none', 'weekly', 'biweekly'] as const;
 
 export default function StudentRepVenues() {
-  const { user, institutionId } = useAuth();
+  const { institutionId, user } = useAuth();
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [myBookings, setMyBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [bookingVenue, setBookingVenue] = useState<Venue | null>(null);
-  const [form, setForm] = useState({ purpose: '', start_time: '', end_time: '', notes: '' });
-  const [recurrence, setRecurrence] = useState<'none' | 'weekly' | 'biweekly'>('none');
-  const [recurrenceWeeks, setRecurrenceWeeks] = useState(4);
-  const [selectedResources, setSelectedResources] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  const [form, setForm] = useState({
+    venue_id: '',
+    date: '',
+    start_time: '',
+    end_time: '',
+    purpose: '',
+    attendee_count: 20,
+    resources: [] as string[],
+    recurrence: 'none' as (typeof RECURRENCE_OPTIONS)[number],
+  });
 
-  useEffect(() => {
-    if (!institutionId) return;
-    supabase.from('ct_venues').select('*').eq('institution_id', institutionId).eq('is_bookable', true)
-      .then(({ data }) => { setVenues(data ?? []); setLoading(false); });
-  }, [institutionId]);
+  const load = async () => {
+    if (!institutionId || !user) return;
+    const [v, b] = await Promise.all([
+      supabase.from('ct_venues').select('*').eq('institution_id', institutionId).eq('is_bookable', true),
+      supabase.from('ct_venue_bookings').select('*, venue:ct_venues(name)').eq('booked_by', user.id).order('start_time', { ascending: true }),
+    ]);
+    setVenues(v.data ?? []);
+    setMyBookings((b.data as Booking[]) ?? []);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, [institutionId, user]);
 
   const toggleResource = (r: string) => {
-    setSelectedResources(prev => prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r]);
+    setForm(f => ({ ...f, resources: f.resources.includes(r) ? f.resources.filter(x => x !== r) : [...f.resources, r] }));
   };
 
   const submitBooking = async () => {
-    if (!bookingVenue || !form.purpose || !user?.id) return;
+    if (!form.venue_id || !form.date || !form.start_time || !form.end_time || !form.purpose || !user) return;
     setSubmitting(true);
+    setSuccessMsg('');
 
-    const baseBooking = {
-      venue_id: bookingVenue.id, purpose: form.purpose,
-      start_time: form.start_time || null, end_time: form.end_time || null,
-      notes: form.notes, status: 'pending',
-      resources_requested: selectedResources.length ? { items: selectedResources } : {},
-      is_recurring: recurrence !== 'none',
-      recurrence_weeks: recurrence !== 'none' ? recurrenceWeeks : 1,
-    };
-
-    if (recurrence === 'none') {
-      await supabase.from('ct_venue_bookings').insert(baseBooking);
-    } else {
-      const intervalMs = recurrence === 'weekly' ? 7 * 24 * 60 * 60 * 1000 : 14 * 24 * 60 * 60 * 1000;
-      const bookings = [];
-      for (let i = 0; i < recurrenceWeeks; i++) {
-        const offset = i * intervalMs;
-        bookings.push({
-          ...baseBooking,
-          start_time: form.start_time ? new Date(new Date(form.start_time).getTime() + offset).toISOString() : null,
-          end_time: form.end_time ? new Date(new Date(form.end_time).getTime() + offset).toISOString() : null,
-        });
+    const dates: Date[] = [];
+    const base = new Date(`${form.date}T${form.start_time}`);
+    if (form.recurrence === 'none') {
+      dates.push(base);
+    } else if (form.recurrence === 'weekly') {
+      for (let i = 0; i < 4; i++) {
+        const d = new Date(base); d.setDate(d.getDate() + i * 7); dates.push(d);
       }
-      await supabase.from('ct_venue_bookings').insert(bookings);
+    } else if (form.recurrence === 'biweekly') {
+      for (let i = 0; i < 4; i++) {
+        const d = new Date(base); d.setDate(d.getDate() + i * 14); dates.push(d);
+      }
     }
 
+    const [endH, endM] = form.end_time.split(':').map(Number);
+    const bookings = dates.map(start => {
+      const end = new Date(start);
+      end.setHours(endH, endM, 0, 0);
+      return {
+        venue_id: form.venue_id,
+        purpose: form.purpose,
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        attendee_count: form.attendee_count,
+        resources_requested: form.resources.length > 0 ? form.resources : null,
+        status: 'pending',
+        booked_by: user.id,
+        is_recurring: form.recurrence !== 'none',
+        recurrence_weeks: form.recurrence === 'weekly' ? 1 : form.recurrence === 'biweekly' ? 2 : null,
+      };
+    });
+
+    const { error } = await supabase.from('ct_venue_bookings').insert(bookings);
     setSubmitting(false);
-    setBookingVenue(null);
-    setForm({ purpose: '', start_time: '', end_time: '', notes: '' });
-    setRecurrence('none');
-    setSelectedResources([]);
-    alert(`${recurrence !== 'none' ? recurrenceWeeks + ' bookings' : 'Booking'} submitted! Awaiting admin approval.`);
+    if (!error) {
+      setSuccessMsg(`${bookings.length} booking(s) submitted for approval.`);
+      setForm({ venue_id: '', date: '', start_time: '', end_time: '', purpose: '', attendee_count: 20, resources: [], recurrence: 'none' });
+      load();
+    }
   };
+
+  const statusVariant = (s: string): 'success' | 'warning' | 'danger' | 'neutral' =>
+    s === 'approved' ? 'success' : s === 'pending' ? 'warning' : s === 'rejected' ? 'danger' : 'neutral';
 
   if (loading) return <LoadingSkeleton />;
 
-  const inputCls = 'w-full px-4 py-2.5 rounded-xl bg-surface-low border border-outline-variant/50 font-jakarta text-sm text-on-surface focus:outline-none';
-
   return (
     <div className="space-y-6">
-      <h1 className="font-lexend text-2xl font-extrabold text-on-surface">Book a Venue</h1>
+      <h1 className="font-lexend text-2xl font-extrabold text-on-surface">Venue Booking</h1>
 
-      {bookingVenue && (
-        <Card variant="primary-tinted">
-          <h2 className="font-lexend font-bold text-on-surface mb-3">Booking: {bookingVenue.name}</h2>
-          <div className="space-y-3">
-            <input value={form.purpose} onChange={e => setForm({ ...form, purpose: e.target.value })} placeholder="Purpose" className={inputCls} />
-            <div className="grid grid-cols-2 gap-3">
-              <input type="datetime-local" value={form.start_time} onChange={e => setForm({ ...form, start_time: e.target.value })} className={inputCls} />
-              <input type="datetime-local" value={form.end_time} onChange={e => setForm({ ...form, end_time: e.target.value })} className={inputCls} />
-            </div>
-            <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Notes (optional)" rows={2} className={`${inputCls} resize-none`} />
-
-            {/* Resource requests — Module 10 */}
-            <div>
-              <p className="font-jakarta text-xs font-700 text-on-surface-variant uppercase tracking-widest mb-2">
-                <Monitor size={12} className="inline mr-1" />Resource Requests
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {RESOURCES.map(r => (
-                  <button key={r} type="button" onClick={() => toggleResource(r)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-jakarta font-700 border-2 transition-all ${
-                      selectedResources.includes(r) ? 'bg-primary border-primary text-white' : 'border-outline-variant/50 text-on-surface-variant hover:border-primary/40'
-                    }`}
-                  >{r}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Recurring booking — Module 10 */}
-            <div>
-              <p className="font-jakarta text-xs font-700 text-on-surface-variant uppercase tracking-widest mb-2">
-                <RefreshCw size={12} className="inline mr-1" />Recurring Booking
-              </p>
-              <div className="flex gap-2">
-                {(['none', 'weekly', 'biweekly'] as const).map(r => (
-                  <button key={r} type="button" onClick={() => setRecurrence(r)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-jakarta font-700 border-2 transition-all capitalize ${
-                      recurrence === r ? 'bg-secondary border-secondary text-white' : 'border-outline-variant/50 text-on-surface-variant hover:border-secondary/40'
-                    }`}
-                  >{r}</button>
-                ))}
-              </div>
-              {recurrence !== 'none' && (
-                <div className="flex items-center gap-3 mt-2">
-                  <span className="text-xs font-jakarta text-on-surface-variant">Repeat for</span>
-                  <input type="number" value={recurrenceWeeks} onChange={e => setRecurrenceWeeks(parseInt(e.target.value) || 4)} min={2} max={16}
-                    className="w-16 px-3 py-1.5 rounded-xl bg-surface-low border border-outline-variant/50 font-jakarta text-sm text-on-surface focus:outline-none text-center" />
-                  <span className="text-xs font-jakarta text-on-surface-variant">weeks</span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-3">
-              <Button onClick={submitBooking} isLoading={submitting} className="rounded-full">
-                {recurrence !== 'none' ? `Submit ${recurrenceWeeks} Bookings` : 'Submit Request'}
-              </Button>
-              <Button variant="outline" onClick={() => setBookingVenue(null)} className="rounded-full">Cancel</Button>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {venues.length === 0 ? <EmptyState icon="🏟️" message="No bookable venues available." /> : (
-        <div className="space-y-3">
+      {/* Venues list */}
+      <div>
+        <h2 className="font-lexend font-bold text-on-surface mb-3">Available Venues ({venues.length})</h2>
+        <div className="grid md:grid-cols-2 gap-3">
           {venues.map(v => (
-            <Card key={v.id} className="flex items-center justify-between gap-4">
+            <Card key={v.id} className="flex items-start gap-3">
+              <MapPin size={18} className="text-primary flex-shrink-0 mt-1" />
               <div>
                 <p className="font-jakarta font-bold text-on-surface">{v.name}</p>
-                <p className="text-sm text-on-surface-variant">{v.location} · Capacity: {v.capacity || 'Unknown'}</p>
+                {v.location && <p className="text-xs text-on-surface-variant">{v.location}</p>}
+                {v.capacity && <p className="text-xs text-on-surface-variant">Capacity: {v.capacity}</p>}
+                <Badge label="Available" variant="success" />
               </div>
-              <Button size="sm" onClick={() => setBookingVenue(v)} className="rounded-full">Book</Button>
             </Card>
           ))}
         </div>
-      )}
+      </div>
+
+      {/* Booking form */}
+      <Card>
+        <h2 className="font-lexend font-bold text-on-surface mb-4">Request a Booking</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-jakarta font-bold text-on-surface mb-1">Venue *</label>
+            <select
+              className="w-full border border-outline-variant rounded-xl px-4 py-2 text-on-surface bg-surface-lowest"
+              value={form.venue_id}
+              onChange={e => setForm(f => ({ ...f, venue_id: e.target.value }))}
+            >
+              <option value="">Select venue...</option>
+              {venues.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}
+            </select>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm font-jakarta font-bold text-on-surface mb-1">Date *</label>
+              <input type="date" className="w-full border border-outline-variant rounded-xl px-4 py-2 text-on-surface bg-surface-lowest"
+                value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} min={new Date().toISOString().split('T')[0]} />
+            </div>
+            <div>
+              <label className="block text-sm font-jakarta font-bold text-on-surface mb-1">Start *</label>
+              <input type="time" className="w-full border border-outline-variant rounded-xl px-4 py-2 text-on-surface bg-surface-lowest"
+                value={form.start_time} onChange={e => setForm(f => ({ ...f, start_time: e.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-sm font-jakarta font-bold text-on-surface mb-1">End *</label>
+              <input type="time" className="w-full border border-outline-variant rounded-xl px-4 py-2 text-on-surface bg-surface-lowest"
+                value={form.end_time} onChange={e => setForm(f => ({ ...f, end_time: e.target.value }))} />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-jakarta font-bold text-on-surface mb-1">Purpose *</label>
+            <input className="w-full border border-outline-variant rounded-xl px-4 py-2 text-on-surface bg-surface-lowest"
+              value={form.purpose} onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))} placeholder="e.g. Student council meeting" />
+          </div>
+          <div>
+            <label className="block text-sm font-jakarta font-bold text-on-surface mb-1">Attendee Count</label>
+            <input type="number" min={1} className="w-full border border-outline-variant rounded-xl px-4 py-2 text-on-surface bg-surface-lowest"
+              value={form.attendee_count} onChange={e => setForm(f => ({ ...f, attendee_count: Number(e.target.value) }))} />
+          </div>
+          <div>
+            <label className="block text-sm font-jakarta font-bold text-on-surface mb-2">Resource Requests</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {RESOURCES.map(r => (
+                <label key={r} className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={form.resources.includes(r)} onChange={() => toggleResource(r)} />
+                  <span className="font-jakarta text-sm text-on-surface">{r}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-jakarta font-bold text-on-surface mb-2">Recurring</label>
+            <div className="flex gap-3">
+              {RECURRENCE_OPTIONS.map(r => (
+                <label key={r} className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="recurrence" checked={form.recurrence === r} onChange={() => setForm(f => ({ ...f, recurrence: r }))} />
+                  <span className="font-jakarta text-sm text-on-surface capitalize">
+                    {r === 'none' ? 'None' : r === 'weekly' ? 'Weekly (4 weeks)' : 'Biweekly (8 weeks)'}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+          {successMsg && <p className="text-sm text-green-600 font-jakarta">{successMsg}</p>}
+          <Button onClick={submitBooking} disabled={submitting || !form.venue_id || !form.date || !form.start_time || !form.end_time || !form.purpose}>
+            {submitting ? 'Submitting...' : `Submit ${form.recurrence !== 'none' ? 'Recurring ' : ''}Booking Request`}
+          </Button>
+        </div>
+      </Card>
+
+      {/* My bookings */}
+      <div>
+        <h2 className="font-lexend font-bold text-on-surface mb-3">My Bookings ({myBookings.length})</h2>
+        {myBookings.length === 0 ? (
+          <p className="text-on-surface-variant font-jakarta text-sm">No bookings yet.</p>
+        ) : (
+          <div className="space-y-3">
+            {myBookings.map(b => (
+              <Card key={b.id} className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="font-jakarta font-bold text-on-surface">{b.purpose}</p>
+                  <p className="text-xs text-on-surface-variant">{b.venue?.name || 'Venue'}</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    <Clock size={12} className="text-on-surface-variant" />
+                    <span className="text-xs text-on-surface-variant">
+                      {b.start_time ? new Date(b.start_time).toLocaleString() : ''}
+                    </span>
+                  </div>
+                  {b.resources_requested && b.resources_requested.length > 0 && (
+                    <p className="text-xs text-on-surface-variant mt-1">Resources: {b.resources_requested.join(', ')}</p>
+                  )}
+                </div>
+                <Badge label={b.status} variant={statusVariant(b.status)} />
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

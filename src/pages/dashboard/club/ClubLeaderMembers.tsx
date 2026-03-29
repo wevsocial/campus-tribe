@@ -42,7 +42,7 @@ export default function ClubLeaderMembers() {
       {!clubId ? (
         <Card variant="primary-tinted"><p className="font-jakarta text-on-surface">You don't own a club yet. Contact admin to have one assigned.</p></Card>
       ) : members.length === 0 ? (
-        <EmptyState icon="👥" message="No members yet." />
+        <EmptyState message="No members yet." />
       ) : (
         <div className="space-y-2">
           {members.map(m => (

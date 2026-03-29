@@ -40,7 +40,7 @@ export default function StudentRepAnnouncements() {
           <Button onClick={post} className="rounded-full">Post Announcement</Button>
         </div>
       </Card>
-      {announcements.length === 0 ? <EmptyState icon="📢" message="No announcements yet." /> : (
+      {announcements.length === 0 ? <EmptyState message="No announcements yet." /> : (
         <div className="space-y-3">
           {announcements.map(a => (
             <Card key={a.id}>

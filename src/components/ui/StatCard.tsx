@@ -5,7 +5,7 @@ interface StatCardProps {
   value: string | number;
   label: string;
   trend?: number;
-  icon?: string;
+  icon?: React.ReactNode;
   color?: 'primary' | 'secondary' | 'tertiary' | 'danger' | 'neutral';
   className?: string;
 }
@@ -35,7 +35,7 @@ export const StatCard: React.FC<StatCardProps> = ({
           <p className="mt-1 text-sm font-jakarta text-on-surface-variant">{label}</p>
         </div>
         {icon && (
-          <span className={clsx('material-symbols-outlined text-2xl p-2 rounded-xl', c.bg, c.icon)}>
+          <span className={clsx('p-2 rounded-xl', c.bg, c.icon)}>
             {icon}
           </span>
         )}

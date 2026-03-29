@@ -29,7 +29,7 @@ export default function ITAudit() {
         <h1 className="font-lexend text-2xl font-extrabold text-on-surface">Audit Log</h1>
         <span className="font-jakarta text-sm text-on-surface-variant">{logs.length} events</span>
       </div>
-      {logs.length === 0 ? <EmptyState icon="📜" message="No audit events recorded yet." /> : (
+      {logs.length === 0 ? <EmptyState message="No audit events recorded yet." /> : (
         <Card padding="none">
           <div className="divide-y divide-outline-variant/20">
             {logs.map(log => (

@@ -59,7 +59,7 @@ export default function StudentEvents() {
       </div>
 
       {events.length === 0 ? (
-        <EmptyState icon="📅" message="No upcoming events right now." />
+        <EmptyState message="No upcoming events right now." />
       ) : (
         <div className="space-y-3">
           {events.map(ev => {

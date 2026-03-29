@@ -97,7 +97,7 @@ export default function AdminEvents() {
               <Button onClick={createEvent} className="rounded-full">Create Event</Button>
             </div>
           </Card>
-          {events.length === 0 ? <EmptyState icon="📅" message="No events yet." /> : (
+          {events.length === 0 ? <EmptyState message="No events yet." /> : (
             <div className="space-y-3">
               {events.map(ev => (
                 <Card key={ev.id} className="flex items-center justify-between">
@@ -123,7 +123,7 @@ export default function AdminEvents() {
               <Button onClick={createAnnouncement} className="rounded-full">Post Announcement</Button>
             </div>
           </Card>
-          {announcements.length === 0 ? <EmptyState icon="📢" message="No announcements yet." /> : (
+          {announcements.length === 0 ? <EmptyState message="No announcements yet." /> : (
             <div className="space-y-3">
               {announcements.map(a => (
                 <Card key={a.id}>

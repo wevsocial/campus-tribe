@@ -244,10 +244,10 @@ React.useEffect(() => {
         )}
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Leagues" value={data.leagues.length} color="primary" icon="emoji_events" />
-          <StatCard label="Teams" value={data.teams.length} color="secondary" icon="groups" />
-          <StatCard label="Athletes" value={data.participants.length} color="tertiary" icon="sports" />
-          <StatCard label="Games" value={data.games.length} color="primary" icon="scoreboard" />
+          <StatCard label="Leagues" value={data.leagues.length} color="primary" />
+          <StatCard label="Teams" value={data.teams.length} color="secondary" />
+          <StatCard label="Athletes" value={data.participants.length} color="tertiary" />
+          <StatCard label="Games" value={data.games.length} color="primary" />
         </div>
 
         {/* Filter */}

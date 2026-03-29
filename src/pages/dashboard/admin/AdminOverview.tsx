@@ -92,16 +92,16 @@ export default function AdminOverview() {
     <div className="space-y-6">
       <h1 className="font-lexend text-2xl font-extrabold text-on-surface">Overview</h1>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard value={stats!.users} label="Total Users" icon="people" color="primary" />
-        <StatCard value={stats!.clubs} label="Clubs" icon="groups" color="secondary" />
-        <StatCard value={stats!.events} label="Events" icon="event" color="tertiary" />
-        <StatCard value={stats!.surveys} label="Surveys" icon="assignment" color="neutral" />
+        <StatCard value={stats!.users} label="Total Users" color="primary" />
+        <StatCard value={stats!.clubs} label="Clubs" color="secondary" />
+        <StatCard value={stats!.events} label="Events" color="tertiary" />
+        <StatCard value={stats!.surveys} label="Surveys" color="neutral" />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard value={stats!.pendingClubs} label="Clubs Pending" icon="pending" color="danger" />
-        <StatCard value={stats!.pendingBookings} label="Bookings Pending" icon="schedule" color="secondary" />
-        <StatCard value={stats!.activeLeagues} label="Active Leagues" icon="emoji_events" color="tertiary" />
-        <StatCard value={stats!.venues} label="Venues" icon="place" color="neutral" />
+        <StatCard value={stats!.pendingClubs} label="Clubs Pending" color="danger" />
+        <StatCard value={stats!.pendingBookings} label="Bookings Pending" color="secondary" />
+        <StatCard value={stats!.activeLeagues} label="Active Leagues" color="tertiary" />
+        <StatCard value={stats!.venues} label="Venues" color="neutral" />
       </div>
 
       {/* At-Risk Students — Module 13 */}

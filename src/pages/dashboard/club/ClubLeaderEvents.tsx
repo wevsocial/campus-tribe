@@ -48,7 +48,7 @@ export default function ClubLeaderEvents() {
           <Button onClick={createEvent} className="rounded-full">Create Event</Button>
         </div>
       </Card>
-      {events.length === 0 ? <EmptyState icon="📅" message="No events yet." /> : (
+      {events.length === 0 ? <EmptyState message="No events yet." /> : (
         <div className="space-y-3">
           {events.map(ev => (
             <Card key={ev.id} className="flex items-center justify-between">

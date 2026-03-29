@@ -43,7 +43,7 @@ export default function ITUsers() {
       </div>
       <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, email, role..."
         className="w-full px-4 py-2.5 rounded-xl bg-surface-lowest border border-outline-variant/50 font-jakarta text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30" />
-      {filtered.length === 0 ? <EmptyState icon="👤" message="No users found." /> : (
+      {filtered.length === 0 ? <EmptyState message="No users found." /> : (
         <div className="space-y-2">
           {filtered.map(u => (
             <Card key={u.id} className="flex items-center justify-between gap-3">

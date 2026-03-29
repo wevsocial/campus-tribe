@@ -70,7 +70,7 @@ export default function StudentDiscover() {
       />
 
       {filtered.length === 0 ? (
-        <EmptyState icon="🔍" message={search ? `No clubs matching "${search}"` : 'No clubs available yet.'} />
+        <EmptyState message={search ? `No clubs matching "${search}"` : 'No clubs available yet.'} />
       ) : (
         <div className="space-y-3">
           {filtered.map(club => {

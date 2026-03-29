@@ -76,9 +76,9 @@ export default function AdminReports() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <StatCard value={surveys.length} label="Total Surveys" icon="assignment" color="primary" />
-        <StatCard value={published.length} label="Published" icon="public" color="tertiary" />
-        <StatCard value={totalResponses} label="Total Responses" icon="bar_chart" color="secondary" />
+        <StatCard value={surveys.length} label="Total Surveys" color="primary" />
+        <StatCard value={published.length} label="Published" color="tertiary" />
+        <StatCard value={totalResponses} label="Total Responses" color="secondary" />
       </div>
 
       {/* Wellness cohort alert */}
@@ -115,7 +115,7 @@ export default function AdminReports() {
 
       <div>
         <h2 className="font-lexend font-bold text-on-surface mb-3">All Surveys</h2>
-        {surveys.length === 0 ? <EmptyState icon="📋" message="No surveys yet." /> : (
+        {surveys.length === 0 ? <EmptyState message="No surveys yet." /> : (
           <div className="space-y-3">
             {surveys.map(s => (
               <Card key={s.id} className="flex items-center justify-between">

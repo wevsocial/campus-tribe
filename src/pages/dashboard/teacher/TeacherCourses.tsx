@@ -10,7 +10,7 @@ export default function TeacherCourses() {
         <p className="font-jakarta font-bold text-on-surface">LMS Integration Required</p>
         <p className="text-sm text-on-surface-variant mt-1">Course data is synced from your institution's LMS (Canvas, Moodle, Google Classroom). Configure your LMS in Admin → Settings.</p>
       </Card>
-      <EmptyState icon="📚" message="No courses synced yet. Configure LMS in Admin Settings." />
+      <EmptyState message="No courses synced yet. Configure LMS in Admin Settings." />
     </div>
   );
 }

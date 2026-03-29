@@ -56,9 +56,9 @@ export default function StudentHome() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <StatCard value={events.length} label="Upcoming Events" icon="event" color="primary" />
-        <StatCard value={clubCount} label="Active Clubs" icon="groups" color="secondary" />
-        <StatCard value={announcements.length} label="New Announcements" icon="campaign" color="tertiary" />
+        <StatCard value={events.length} label="Upcoming Events" color="primary" />
+        <StatCard value={clubCount} label="Active Clubs" color="secondary" />
+        <StatCard value={announcements.length} label="New Announcements" color="tertiary" />
       </div>
 
       {announcements.length > 0 && (

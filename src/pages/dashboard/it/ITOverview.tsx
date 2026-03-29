@@ -31,9 +31,9 @@ export default function ITOverview() {
     <div className="space-y-6">
       <h1 className="font-lexend text-2xl font-extrabold text-on-surface">IT Overview</h1>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <StatCard value={stats.users} label="Total Users" icon="people" color="primary" />
-        <StatCard value={stats.apiKeys} label="Active API Keys" icon="key" color="secondary" />
-        <StatCard value={stats.auditEvents} label="Audit Events" icon="history" color="neutral" />
+        <StatCard value={stats.users} label="Total Users" color="primary" />
+        <StatCard value={stats.apiKeys} label="Active API Keys" color="secondary" />
+        <StatCard value={stats.auditEvents} label="Audit Events" color="neutral" />
       </div>
       <div className="bg-surface-lowest rounded-2xl p-5">
         <h2 className="font-lexend font-bold text-on-surface mb-4">Users by Role</h2>

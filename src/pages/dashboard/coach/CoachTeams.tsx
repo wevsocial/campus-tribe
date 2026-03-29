@@ -72,7 +72,7 @@ export default function CoachTeams() {
           </button>
         ))}
       </div>
-      {filteredTeams.length === 0 ? <EmptyState icon="👥" message="No teams yet. Add one above." /> : (
+      {filteredTeams.length === 0 ? <EmptyState message="No teams yet. Add one above." /> : (
         <Card padding="none">
           <table className="w-full">
             <thead className="bg-surface-low"><tr>{['Team','W','L','Pts'].map(h=><th key={h} className="px-4 py-3 text-left font-jakarta text-xs font-bold text-on-surface-variant uppercase">{h}</th>)}</tr></thead>

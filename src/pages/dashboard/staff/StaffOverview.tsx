@@ -26,8 +26,8 @@ export default function StaffOverview() {
     <div className="space-y-6">
       <h1 className="font-lexend text-2xl font-extrabold text-on-surface">Staff Overview</h1>
       <div className="grid grid-cols-2 gap-4">
-        <StatCard value={stats.users} label="Total Users" icon="people" color="primary" />
-        <StatCard value={stats.events} label="Events" icon="event" color="secondary" />
+        <StatCard value={stats.users} label="Total Users" color="primary" />
+        <StatCard value={stats.events} label="Events" color="secondary" />
       </div>
       <div className="grid grid-cols-2 gap-4">
         {[
