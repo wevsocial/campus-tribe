@@ -7,24 +7,18 @@ export function useDashboardData<T>(
   initialValue: T,
   options?: { requireInstitution?: boolean }
 ) {
-  const { user, institutionId, profile } = useAuth();
+  const { user, institutionId, loading: authLoading } = useAuth();
   const [data, setData] = useState<T>(initialValue);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Wait for auth to fully load
+    if (authLoading) return;
+
     if (!user?.id) {
       setLoading(false);
       return;
     }
 
-    // If we need institutionId but profile hasn't loaded yet, keep waiting
-    if (options?.requireInstitution && profile === null) {
-      // Profile still loading — keep spinner, don't fire
-      return;
-    }
-
-    // If requireInstitution but still null after profile loaded, show empty
     if (options?.requireInstitution && !institutionId) {
       setLoading(false);
       return;
@@ -36,9 +30,7 @@ export function useDashboardData<T>(
       setLoading(true);
       try {
         const next = await loader({ userId: user.id, institutionId });
-        if (active) {
-          setData(next);
-        }
+        if (active) setData(next);
       } catch (err) {
         console.error('Dashboard data load error', err);
       } finally {
@@ -51,7 +43,7 @@ export function useDashboardData<T>(
     return () => {
       active = false;
     };
-  }, [user?.id, institutionId, profile]);
+  }, [authLoading, user?.id, institutionId]);
 
   return { data, loading, setData };
 }
