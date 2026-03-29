@@ -10,7 +10,14 @@ import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
 import { apiReference } from '../../data/apiReference';
 
-const tabs = ['Users', 'API Keys', 'API Docs', 'Audit Log', 'Integrations'];
+const tabs = [
+  { label: 'Users', hash: 'users' },
+  { label: 'API Keys', hash: 'api-keys' },
+  { label: 'API Docs', hash: 'api-docs' },
+  { label: 'Audit Log', hash: 'audit' },
+  { label: 'Integrations', hash: 'integrations' },
+  { label: 'Settings', hash: 'settings' },
+];
 
 const integrationTemplates = [
   { key: 'canvas', name: 'Canvas LMS', description: 'Roster, course, and engagement sync' },
@@ -34,6 +41,28 @@ function createApiKeyMaterial() {
 export default function ITDashboard() {
   const { user, institutionId } = useAuth();
   const [activeTab, setActiveTab] = useState('Users');
+  
+  // Sync active tab with URL hash (driven by sidebar nav in DashboardLayout)
+  React.useEffect(() => {
+    const hash = window.location.hash.replace('#', '');
+    const tabMap: Record<string, string> = {
+      'users': 'Users',
+      'api-keys': 'API Keys',
+      'api-docs': 'API Docs',
+      'audit': 'Audit Log',
+      'integrations': 'Integrations',
+      'settings': 'Settings',
+    };
+    if (hash && tabMap[hash]) {
+      setActiveTab(tabMap[hash]);
+    }
+    const onHashChange = () => {
+      const h = window.location.hash.replace('#', '');
+      if (h && tabMap[h]) setActiveTab(tabMap[h]);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
   const [search, setSearch] = useState('');
   const [apiName, setApiName] = useState('');
   const [integrationMessage, setIntegrationMessage] = useState<Record<string, string>>({});
@@ -115,11 +144,16 @@ export default function ITDashboard() {
         <div className="flex gap-2 overflow-x-auto rounded-[1rem] bg-surface p-1">
           {tabs.map((tab) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`rounded-[0.85rem] px-4 py-2 text-sm font-jakarta font-700 whitespace-nowrap ${activeTab === tab ? 'bg-surface-lowest text-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
+              key={tab.hash}
+              onClick={() => {
+                setActiveTab(tab.label);
+                window.history.replaceState({}, '', `${window.location.pathname}#${tab.hash}`);
+                const el = document.getElementById(tab.hash);
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className={`rounded-[0.85rem] px-4 py-2 text-sm font-jakarta font-700 whitespace-nowrap ${activeTab === tab.label ? 'bg-surface-lowest text-primary shadow-sm' : 'text-on-surface-variant hover:text-on-surface'}`}
             >
-              {tab}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -227,6 +261,54 @@ export default function ITDashboard() {
                 {integrationMessage[template.key] && <p className="mt-3 text-xs text-tertiary">{integrationMessage[template.key]}</p>}
               </Card>
             ))}
+          </div>
+        )}
+
+        {activeTab === 'Settings' && (
+          <div id="settings" className="space-y-6">
+            <Card>
+              <h2 className="font-lexend text-lg font-800 text-on-surface mb-4">Platform Settings</h2>
+              <div className="space-y-4">
+                <div className="rounded-[1rem] bg-surface p-4 flex items-center justify-between">
+                  <div>
+                    <p className="font-jakarta font-700 text-on-surface">Email confirmations</p>
+                    <p className="text-sm text-on-surface-variant">Auto-confirm new signups — users can log in immediately</p>
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-tertiary-container text-tertiary text-xs font-jakarta font-700">Enabled</span>
+                </div>
+                <div className="rounded-[1rem] bg-surface p-4 flex items-center justify-between">
+                  <div>
+                    <p className="font-jakarta font-700 text-on-surface">Google OAuth</p>
+                    <p className="text-sm text-on-surface-variant">Google sign-in via Supabase OAuth redirect</p>
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-tertiary-container text-tertiary text-xs font-jakarta font-700">Active</span>
+                </div>
+                <div className="rounded-[1rem] bg-surface p-4 flex items-center justify-between">
+                  <div>
+                    <p className="font-jakarta font-700 text-on-surface">Row Level Security</p>
+                    <p className="text-sm text-on-surface-variant">RLS enabled on ct_users, ct_notifications, ct_survey_responses</p>
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-tertiary-container text-tertiary text-xs font-jakarta font-700">On</span>
+                </div>
+              </div>
+            </Card>
+            <Card>
+              <h2 className="font-lexend text-lg font-800 text-on-surface mb-4">Institution Info</h2>
+              <div className="space-y-3">
+                <div className="rounded-[1rem] bg-surface p-4">
+                  <p className="text-xs font-jakarta font-700 text-on-surface-variant uppercase tracking-widest mb-1">Institution ID</p>
+                  <code className="text-sm text-on-surface font-mono break-all">{institutionId || 'Loading...'}</code>
+                </div>
+                <div className="rounded-[1rem] bg-surface p-4">
+                  <p className="text-xs font-jakarta font-700 text-on-surface-variant uppercase tracking-widest mb-1">Supabase Project</p>
+                  <code className="text-sm text-on-surface">ncftkuuxfllyohixiusb.supabase.co</code>
+                </div>
+                <div className="rounded-[1rem] bg-surface p-4">
+                  <p className="text-xs font-jakarta font-700 text-on-surface-variant uppercase tracking-widest mb-1">Users in system</p>
+                  <p className="text-2xl font-lexend font-900 text-primary">{data.users.length}</p>
+                </div>
+              </div>
+            </Card>
           </div>
         )}
       </div>

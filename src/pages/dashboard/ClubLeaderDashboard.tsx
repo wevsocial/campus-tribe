@@ -144,6 +144,22 @@ export default function ClubLeaderDashboard() {
 
   const budget = data.budgets.find((b: Budget) => b.club_id === firstClub?.id);
 
+  
+// Hash-based scroll navigation (driven by DashboardLayout sidebar)
+React.useEffect(() => {
+  const scrollToHash = () => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash) {
+      const el = document.getElementById(hash);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+  // Small delay to let content render first
+  const t = setTimeout(scrollToHash, 150);
+  window.addEventListener('hashchange', scrollToHash);
+  return () => { clearTimeout(t); window.removeEventListener('hashchange', scrollToHash); };
+}, []);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
