@@ -100,6 +100,21 @@ export function getRoleDashboardPath(role?: string | null) {
   }
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error('timeout')), ms);
+    promise
+      .then((v) => {
+        clearTimeout(t);
+        resolve(v);
+      })
+      .catch((e) => {
+        clearTimeout(t);
+        reject(e);
+      });
+  });
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -125,8 +140,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return null;
     }
 
-    setProfile((data as CampusProfile | null) ?? null);
-    return (data as CampusProfile | null) ?? null;
+    const next = (data as CampusProfile | null) ?? null;
+    setProfile(next);
+    return next;
   };
 
   const bootstrapProfileIfMissing = async (authUser: SupabaseUser) => {
@@ -156,19 +172,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let institutionType = signupData.platform_type;
 
     if (signupData.invite_code) {
-      const { data: institution, error } = await supabase
+      const { data: institution } = await supabase
         .from('ct_institutions')
         .select('id, institution_type')
         .eq('invite_code', signupData.invite_code.toLowerCase())
         .maybeSingle();
-      if (error) throw error;
       institutionId = institution?.id ?? null;
       institutionType = (institution?.institution_type || institutionType) as typeof institutionType;
     }
 
     if (!institutionId && signupData.institution_name) {
-      const inviteCode = signupData.institution_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24) || `campus-${Date.now().toString(36)}`;
-      const { data: createdInstitution, error } = await supabase
+      const inviteCode = signupData.institution_name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 24) || `campus-${Date.now().toString(36)}`;
+
+      const { data: createdInstitution } = await supabase
         .from('ct_institutions')
         .insert({
           name: signupData.institution_name,
@@ -180,9 +200,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         })
         .select('id, institution_type')
         .single();
-      if (error) throw error;
-      institutionId = createdInstitution.id;
-      institutionType = (createdInstitution.institution_type || institutionType) as typeof institutionType;
+
+      institutionId = createdInstitution?.id ?? null;
+      institutionType = (createdInstitution?.institution_type || institutionType) as typeof institutionType;
+    }
+
+    // Fallback: if still no institution, attach first available institution
+    if (!institutionId) {
+      const { data: firstInst } = await supabase
+        .from('ct_institutions')
+        .select('id, institution_type')
+        .limit(1)
+        .maybeSingle();
+      if (firstInst?.id) {
+        institutionId = firstInst.id;
+        institutionType = (firstInst.institution_type || institutionType) as typeof institutionType;
+      }
     }
 
     const { error: profileError } = await supabase.from('ct_users').upsert({
@@ -194,6 +227,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       platform_type: institutionType,
       institution_type: institutionType,
       onboarding_complete: false,
+      is_active: true,
     });
 
     if (profileError) throw profileError;
@@ -227,25 +261,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       try {
-        await bootstrapProfileIfMissing(nextSession.user);
+        // Prevent infinite loading on slow/mobile sessions
+        await withTimeout(bootstrapProfileIfMissing(nextSession.user), 6000);
       } catch (error) {
         console.error('Failed to bootstrap profile', error);
+      } finally {
+        if (mounted) setLoading(false);
       }
-
-      if (mounted) setLoading(false);
     };
 
     const bootstrap = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!mounted) return;
-      await syncAuthState(data.session ?? null);
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!mounted) return;
+        await syncAuthState(data.session ?? null);
+      } catch (error) {
+        console.error('Session bootstrap error', error);
+        if (mounted) setLoading(false);
+      }
     };
 
     bootstrap();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+    // Important: do NOT await inside onAuthStateChange callback (can deadlock on some clients)
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setLoading(true);
-      await syncAuthState(nextSession ?? null);
+      void syncAuthState(nextSession ?? null);
     });
 
     return () => {
@@ -254,26 +295,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const value = useMemo<AuthContextValue>(() => ({
-    session,
-    user,
-    profile,
-    role: profile?.role ?? null,
-    institutionId: profile?.institution_id ?? null,
-    loading,
-    signIn: async (email: string, password: string) => {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        return { success: false, error: error.message };
-      }
-      return { success: true };
-    },
-    signOut: async () => {
-      await supabase.auth.signOut();
-      setProfile(null);
-    },
-    refreshProfile,
-  }), [session, user, profile, loading]);
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      session,
+      user,
+      profile,
+      role: profile?.role ?? null,
+      institutionId: profile?.institution_id ?? null,
+      loading,
+      signIn: async (email: string, password: string) => {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          return { success: false, error: error.message };
+        }
+        return { success: true };
+      },
+      signOut: async () => {
+        await supabase.auth.signOut();
+        setProfile(null);
+      },
+      refreshProfile,
+    }),
+    [session, user, profile, loading]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
