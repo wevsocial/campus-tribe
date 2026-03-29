@@ -1,75 +1,82 @@
-# Campus Tribe — Exhaustive Task Checklist (Current Pass)
+# Campus Tribe — Exhaustive Task Checklist (Updated 2026-03-29)
 
-## Critical blockers from Amit
-- [x] Restore missing site images
-- [x] Use Stitch / PRD direction as implementation guardrail
-- [x] Remove About -> Leadership Team section
-- [x] Fix day/night toggle
-- [x] Add public-safe API documentation page
-- [x] Keep full API/admin access inside logged-in IT workspace
+## Critical blockers from Amit — FIXED
+- [x] Restore missing/mismatched site images — DONE (all 18 images replaced with actual design assets)
+- [x] Day/Night toggle broken — FIXED (ThemeContext rewritten, immediate sync apply)
+- [x] Post-login dashboards have mock/empty data — FIXED (real Supabase flows everywhere)
+- [x] Register page too long/fatigue — FIXED (platform → role → quick form)
+- [x] API Documentation page public-safe — DONE
+- [x] Platforms feel static — FIXED (real data creation flows in all 9 dashboards)
 
-## Platform reality work
+## Platform reality work — ALL DONE
 - [x] Real auth context
 - [x] Compact signup/login
-- [x] Student dashboard real
-- [x] Admin dashboard real
-- [x] Teacher dashboard real
-- [x] Club leader dashboard real
-- [x] Coach dashboard real
-- [x] Parent dashboard real
-- [x] Student rep dashboard real
-- [x] IT dashboard real
+- [x] Student dashboard real with onboarding interest survey
+- [x] Admin dashboard real with approval queues
+- [x] Teacher dashboard real with survey builder
+- [x] Club leader dashboard real with budget + funding requests + handoff export
+- [x] Coach dashboard real with team creation, games, scoring, waivers
+- [x] Parent dashboard real with child linking + daily reports
+- [x] Student rep dashboard real with venue booking + conflict detection
+- [x] IT dashboard real with API key management + audit log
 - [x] Staff / preschool daily report authoring real
 
-## DB / schema / security work
-- [x] Existing multi-platform fields used
-- [x] Notifications table used with realtime bell
-- [x] Added migration for PRD phase-1 completion
-- [x] Tightened notification RLS away from fully-open policy
-- [x] Added survey question table scaffold
-- [x] Added missing content columns where needed
+## DB / schema — ALL APPLIED TO PRODUCTION
+- [x] Multi-platform fields used
+- [x] Notifications table with realtime bell
+- [x] Migration for PRD phase-1 completion
+- [x] Tightened notification RLS
+- [x] Survey question table
+- [x] Venue booking conflict enforcement (DB-level triggers)
+- [x] Append-only booking review history (ct_venue_booking_history)
+- [x] Platform compatibility bridge (all older prod tables)
+- [x] Dashboard schema compat (ct_platform_settings, ct_parent_updates, etc.)
+- [x] Platform features: ct_budgets, ct_funding_requests, ct_engagement_scores, waiver tracking
+- [x] Survey analytics enhanced (CSV export, rating averages, free-text preview)
 
-## Documentation
-- [x] Architecture note added
-- [x] Design-system note added
-- [x] Feature checklist added
+## Images — FIXED
+- [x] campus-hero.jpg = "collaborate better" (correct brand photo)
+- [x] campus-aerial.jpg = "connect Better IRL" (correct brand photo)
+- [x] campus-school.jpg = "Find your tribe" (correct brand photo)
+- [x] campus-sports.jpg = "game on" (correct brand photo)
+- [x] campus-university.jpg = "varsity arena" (correct brand photo)
+- [x] campus-matching.jpg = Smart matching (correct concept photo)
+- [x] campus-events.jpg = Event Hub (correct concept photo)
+- [x] campus-clubs.jpg = Group activity (correct concept photo)
+- [x] campus-admin.jpg = IT Admin (correct concept photo)
+- [x] campus-students.jpg = Student rep in a club (correct)
+- [x] campus-surveys.jpg = Survey and polls (correct)
+- [x] campus-venues.jpg = Venue booking (correct)
+- [x] campus-wellbeing.jpg = Wellbeing checks (correct)
+- [x] campus-parent.jpg = Parent portal (correct)
+- [x] campus-coach.jpg = Coaches (correct)
+- [x] campus-teachers.jpg = Admin/staff/teacher (correct)
+- [x] campus-preschool.jpg = Toddler/preschool (correct)
+- [x] campus-library.jpg = Toddler 1st activities (correct)
 
-## Sprint v1 + sprint 2 shipped in this pass
-- [x] Venue selection + overlap detection before booking submit
-- [x] Student rep booking flow now shows real conflict scan summaries before submit
-- [x] Venue approval/reject flow for admin/staff with notes/status visibility
-- [x] Venue overlap scan/history surfaced in club leader, admin, and staff booking views
-- [x] Venue review queries scoped back to the current institution via institution venue IDs
-- [x] Sports game creation + score updates + derived standings UI
-- [x] Coach game schedule editing/status notes
-- [x] Coach team filter for schedule / roster / training views
-- [x] Roster management now supports athlete add, edit/move, and remove flows in coach workspace
-- [x] Sports authenticated reads scoped to coach-owned teams and related games/athletes/training
-- [x] Real survey builder using ct_surveys + ct_survey_questions + ct_survey_responses
-- [x] Question types: text, single choice, multi choice, rating, yes/no
-- [x] Survey draft/publish flow
-- [x] Existing teacher surveys can be loaded back into the builder and updated
-- [x] Respondent submit flow + creator results summary
-- [x] Survey submit validates required questions before saving
-- [x] Survey question/response reads tightened to relevant survey sets
-- [x] Richer daily reports for preschool/school staff
-- [x] Parent-child linking helpers for staff and parents
-- [x] Parent dashboard reports/updates scoped to linked children on the query path
-- [x] Parent/teacher communication trail scaffolding
-- [x] LMS + Helcim admin review/settings scaffolding
-- [x] Google sign-in/sign-up button wiring through Supabase OAuth
-- [x] Public page image mismatch cleanup on school/preschool routes
-- [x] `npm run build` passes after sprint 2 changes
+## Student Dashboard — ENHANCED
+- [x] Interest survey onboarding (5-question → club recommendations)
+- [x] Interest-based club recommendations
+- [x] Emoji mood check-in with 7-day sparkline
+- [x] Club directory with real join flow
+- [x] Event feed with RSVP flow
+- [x] Wellbeing history view
 
-## Still pending after this pass
+## Club Leader Dashboard — ENHANCED
+- [x] Budget tracker (allocated vs spent with progress bar)
+- [x] Funding request form (submit to ct_funding_requests)
+- [x] Club handoff export (JSON download)
+- [x] Venue booking with conflict detection
+
+## Still pending after this pass (Product builds, not bugs)
 - [ ] Pixel-perfect full Stitch parity on all public pages
-- [ ] Server-enforced venue conflict prevention at DB level / exclusion constraint strategy
-- [ ] True booking review history table or append-only audit trail (current notes/status are visible but lightweight)
-- [ ] Deep survey branching / logic / exports
-- [ ] Survey analytics beyond counts (segments, CSV/export, trends)
-- [ ] Sports live scoring, brackets, waivers
-- [ ] Coach-facing team metadata editing beyond current v1.5 controls
-- [ ] AI risk analytics / admin OS P1 depth
-- [ ] Real LMS integrations
-- [ ] Real Helcim integration
-- [ ] Institutional SSO/SAML
+- [ ] Deep survey branching / logic / exports (P1)
+- [ ] Sports live scoring via WebSocket subscription (P1)
+- [ ] Sports brackets (playoff/tournament auto-schedule) (P1)
+- [ ] Digital waiver signing UX (P1)
+- [ ] AI at-risk student alerts (P1 — needs ML model)
+- [ ] Real LMS integration (Canvas LTI 1.3) (P1)
+- [ ] Real Helcim payment integration (P1)
+- [ ] Institutional SSO/SAML (P2)
+- [ ] Push notifications (FCM/APNs) (P2)
+- [ ] Mobile app (React Native) (P2)
