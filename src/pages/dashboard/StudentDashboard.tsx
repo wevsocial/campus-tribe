@@ -290,7 +290,7 @@ React.useEffect(() => {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Hero header */}
-        <div className="rounded-[1.5rem] bg-primary p-8 text-white relative overflow-hidden">
+        <section id="overview" className="scroll-mt-24 rounded-[1.5rem] bg-primary p-8 text-white relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/4" />
           <h1 className="font-lexend text-3xl font-900">
             Hey {profile?.full_name?.split(' ')[0] || 'there'} 👋
@@ -305,7 +305,7 @@ React.useEffect(() => {
               ✨ Update interests
             </button>
           </div>
-        </div>
+        </section>
 
         {flash && (
           <div className="rounded-[1rem] bg-primary/10 p-4 text-sm text-primary font-jakarta font-700">
@@ -360,9 +360,9 @@ React.useEffect(() => {
           </Card>
 
           {/* Recommended clubs */}
-          <Card className="lg:col-span-2">
+          <Card id="discover" className="lg:col-span-2 scroll-mt-24">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-lexend text-lg font-800 text-on-surface">
+              <h2 id="clubs" className="font-lexend text-lg font-800 text-on-surface scroll-mt-24">
                 {data.userInterests?.length > 0 ? '✨ Recommended for you' : 'Club directory'}
               </h2>
               {data.userInterests?.length > 0 && (
@@ -397,7 +397,7 @@ React.useEffect(() => {
 
         {/* Events feed */}
         <div className="grid lg:grid-cols-2 gap-6">
-          <Card>
+          <Card id="events" className="scroll-mt-24">
             <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">🗓️ Upcoming events</h2>
             {data.events.length === 0 ? (
               <div className="text-center py-8">
@@ -431,7 +431,7 @@ React.useEffect(() => {
           </Card>
 
           {/* Recent check-ins */}
-          <Card>
+          <Card id="wellness" className="scroll-mt-24">
             <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">💚 Wellbeing history</h2>
             {data.wellbeing.length === 0 ? (
               <div className="text-center py-8">
@@ -461,7 +461,7 @@ React.useEffect(() => {
         </div>
         {/* Sports & Leagues */}
         <div className="grid lg:grid-cols-2 gap-6">
-          <Card>
+          <Card id="sports" className="scroll-mt-24">
             <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">🏆 Sports & Leagues</h2>
             {(data.leagues as SportsLeague[]).length === 0 ? (
               <p className="text-sm text-on-surface-variant">No active leagues yet.</p>
@@ -506,7 +506,7 @@ React.useEffect(() => {
         </div>
 
         {/* Active Surveys */}
-        <Card>
+        <Card id="surveys" className="scroll-mt-24">
           <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">📋 Active Surveys</h2>
           {(data.activeSurveys as ActiveSurvey[]).length === 0 ? (
             <p className="text-sm text-on-surface-variant">No active surveys right now. Check back later!</p>
@@ -529,6 +529,16 @@ React.useEffect(() => {
               ))}
             </div>
           )}
+        </Card>
+
+        <Card id="profile" className="scroll-mt-24">
+          <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">👤 Profile</h2>
+          <div className="rounded-[1rem] bg-surface p-4 space-y-2">
+            <p className="text-sm"><span className="font-jakarta font-700 text-on-surface">Name:</span> <span className="text-on-surface-variant">{profile?.full_name || 'Campus User'}</span></p>
+            <p className="text-sm"><span className="font-jakarta font-700 text-on-surface">Email:</span> <span className="text-on-surface-variant">{profile?.email || user?.email}</span></p>
+            <p className="text-sm"><span className="font-jakarta font-700 text-on-surface">Role:</span> <span className="text-on-surface-variant">{profile?.role || 'student'}</span></p>
+            <Button onClick={() => refreshProfile()} className="rounded-full mt-2" size="sm">Refresh profile</Button>
+          </div>
         </Card>
 
         {/* Survey Modal */}

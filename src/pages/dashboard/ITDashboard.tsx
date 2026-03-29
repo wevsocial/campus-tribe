@@ -159,7 +159,7 @@ export default function ITDashboard() {
         </div>
 
         {activeTab === 'Users' && (
-          <Card>
+          <Card id="users" className="scroll-mt-24">
             <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <h2 className="font-lexend text-lg font-800 text-on-surface">Institution users</h2>
               <div className="w-full md:w-80">
@@ -181,7 +181,7 @@ export default function ITDashboard() {
         )}
 
         {activeTab === 'API Keys' && (
-          <div className="grid lg:grid-cols-[0.95fr_1.05fr] gap-6">
+          <div id="api-keys" className="grid lg:grid-cols-[0.95fr_1.05fr] gap-6 scroll-mt-24">
             <Card>
               <h2 className="font-lexend text-lg font-800 text-on-surface">Generate API key</h2>
               <p className="mt-2 text-sm text-on-surface-variant">Create scoped institutional keys for SIS, LMS, warehouse, and webhook consumers.</p>
@@ -211,7 +211,7 @@ export default function ITDashboard() {
         )}
 
         {activeTab === 'API Docs' && (
-          <div className="grid xl:grid-cols-2 gap-6">
+          <div id="api-docs" className="grid xl:grid-cols-2 gap-6 scroll-mt-24">
             {apiReference.map((category) => (
               <Card key={category.id}>
                 <p className="font-label text-xs font-bold uppercase tracking-[0.14em] text-primary">{category.audience}</p>
@@ -235,7 +235,7 @@ export default function ITDashboard() {
         )}
 
         {activeTab === 'Audit Log' && (
-          <Card>
+          <Card id="audit" className="scroll-mt-24">
             <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Audit log</h2>
             <div className="space-y-3">
               {data.auditLogs.length === 0 ? <p className="text-sm text-on-surface-variant">No audit entries yet.</p> : data.auditLogs.map((entry: any) => (
@@ -252,7 +252,7 @@ export default function ITDashboard() {
         )}
 
         {activeTab === 'Integrations' && (
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div id="integrations" className="grid md:grid-cols-2 xl:grid-cols-3 gap-6 scroll-mt-24">
             {integrationTemplates.map((template) => (
               <Card key={template.key}>
                 <p className="font-lexend text-lg font-800 text-on-surface">{template.name}</p>
