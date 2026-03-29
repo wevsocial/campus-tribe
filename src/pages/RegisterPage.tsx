@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { supabase } from '../lib/supabase';
@@ -32,9 +32,13 @@ const PLATFORM_EMOJI: Record<string, string> = {
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { refreshProfile } = useAuth();
-  const [platformType, setPlatformType] = useState<'university' | 'school' | 'preschool'>('university');
-  const [role, setRole] = useState('student');
+  const initialPlatform = (searchParams.get('platform') as 'university' | 'school' | 'preschool' | null) || 'university';
+  const [platformType, setPlatformType] = useState<'university' | 'school' | 'preschool'>(
+    ['university', 'school', 'preschool'].includes(initialPlatform) ? initialPlatform : 'university'
+  );
+  const [role, setRole] = useState(PLATFORM_ROLES[initialPlatform]?.[0] || 'student');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

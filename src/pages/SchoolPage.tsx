@@ -25,6 +25,9 @@ export default function SchoolPage() {
                 <Link to="/demo" className="bg-secondary text-white px-8 py-4 rounded-full font-headline font-bold text-lg hover:opacity-90 transition-all shadow-xl shadow-secondary/20">
                   Book a Demo
                 </Link>
+                <Link to="/register?platform=school" className="bg-surface text-primary px-8 py-4 rounded-full font-headline font-bold text-lg hover:bg-primary-container transition-all border border-primary/20">
+                  Get Started Free
+                </Link>
                 <button className="bg-surface-container-highest text-on-surface px-8 py-4 rounded-full font-headline font-bold text-lg hover:opacity-80 transition-all">
                   Explore Features
                 </button>

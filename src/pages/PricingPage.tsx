@@ -2,6 +2,44 @@ import { Link } from 'react-router-dom';
 import PublicNav from '../components/layout/PublicNav';
 import PublicFooter from '../components/layout/PublicFooter';
 
+const STARTER_FEATURES = [
+  'Student hub & club directory',
+  'Event management & RSVP',
+  'Basic venue booking',
+  'Club registration & approvals',
+  'Basic polls',
+  'Mobile app (iOS + Android)',
+];
+
+const GROWTH_FEATURES = [
+  'Everything in Starter',
+  'Full intramural sports platform',
+  'Full survey & polls engine',
+  'AI engagement analytics',
+  'At-risk student alerts',
+  'LMS integration (Canvas/Blackboard)',
+  'Admin OS dashboard',
+  'Compliance reporting suite',
+];
+
+const ENTERPRISE_FEATURES = [
+  'Everything in Growth',
+  'White-label branding',
+  'Custom SSO & ERP integration',
+  'Multi-campus management',
+  'Dedicated Customer Success Manager',
+  'SLA 99.9% uptime guarantee',
+  'Annual strategic review',
+];
+
+function Check({ white = false }: { white?: boolean }) {
+  return (
+    <svg className={`w-4 h-4 shrink-0 mt-0.5 ${white ? 'text-white' : 'text-tertiary'}`} viewBox="0 0 20 20" fill="currentColor">
+      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+    </svg>
+  );
+}
+
 export default function PricingPage() {
   return (
     <div className="bg-surface text-on-surface font-body">
@@ -9,130 +47,162 @@ export default function PricingPage() {
       <main className="pt-24 pb-20">
         {/* Hero */}
         <section className="max-w-7xl mx-auto px-8 py-16 text-center">
-          <span className="font-label text-xs uppercase tracking-[0.2em] text-primary font-bold mb-4 block">Institutional Access</span>
-          <h1 className="font-headline text-5xl md:text-7xl font-extrabold tracking-tighter leading-tight text-on-surface mb-6">
-            Empower your entire<br />
-            <span className="text-primary italic">educational ecosystem.</span>
+          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-container text-secondary text-xs font-jakarta font-700 uppercase tracking-widest mb-6">
+            <span className="h-2 w-2 rounded-full bg-secondary animate-pulse" />
+            Institutional Access · Annual Prepayment
+          </span>
+          <h1 className="font-lexend text-5xl md:text-7xl font-900 tracking-tight leading-tight text-on-surface mb-6">
+            Transparent pricing.<br />
+            <span className="text-primary italic">Real ROI.</span>
           </h1>
           <p className="text-on-surface-variant max-w-2xl mx-auto text-xl leading-relaxed">
-            Transparent, per-student pricing designed to scale with your institution. No hidden fees, no lock-in.
+            Per-student annual pricing. One contract replaces 8+ disconnected tools.
+            Internal campus payments powered by Helcim.
           </p>
         </section>
 
-        {/* Free Banner */}
+        {/* ROI Callout */}
         <section className="max-w-7xl mx-auto px-8 mb-12">
-          <div className="bg-tertiary-container rounded-xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="bg-tertiary-container rounded-[1.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h3 className="font-headline font-bold text-xl text-on-tertiary-container leading-tight">Free for Parents and Students</h3>
-              <p className="text-on-tertiary-container/80 text-sm mt-1">Core features available at zero cost, forever.</p>
+              <h3 className="font-lexend font-800 text-xl text-on-tert-cont">
+                Expected Year 1 ROI for 10,000-student institution at Growth tier
+              </h3>
+              <p className="text-on-tert-cont/80 text-sm mt-1">
+                $500K–$2M+ recoverable value from retention lift, labor savings, and tool consolidation.
+              </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {['Social matching', 'Event RSVPs', 'Wellbeing logs', 'Activity feeds'].map(tag => (
-                <span key={tag} className="bg-white/40 px-4 py-1.5 rounded-full text-xs font-bold text-on-tertiary-container font-label uppercase tracking-wider">{tag}</span>
-              ))}
+            <div className="shrink-0">
+              <div className="bg-white/40 rounded-[1rem] px-6 py-3 text-center">
+                <p className="font-lexend font-900 text-3xl text-tertiary">3–13×</p>
+                <p className="text-xs font-jakarta font-700 text-on-tert-cont uppercase tracking-widest mt-1">ROI Year 1</p>
+              </div>
             </div>
           </div>
         </section>
 
         {/* Pricing Grid */}
         <section className="max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* University */}
-          <div className="bg-surface-container-lowest rounded-xl p-8 flex flex-col transition-all hover:-translate-y-2 border border-outline-variant/10 shadow-sm">
+          {/* Starter */}
+          <div className="bg-surface-lowest rounded-[1.5rem] p-8 flex flex-col shadow-sm hover:-translate-y-1 transition-all bg-primary-container/30">
             <div className="mb-8">
-              <span className="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-lg text-xs font-bold font-label uppercase tracking-widest mb-4 inline-block">University</span>
+              <span className="bg-primary-container text-on-primary-cont px-3 py-1 rounded-full text-xs font-jakarta font-700 uppercase tracking-widest mb-4 inline-block">
+                Starter
+              </span>
               <div className="flex items-baseline gap-1 mt-4">
-                <span className="text-4xl font-headline font-black text-on-surface">$12</span>
-                <span className="text-on-surface-variant font-label text-sm uppercase">/ student / year</span>
+                <span className="font-lexend text-5xl font-900 text-primary">$7.50</span>
+                <span className="text-on-surface-variant font-jakarta text-sm uppercase tracking-widest ml-1">/ student / year</span>
               </div>
+              <p className="text-on-surface-variant text-sm mt-2">Up to 3,000 students · $22K–$75K ARR</p>
             </div>
-            <p className="text-on-surface font-semibold mb-6">Comprehensive campus life suite.</p>
-            <div className="space-y-4 mb-10 flex-grow">
-              {['Automated Roommate Matching', 'Alumni Networking Hubs', 'Inter-Campus Tournament Engine', 'Advanced Student Analytics'].map(f => (
-                <div key={f} className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-primary text-xl">check_circle</span>
-                  <span className="text-sm text-on-surface-variant">{f}</span>
-                </div>
+            <ul className="space-y-3 mb-10 flex-grow">
+              {STARTER_FEATURES.map(f => (
+                <li key={f} className="flex items-start gap-3 text-sm text-on-surface-variant">
+                  <Check />
+                  {f}
+                </li>
               ))}
-            </div>
-            <button className="w-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface py-3 rounded-full font-headline font-bold transition-colors">Select University</button>
+            </ul>
+            <Link to="/register" className="w-full block text-center bg-surface-container-high hover:bg-primary hover:text-white text-on-surface py-3 rounded-full font-lexend font-700 transition-all">
+              Get started free
+            </Link>
           </div>
 
-          {/* School - Featured */}
-          <div className="editorial-gradient rounded-xl p-8 flex flex-col text-on-primary transition-all hover:-translate-y-2 shadow-2xl shadow-primary/30 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-              <span className="material-symbols-outlined" style={{fontSize:'120px'}}>school</span>
+          {/* Growth — Most Popular */}
+          <div className="relative bg-hero-gradient rounded-[1.5rem] p-8 flex flex-col shadow-2xl shadow-primary/30 hover:-translate-y-2 transition-all">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+              <span className="bg-secondary text-white px-4 py-1 rounded-full text-xs font-jakarta font-700 uppercase tracking-widest shadow-md">
+                Most Popular
+              </span>
             </div>
-            <div className="relative z-10">
-              <div className="mb-8">
-                <span className="bg-white/20 text-white px-3 py-1 rounded-lg text-xs font-bold font-label uppercase tracking-widest mb-4 inline-block">School</span>
-                <div className="flex items-baseline gap-1 mt-4">
-                  <span className="text-4xl font-headline font-black">$8</span>
-                  <span className="text-on-primary/70 font-label text-sm uppercase">/ student / year</span>
-                </div>
+            <div className="mb-8">
+              <span className="bg-white/20 text-white px-3 py-1 rounded-full text-xs font-jakarta font-700 uppercase tracking-widest mb-4 inline-block">
+                Growth
+              </span>
+              <div className="flex items-baseline gap-1 mt-4">
+                <span className="font-lexend text-5xl font-900 text-white">$15</span>
+                <span className="text-white/70 font-jakarta text-sm uppercase tracking-widest ml-1">/ student / year</span>
               </div>
-              <p className="font-semibold mb-6">House systems &amp; safety.</p>
-              <div className="space-y-4 mb-10 flex-grow">
-                {['Gamified House Leaderboards', 'Safe-Pass Gate Control', 'Anti-Bullying Incident Reporting', 'Extracurricular Activity Mgmt'].map(f => (
-                  <div key={f} className="flex items-start gap-3">
-                    <span className="material-symbols-outlined text-white text-xl">check_circle</span>
-                    <span className="text-sm text-on-primary/90">{f}</span>
-                  </div>
-                ))}
-              </div>
-              <button className="w-full bg-white text-primary py-3 rounded-full font-headline font-bold hover:bg-on-primary transition-colors">Select School</button>
+              <p className="text-white/70 text-sm mt-2">3,000–20,000 students · $75K–$300K ARR</p>
             </div>
+            <ul className="space-y-3 mb-10 flex-grow">
+              {GROWTH_FEATURES.map(f => (
+                <li key={f} className="flex items-start gap-3 text-sm text-white/90">
+                  <Check white />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <Link to="/register" className="w-full block text-center bg-white text-primary py-3 rounded-full font-lexend font-700 hover:opacity-90 transition-all">
+              Get started free
+            </Link>
           </div>
 
-          {/* Preschool */}
-          <div className="bg-surface-container-lowest rounded-xl p-8 flex flex-col transition-all hover:-translate-y-2 border border-outline-variant/10 shadow-sm">
+          {/* Enterprise */}
+          <div className="bg-surface-lowest rounded-[1.5rem] p-8 flex flex-col shadow-sm hover:-translate-y-1 transition-all bg-secondary-container/30">
             <div className="mb-8">
-              <span className="bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-lg text-xs font-bold font-label uppercase tracking-widest mb-4 inline-block">Preschool</span>
+              <span className="bg-secondary-container text-on-sec-cont px-3 py-1 rounded-full text-xs font-jakarta font-700 uppercase tracking-widest mb-4 inline-block">
+                Enterprise
+              </span>
               <div className="flex items-baseline gap-1 mt-4">
-                <span className="text-4xl font-headline font-black text-on-surface">$5</span>
-                <span className="text-on-surface-variant font-label text-sm uppercase">/ student / year</span>
+                <span className="font-lexend text-5xl font-900 text-secondary">Custom</span>
               </div>
+              <p className="text-on-surface-variant text-sm mt-2">From $22.50/student · 20,000+ students · $300K–$750K+ ARR</p>
             </div>
-            <p className="text-on-surface font-semibold mb-6">Parent loops &amp; safety.</p>
-            <div className="space-y-4 mb-10 flex-grow">
-              {['Real-time Parent Activity Loops', 'Digital Sign-in/Sign-out', 'Daily Milestones & Photos', 'Nutritional & Sleep Tracking'].map(f => (
-                <div key={f} className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-primary text-xl">check_circle</span>
-                  <span className="text-sm text-on-surface-variant">{f}</span>
-                </div>
+            <ul className="space-y-3 mb-10 flex-grow">
+              {ENTERPRISE_FEATURES.map(f => (
+                <li key={f} className="flex items-start gap-3 text-sm text-on-surface-variant">
+                  <Check />
+                  {f}
+                </li>
               ))}
-            </div>
-            <button className="w-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface py-3 rounded-full font-headline font-bold transition-colors">Select Preschool</button>
+            </ul>
+            <Link to="/demo" className="w-full block text-center bg-secondary text-white py-3 rounded-full font-lexend font-700 hover:opacity-90 transition-all">
+              Contact sales
+            </Link>
           </div>
         </section>
 
-        {/* Bento Details */}
-        <section className="max-w-7xl mx-auto px-8 mt-24">
-          <h2 className="font-headline text-4xl font-bold mb-12 text-center">Engineered for Academic Vitality</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="md:col-span-2 bg-surface-container-low rounded-xl p-8 flex flex-col justify-between">
+        {/* Stats & Details */}
+        <section className="max-w-7xl mx-auto px-8 mt-20">
+          <div className="grid md:grid-cols-4 gap-6">
+            <div className="md:col-span-2 bg-primary rounded-[1.5rem] p-8 text-white">
+              <div className="text-white/60 text-xs font-jakarta font-700 uppercase tracking-widest mb-3">Platform Impact</div>
+              <h4 className="font-lexend text-2xl font-800 mb-2">Proven ROI at Scale</h4>
+              <p className="text-white/70 text-sm leading-relaxed">
+                Institutions running Campus Tribe see a 14-point retention advantage — 92% retention for
+                engaged students vs. 78% for non-engaged. At $28,700 average annual tuition, 500 retained
+                students = $14.35M additional tuition revenue.
+              </p>
+            </div>
+            <div className="bg-on-surface rounded-[1.5rem] p-8 text-center">
+              <p className="font-jakarta text-xs font-700 uppercase tracking-widest text-outline mb-2">Uptime SLA</p>
+              <p className="font-lexend text-5xl font-900 text-white mt-2">99.9%</p>
+              <p className="text-xs text-outline mt-2 font-jakarta">Enterprise tier guaranteed</p>
+            </div>
+            <div className="bg-tertiary rounded-[1.5rem] p-8 text-white text-center">
+              <p className="font-jakarta text-xs font-700 uppercase tracking-widest text-white/60 mb-2">Tools Replaced</p>
+              <p className="font-lexend text-5xl font-900 mt-2">8+</p>
+              <p className="text-xs text-white/60 mt-2 font-jakarta">One contract. Zero integration maintenance.</p>
+            </div>
+
+            <div className="md:col-span-4 bg-surface-container-low rounded-[1.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-8">
               <div>
-                <span className="material-symbols-outlined text-secondary text-4xl mb-4">security</span>
-                <h4 className="font-headline text-2xl font-bold mb-2">Uncompromising Safety</h4>
-                <p className="text-on-surface-variant">Our core architecture includes encrypted communication channels and strict identity verification for all institutional members.</p>
+                <h4 className="font-lexend text-2xl font-800">Payment method</h4>
+                <p className="text-on-surface-variant text-sm mt-1">
+                  Annual prepayment via bank wire, ACH, or institutional cheque. No credit card required.
+                  Internal campus payments (club dues, event tickets, intramural fees) processed via Helcim — 
+                  Canadian-first, PCI-DSS Level 1.
+                </p>
               </div>
-            </div>
-            <div className="bg-on-surface text-surface-container rounded-xl p-8">
-              <p className="font-label text-xs uppercase tracking-widest text-on-surface-variant" style={{color:'#acadaf'}}>Uptime SLA</p>
-              <p className="font-headline text-5xl font-black text-white mt-2">99.9%</p>
-            </div>
-            <div className="bg-primary text-on-primary rounded-xl p-8">
-              <p className="font-label text-xs uppercase tracking-widest opacity-70">Campus Support</p>
-              <p className="font-headline text-5xl font-black mt-2">24/7</p>
-              <p className="text-sm opacity-70 mt-2">Dedicated success team for every institution</p>
-            </div>
-            <div className="md:col-span-4 bg-surface-container-low rounded-xl p-8 flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="space-y-2">
-                <h4 className="font-headline text-2xl font-bold">Need a custom quote?</h4>
-                <p className="text-on-surface-variant">For large districts or multi-campus networks, we offer enterprise pricing.</p>
+              <div className="flex gap-3 shrink-0">
+                <Link to="/demo" className="bg-primary text-white px-6 py-3 rounded-full font-lexend font-700 hover:opacity-90 transition-all whitespace-nowrap">
+                  Book demo
+                </Link>
+                <Link to="/register" className="bg-surface text-primary border border-primary/20 px-6 py-3 rounded-full font-lexend font-700 hover:bg-primary-container transition-all whitespace-nowrap">
+                  Start free
+                </Link>
               </div>
-              <Link to="/demo" className="bg-primary text-on-primary px-8 py-3 rounded-full font-headline font-bold hover:opacity-90 transition-all whitespace-nowrap">
-                Contact Sales
-              </Link>
             </div>
           </div>
         </section>

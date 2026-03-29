@@ -29,7 +29,7 @@ export default function UniversityPage() {
               The only student engagement platform built for the kinetic energy of modern campus life. Powered by WevSocial.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
-              <Link to="/register" className="bg-secondary text-white px-10 py-4 rounded-full font-headline text-lg hover:brightness-110 transition-all shadow-lg shadow-secondary/20">
+              <Link to="/register?platform=university" className="bg-secondary text-white px-10 py-4 rounded-full font-headline text-lg hover:brightness-110 transition-all shadow-lg shadow-secondary/20">
                 Request Demo
               </Link>
               <Link to="/demo" className="flex items-center gap-3 font-headline text-lg text-primary px-6 py-4 rounded-full border border-primary/20 hover:bg-primary/5 transition-all">
@@ -262,7 +262,7 @@ export default function UniversityPage() {
                   <div className="bg-secondary text-white px-4 py-1 rounded-full font-label text-xs font-bold inline-block mb-6 uppercase">Athletic Director</div>
                   <h3 className="font-headline text-4xl font-extrabold mb-6">Scoreboard-Ready Scheduling</h3>
                   <p className="text-slate-300 mb-8 leading-relaxed">Automate intramural rankings, bracket generation, and venue scheduling. Give non-varsity athletes the elite experience.</p>
-                  <Link to="/register" className="bg-secondary text-white px-8 py-3 rounded-full font-headline font-bold hover:brightness-110 transition-all inline-block">Explore Arena</Link>
+                  <Link to="/register?platform=university" className="bg-secondary text-white px-8 py-3 rounded-full font-headline font-bold hover:brightness-110 transition-all inline-block">Explore Arena</Link>
                 </div>
                 <div className="lg:w-1/2 w-full">
                   <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/10">
@@ -308,7 +308,7 @@ export default function UniversityPage() {
               <h2 className="font-headline text-5xl md:text-7xl font-black leading-[0.9] tracking-tighter">THE CAMPUS OF THE FUTURE IS ALREADY HERE.</h2>
               <p className="text-xl text-white/90 font-medium">Join 500+ global institutions fostering meaningful student connection.</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/register" className="bg-white text-secondary px-12 py-5 rounded-full font-headline text-xl font-black hover:scale-105 transition-transform shadow-xl">Get Started Now</Link>
+                <Link to="/register?platform=university" className="bg-white text-secondary px-12 py-5 rounded-full font-headline text-xl font-black hover:scale-105 transition-transform shadow-xl">Get Started Now</Link>
                 <Link to="/demo" className="bg-transparent border-2 border-white/30 text-white px-12 py-5 rounded-full font-headline text-xl font-black hover:bg-white/10 transition-colors">Book Consultation</Link>
               </div>
             </div>
