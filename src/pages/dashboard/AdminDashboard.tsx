@@ -10,7 +10,8 @@ import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
 import { findVenueConflicts, normalizeRelation } from '../../lib/dashboardData';
 
-type Booking = { id: string; purpose: string | null; status: string; start_time: string; end_time: string; venue_id: string | null; notes: string | null; ct_venues?: { name: string | null; institution_id?: string | null } | null };
+type BookingHistoryEntry = { id: string; booking_id: string; action: string; from_status: string | null; to_status: string | null; note: string | null; actor_id: string | null; created_at: string; metadata?: Record<string, any> | null };
+type Booking = { id: string; purpose: string | null; status: string; start_time: string; end_time: string; venue_id: string | null; notes: string | null; ct_venues?: { name: string | null; institution_id?: string | null } | null; history?: BookingHistoryEntry[] };
 type PlatformSetting = { id: string; category: string; provider: string; status: string; notes: string | null; config: any };
 
 export default function AdminDashboard() {
@@ -28,13 +29,21 @@ export default function AdminDashboard() {
     const bookingsRes = venueIds.length
       ? await supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, ct_venues(name, institution_id)').in('venue_id', venueIds).order('created_at', { ascending: false }).limit(40)
       : { data: [] };
+    const bookingIds = (bookingsRes.data ?? []).map((booking: any) => booking.id);
+    const historyRes = bookingIds.length
+      ? await supabase.from('ct_venue_booking_history').select('*').in('booking_id', bookingIds).order('created_at', { ascending: false })
+      : { data: [] };
+    const historyByBookingId = (historyRes.data ?? []).reduce((acc: Record<string, BookingHistoryEntry[]>, entry: BookingHistoryEntry) => {
+      acc[entry.booking_id] = [...(acc[entry.booking_id] ?? []), entry];
+      return acc;
+    }, {});
     return {
       institution: institutionRes.data ?? null,
       members: membersRes.data ?? [],
       clubs: clubsRes.data ?? [],
       announcements: announcementsRes.data ?? [],
       bookings: (bookingsRes.data ?? [])
-        .map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues) })),
+        .map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues), history: historyByBookingId[booking.id] ?? [] })),
       settings: settingsRes.data ?? [],
       userId,
     };
@@ -69,8 +78,19 @@ export default function AdminDashboard() {
 
   const reviewBooking = async (bookingId: string, status: 'approved' | 'rejected') => {
     const notes = bookingReviewNotes[bookingId] || null;
-    const { data: booking } = await supabase.from('ct_venue_bookings').update({ status, approved_by: user?.id || null, notes }).eq('id', bookingId).select('id, purpose, status, start_time, end_time, venue_id, notes, ct_venues(name, institution_id)').single();
-    if (booking) setData((current: any) => ({ ...current, bookings: current.bookings.map((entry: Booking) => entry.id === bookingId ? booking : entry) }));
+    const bookingResult = await supabase.from('ct_venue_bookings').update({ status, approved_by: user?.id || null, notes }).eq('id', bookingId).select('id, purpose, status, start_time, end_time, venue_id, notes, ct_venues(name, institution_id)').single();
+    if (bookingResult.error) {
+      const message = bookingResult.error.message || 'Could not review booking.';
+      window.alert(message);
+      return;
+    }
+    const booking = bookingResult.data;
+    if (!booking) return;
+    const historyResult = await supabase.from('ct_venue_booking_history').select('*').eq('booking_id', bookingId).order('created_at', { ascending: false });
+    setData((current: any) => ({
+      ...current,
+      bookings: current.bookings.map((entry: Booking) => entry.id === bookingId ? { ...booking, history: historyResult.data ?? entry.history ?? [] } : entry),
+    }));
   };
 
   const saveSetting = async (category: 'lms' | 'payments', provider: string, status: string, notes: string, config: any) => {
@@ -121,7 +141,7 @@ export default function AdminDashboard() {
                 end: booking.end_time,
                 excludeId: booking.id,
               });
-              return <div key={booking.id} className="mb-3 rounded-[1rem] bg-surface p-4"><div className="flex items-center justify-between gap-3"><div><p className="font-jakarta font-700 text-on-surface">{booking.purpose || 'Venue booking'}</p><p className="text-sm text-on-surface-variant">{booking.ct_venues?.name || 'Venue'} · {new Date(booking.start_time).toLocaleString()}</p></div><Badge label={booking.status} variant={booking.status === 'approved' ? 'tertiary' : booking.status === 'rejected' ? 'secondary' : 'primary'} /></div><p className="mt-2 text-xs text-on-surface-variant">Overlap scan: {conflicts.length} conflicting request(s)</p><textarea value={bookingReviewNotes[booking.id] ?? booking.notes ?? ''} onChange={(e) => setBookingReviewNotes((current) => ({ ...current, [booking.id]: e.target.value }))} rows={2} className="mt-3 w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-3 text-sm" placeholder="Approval note / reason" />{booking.status === 'pending' && <div className="mt-3 flex gap-2"><Button size="sm" className="rounded-full" onClick={() => reviewBooking(booking.id, 'approved')}>Approve</Button><Button size="sm" variant="outline" className="rounded-full" onClick={() => reviewBooking(booking.id, 'rejected')}>Reject</Button></div>}</div>;
+              return <div key={booking.id} className="mb-3 rounded-[1rem] bg-surface p-4"><div className="flex items-center justify-between gap-3"><div><p className="font-jakarta font-700 text-on-surface">{booking.purpose || 'Venue booking'}</p><p className="text-sm text-on-surface-variant">{booking.ct_venues?.name || 'Venue'} · {new Date(booking.start_time).toLocaleString()}</p></div><Badge label={booking.status} variant={booking.status === 'approved' ? 'tertiary' : booking.status === 'rejected' ? 'secondary' : 'primary'} /></div><p className="mt-2 text-xs text-on-surface-variant">Overlap scan: {conflicts.length} conflicting request(s)</p><textarea value={bookingReviewNotes[booking.id] ?? booking.notes ?? ''} onChange={(e) => setBookingReviewNotes((current) => ({ ...current, [booking.id]: e.target.value }))} rows={2} className="mt-3 w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-3 text-sm" placeholder="Approval note / reason" />{booking.status === 'pending' && <div className="mt-3 flex gap-2"><Button size="sm" className="rounded-full" onClick={() => reviewBooking(booking.id, 'approved')}>Approve</Button><Button size="sm" variant="outline" className="rounded-full" onClick={() => reviewBooking(booking.id, 'rejected')}>Reject</Button></div>}{booking.history && booking.history.length > 0 && <div className="mt-4 rounded-[1rem] bg-surface-lowest p-3"><p className="text-xs font-jakarta font-700 uppercase tracking-[0.12em] text-on-surface-variant">Review history</p><div className="mt-2 space-y-2">{booking.history.slice(0, 4).map((entry) => <div key={entry.id} className="rounded-xl bg-surface px-3 py-2"><div className="flex items-center justify-between gap-3 text-xs"><span className="font-jakarta font-700 text-on-surface">{entry.action.replace('_', ' ')}</span><span className="text-on-surface-variant">{new Date(entry.created_at).toLocaleString()}</span></div><p className="mt-1 text-xs text-on-surface-variant">{entry.from_status || 'new'} → {entry.to_status || booking.status}</p>{entry.note && <p className="mt-1 text-sm text-on-surface-variant">{entry.note}</p>}</div>)}</div></div>}</div>;
             })}
           </Card>
         </div>

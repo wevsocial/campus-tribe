@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { Download } from 'lucide-react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card } from '../../components/ui/Card';
 import { StatCard } from '../../components/ui/StatCard';
@@ -12,6 +13,7 @@ import { supabase } from '../../lib/supabase';
 type SurveyQuestion = { id?: string; survey_id?: string; prompt: string; question_type: string; options?: string[] | null; required?: boolean; position: number };
 type Survey = { id: string; title: string; description: string | null; status?: string | null; is_active?: boolean | null; created_by?: string | null; target_roles?: string[] | null; anonymous?: boolean | null; is_anonymous?: boolean | null; created_at: string };
 type SurveyResponse = { id: string; survey_id: string; user_id: string | null; answers: Record<string, any>; submitted_at: string };
+type ResultsSummaryEntry = { totalAnswers: number; uniqueAnswerCount: number; average: number | null; distribution: Record<string, number>; freeText: string[] };
 
 const QUESTION_TYPES = [
   { value: 'text', label: 'Text' },
@@ -216,23 +218,66 @@ export default function TeacherDashboard() {
   };
 
   const resultsSummary = useMemo(() => {
-    const summary: Record<string, Record<string, number>> = {};
+    const summary: Record<string, ResultsSummaryEntry> = {};
     selectedQuestions.forEach((question: SurveyQuestion) => {
-      summary[question.id || question.prompt] = {};
+      summary[question.id || question.prompt] = { totalAnswers: 0, uniqueAnswerCount: 0, average: null, distribution: {}, freeText: [] };
     });
     selectedResponses.forEach((response: SurveyResponse) => {
       selectedQuestions.forEach((question: SurveyQuestion) => {
         const key = question.id || question.prompt;
         const answer = response.answers?.[key];
         if (Array.isArray(answer)) {
-          answer.forEach((entry) => { summary[key][entry] = (summary[key][entry] || 0) + 1; });
+          answer.forEach((entry) => {
+            summary[key].distribution[entry] = (summary[key].distribution[entry] || 0) + 1;
+            summary[key].totalAnswers += 1;
+          });
         } else if (answer != null && answer !== '') {
-          summary[key][String(answer)] = (summary[key][String(answer)] || 0) + 1;
+          if (question.question_type === 'text') {
+            summary[key].freeText.push(String(answer));
+            summary[key].totalAnswers += 1;
+          } else {
+            summary[key].distribution[String(answer)] = (summary[key].distribution[String(answer)] || 0) + 1;
+            summary[key].totalAnswers += 1;
+          }
         }
       });
     });
+    selectedQuestions.forEach((question: SurveyQuestion) => {
+      const key = question.id || question.prompt;
+      summary[key].uniqueAnswerCount = Object.keys(summary[key].distribution).length;
+      if (question.question_type === 'rating') {
+        const numericAnswers = selectedResponses
+          .map((response: SurveyResponse) => Number(response.answers?.[key]))
+          .filter((value: number) => !Number.isNaN(value) && value > 0);
+        summary[key].average = numericAnswers.length ? Number((numericAnswers.reduce((total: number, value: number) => total + value, 0) / numericAnswers.length).toFixed(2)) : null;
+      }
+    });
     return summary;
   }, [selectedQuestions, selectedResponses]);
+
+  const exportSurveyResults = () => {
+    if (!selectedSurvey) return;
+    const headers = ['response_id', 'submitted_at', ...selectedQuestions.map((question: SurveyQuestion) => `"${(question.prompt || '').replace(/"/g, '""')}"`)];
+    const rows = selectedResponses.map((response: SurveyResponse) => {
+      const answers = selectedQuestions.map((question: SurveyQuestion) => {
+        const key = question.id || question.prompt;
+        const raw = response.answers?.[key];
+        const value = Array.isArray(raw) ? raw.join(' | ') : raw ?? '';
+        return `"${String(value).replace(/"/g, '""')}"`;
+      });
+      return [`"${response.id}"`, `"${response.submitted_at}"`, ...answers].join(',');
+    });
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${selectedSurvey.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'survey'}-results.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <DashboardLayout>
@@ -365,18 +410,33 @@ export default function TeacherDashboard() {
           </Card>
 
           <Card>
-            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Creator results view</h2>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="font-lexend text-lg font-800 text-on-surface">Creator results view</h2>
+              {selectedSurvey && <Button size="sm" variant="outline" className="rounded-full" onClick={exportSurveyResults}><Download size={16} /> Export CSV</Button>}
+            </div>
             {!selectedSurvey ? <p className="text-sm text-on-surface-variant">Select a survey to review results.</p> : (
               <div className="space-y-4">
                 <div className="rounded-[1rem] bg-surface p-4 flex items-center justify-between"><div><p className="font-jakarta font-700 text-on-surface">{selectedSurvey.title}</p><p className="text-sm text-on-surface-variant">Responses: {selectedResponses.length}</p></div><Badge label={selectedSurvey.status || 'draft'} variant="primary" /></div>
                 {selectedQuestions.map((question: SurveyQuestion, index: number) => {
                   const key = question.id || question.prompt;
-                  const summary = resultsSummary[key] || {};
+                  const summary = resultsSummary[key];
                   return (
                     <div key={key} className="rounded-[1rem] bg-surface p-4">
-                      <p className="font-jakarta font-700 text-on-surface">{index + 1}. {question.prompt}</p>
-                      <div className="mt-2 space-y-2">
-                        {Object.keys(summary).length === 0 ? <p className="text-sm text-on-surface-variant">No answers yet.</p> : Object.entries(summary).map(([answer, count]) => <div key={answer} className="flex items-center justify-between text-sm"><span className="text-on-surface-variant">{answer}</span><Badge label={String(count)} variant="secondary" /></div>)}
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="font-jakarta font-700 text-on-surface">{index + 1}. {question.prompt}</p>
+                          <p className="mt-1 text-xs text-on-surface-variant">{summary?.totalAnswers || 0} answer(s){question.question_type === 'rating' && summary?.average != null ? ` · Avg ${summary.average}/5` : ''}{question.question_type !== 'text' ? ` · ${summary?.uniqueAnswerCount || 0} unique choice(s)` : ''}</p>
+                        </div>
+                        <Badge label={question.question_type.replace('_', ' ')} variant="secondary" />
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        {question.question_type === 'text' ? (
+                          summary?.freeText?.length ? summary.freeText.slice(0, 5).map((entry, textIndex) => <div key={`${key}-${textIndex}`} className="rounded-xl bg-surface-lowest px-3 py-2 text-sm text-on-surface-variant">{entry}</div>) : <p className="text-sm text-on-surface-variant">No answers yet.</p>
+                        ) : Object.keys(summary?.distribution || {}).length === 0 ? (
+                          <p className="text-sm text-on-surface-variant">No answers yet.</p>
+                        ) : (
+                          Object.entries(summary?.distribution || {}).sort((a, b) => b[1] - a[1]).map(([answer, count]) => <div key={answer} className="flex items-center justify-between text-sm"><span className="text-on-surface-variant">{answer}</span><Badge label={String(count)} variant="secondary" /></div>)
+                        )}
                       </div>
                     </div>
                   );
