@@ -32,6 +32,7 @@ export default {
         "on-primary": "#FFFFFF",
         "on-primary-container": "#001849",
         "surface-lowest": "#FFFFFF",
+        "on-primary-cont": "#001849",
         "on-tert-cont": "#002114",
         "on-sec-cont": "#3A1500",
         "on-secondary": "#FFFFFF",
@@ -65,6 +66,7 @@ export default {
       boxShadow: {
         float: '0 10px 40px rgba(26,29,46,0.06)',
         rise: '0 16px 48px rgba(26,29,46,0.10)',
+        lift: '0 8px 24px rgba(26,29,46,0.08)',
       },
     },
   },

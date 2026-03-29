@@ -149,7 +149,7 @@ enabled = true
 # in emails.
 site_url = "https://campus-tribe.onrender.com"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://campus-tribe.onrender.com", "https://campus-tribe.onrender.com/dashboard", "https://wevsocial.com/#/discovery", "https://wevsocial.onrender.com/#/discovery", "http://localhost:5173/#/discovery", "http://localhost:5173/dashboard"]
+additional_redirect_urls = ["https://campus-tribe.onrender.com", "https://campus-tribe.onrender.com/dashboard", "https://campus.wevsocial.com", "https://campus.wevsocial.com/dashboard", "https://campus.wevsocial.com/register", "https://wevsocial.com/#/discovery", "https://wevsocial.onrender.com/#/discovery", "http://localhost:5173/#/discovery", "http://localhost:5173/dashboard"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to the local API URL (http://127.0.0.1:<port>/auth/v1).

@@ -116,7 +116,17 @@ const RegisterPage: React.FC = () => {
         },
       });
 
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        const msg = signUpError.message || '';
+        if (/already registered|already been registered|already exists/i.test(msg)) {
+          setError('This email is already registered. Please sign in instead.');
+          setSubmitting(false);
+          // Give user 2 seconds to read, then go to login
+          setTimeout(() => navigate(`/login?email=${encodeURIComponent(email)}`), 2000);
+          return;
+        }
+        throw signUpError;
+      }
       if (!signUpData.user) throw new Error('Could not create account. Please try again.');
 
       if (!signUpData.session) {

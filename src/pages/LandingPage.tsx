@@ -90,8 +90,8 @@ export default function LandingPage() {
               The all-in-one student engagement platform. Events, venues, clubs, sports, wellbeing: unified in one platform your students will actually use.
             </p>
             <div data-hero-copy className="flex flex-wrap gap-4">
-              <Link to="/demo" className="bg-primary text-on-primary font-headline font-bold px-8 py-4 rounded-full text-lg shadow-xl shadow-primary/30 hover:opacity-90 transition-all">Book a Demo</Link>
-              <button className="bg-surface-container-high text-on-surface font-headline font-bold px-8 py-4 rounded-full text-lg hover:bg-surface-container-highest transition-all">Explore Platform</button>
+              <Link to="/register" className="bg-primary text-on-primary font-headline font-bold px-8 py-4 rounded-full text-lg shadow-xl shadow-primary/30 hover:opacity-90 transition-all">Get Started Free</Link>
+              <Link to="/university" className="bg-surface-container-high text-on-surface font-headline font-bold px-8 py-4 rounded-full text-lg hover:bg-surface-container-highest transition-all">See Platform</Link>
             </div>
           </div>
 
@@ -154,6 +154,23 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Stats */}
+        <section className="bg-surface-container-low py-10 border-y border-outline-variant/10">
+          <div className="max-w-7xl mx-auto px-8 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            {[
+              { stat: '60%', label: 'feel lonely on campus' },
+              { stat: '7hrs+', label: 'daily social media use' },
+              { stat: '1 in 4', label: 'students dropout' },
+              { stat: '$16B', label: 'lost annually in disengagement' },
+            ].map(({ stat, label }) => (
+              <div key={stat}>
+                <p className="font-lexend font-extrabold text-3xl text-primary">{stat}</p>
+                <p className="text-on-surface-variant text-sm mt-1">{label}</p>
+              </div>
+            ))}
           </div>
         </section>
 

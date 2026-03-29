@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Eye, EyeOff, Mail } from 'lucide-react';
@@ -8,11 +8,12 @@ import { initializeGoogleButton } from '../lib/googleIdentity';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signIn, refreshProfile } = useAuth();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(searchParams.get('email') || '');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(searchParams.get('email') ? 'Account already exists — please sign in here.' : '');
   const [submitting, setSubmitting] = useState(false);
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
 

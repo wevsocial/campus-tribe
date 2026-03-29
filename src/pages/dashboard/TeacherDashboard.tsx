@@ -19,7 +19,9 @@ const QUESTION_TYPES = [
   { value: 'text', label: 'Text' },
   { value: 'single_choice', label: 'Single choice' },
   { value: 'multi_choice', label: 'Multi choice' },
-  { value: 'rating', label: 'Rating' },
+  { value: 'rating', label: 'Rating (1–5 ⭐)' },
+  { value: 'likert', label: 'Likert Scale' },
+  { value: 'nps', label: 'NPS (0–10)' },
   { value: 'yes_no', label: 'Yes / No' },
 ];
 
@@ -73,6 +75,7 @@ export default function TeacherDashboard() {
   const [surveyTitle, setSurveyTitle] = useState('');
   const [surveyDescription, setSurveyDescription] = useState('');
   const [surveyTargetRole, setSurveyTargetRole] = useState('student');
+  const [surveyAnonymous, setSurveyAnonymous] = useState(false);
   const [builderQuestions, setBuilderQuestions] = useState<SurveyQuestion[]>(BUILDER_DEFAULT);
   const [editingSurveyId, setEditingSurveyId] = useState('');
   const [selectedSurveyId, setSelectedSurveyId] = useState('');
@@ -104,7 +107,22 @@ export default function TeacherDashboard() {
     setSurveyTitle('');
     setSurveyDescription('');
     setSurveyTargetRole('student');
+    setSurveyAnonymous(false);
     setBuilderQuestions(BUILDER_DEFAULT);
+  };
+
+  const loadWellnessTemplate = () => {
+    setSurveyTitle('Campus Wellness Check');
+    setSurveyDescription('A quick 5-question wellness survey for our campus community.');
+    setSurveyAnonymous(true);
+    setBuilderQuestions([
+      { prompt: 'How would you rate your overall wellbeing this week?', question_type: 'rating', options: [], required: true, position: 0 },
+      { prompt: 'How often have you felt lonely on campus?', question_type: 'likert', options: [], required: true, position: 1 },
+      { prompt: 'How connected do you feel to your campus community?', question_type: 'likert', options: [], required: true, position: 2 },
+      { prompt: 'Rate your current stress level', question_type: 'rating', options: [], required: true, position: 3 },
+      { prompt: "Would you recommend Campus Tribe's wellness resources to a peer?", question_type: 'nps', options: [], required: true, position: 4 },
+    ]);
+    setFlash('Wellness template loaded! Edit as needed then publish.');
   };
 
   const loadSurveyIntoBuilder = (survey: Survey) => {
@@ -113,6 +131,7 @@ export default function TeacherDashboard() {
     setSurveyTitle(survey.title || '');
     setSurveyDescription(survey.description || '');
     setSurveyTargetRole(survey.target_roles?.[0] || 'student');
+    setSurveyAnonymous(!!(survey.anonymous || survey.is_anonymous));
     const questions = data.questions
       .filter((question: SurveyQuestion) => question.survey_id === survey.id)
       .sort((a: SurveyQuestion, b: SurveyQuestion) => a.position - b.position)
@@ -152,7 +171,7 @@ export default function TeacherDashboard() {
       return;
     }
 
-    const surveyPayload = { institution_id: institutionId, created_by: user.id, title: surveyTitle.trim(), description: surveyDescription || null, target_roles: [surveyTargetRole], status: publish ? 'published' : 'draft', is_active: publish, anonymous: false };
+    const surveyPayload = { institution_id: institutionId, created_by: user.id, title: surveyTitle.trim(), description: surveyDescription || null, target_roles: [surveyTargetRole], status: publish ? 'published' : 'draft', is_active: publish, anonymous: surveyAnonymous };
     const surveyResult = editingSurveyId
       ? await supabase.from('ct_surveys').update(surveyPayload).eq('id', editingSurveyId).select('*').single()
       : await supabase.from('ct_surveys').insert(surveyPayload).select('*').single();
@@ -213,6 +232,16 @@ export default function TeacherDashboard() {
     }
     if (question.question_type === 'multi_choice') {
       return <div className="space-y-2">{options.map((option) => { const current = Array.isArray(responseValues[key]) ? responseValues[key] : []; return <label key={option} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={current.includes(option)} onChange={(e) => setResponseValues((existing) => ({ ...existing, [key]: e.target.checked ? [...current, option] : current.filter((entry: string) => entry !== option) }))} /> {option}</label>; })}</div>;
+    }
+    if (question.question_type === 'likert') {
+      const likertOpts = ['Strongly Agree', 'Agree', 'Neutral', 'Disagree', 'Strongly Disagree'];
+      return <div className="flex flex-wrap gap-2">{likertOpts.map(opt => <button key={opt} onClick={() => setResponseValues(c => ({ ...c, [key]: opt }))} className={`px-3 py-1.5 rounded-full text-xs font-jakarta font-700 transition-all ${responseValues[key] === opt ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant hover:bg-primary-container'}`}>{opt}</button>)}</div>;
+    }
+    if (question.question_type === 'nps') {
+      return <div className="flex flex-wrap gap-1">{Array.from({ length: 11 }, (_, n) => <button key={n} onClick={() => setResponseValues(c => ({ ...c, [key]: n }))} className={`w-8 h-8 rounded-full text-xs font-jakarta font-700 transition-all ${responseValues[key] === n ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant hover:bg-primary-container'}`}>{n}</button>)}</div>;
+    }
+    if (question.question_type === 'rating') {
+      return <div className="flex gap-2">{[1,2,3,4,5].map(n => <button key={n} onClick={() => setResponseValues(c => ({ ...c, [key]: n }))} className={`text-2xl transition-all ${(responseValues[key] || 0) >= n ? 'opacity-100' : 'opacity-30'}`}>⭐</button>)}</div>;
     }
     return <input type="range" min="1" max="5" value={responseValues[key] || 3} onChange={(e) => setResponseValues((current) => ({ ...current, [key]: Number(e.target.value) }))} className="w-full" />;
   };
@@ -327,6 +356,11 @@ export default function TeacherDashboard() {
               <select value={surveyTargetRole} onChange={(e) => setSurveyTargetRole(e.target.value)} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm">
                 {['student', 'parent', 'teacher', 'all'].map((role) => <option key={role} value={role}>{role}</option>)}
               </select>
+              <label className="flex items-center gap-2 text-sm font-jakarta font-700 text-on-surface cursor-pointer">
+                <input type="checkbox" checked={surveyAnonymous} onChange={e => setSurveyAnonymous(e.target.checked)} className="rounded" />
+                Anonymous survey
+              </label>
+              <Button variant="outline" className="w-full rounded-full" onClick={loadWellnessTemplate}>🌿 Wellness Template</Button>
             </div>
           </Card>
         </div>

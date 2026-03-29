@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card } from '../../components/ui/Card';
 import { StatCard } from '../../components/ui/StatCard';
@@ -13,23 +14,33 @@ import { findVenueConflicts, normalizeRelation } from '../../lib/dashboardData';
 type BookingHistoryEntry = { id: string; booking_id: string; action: string; from_status: string | null; to_status: string | null; note: string | null; actor_id: string | null; created_at: string; metadata?: Record<string, any> | null };
 type Booking = { id: string; purpose: string | null; status: string; start_time: string; end_time: string; venue_id: string | null; notes: string | null; ct_venues?: { name: string | null; institution_id?: string | null } | null; history?: BookingHistoryEntry[] };
 type PlatformSetting = { id: string; category: string; provider: string; status: string; notes: string | null; config: any };
+type AdminSurvey = { id: string; title: string; description: string | null; status?: string | null; anonymous?: boolean | null };
+type SurveyQuestion = { id: string; survey_id: string; prompt: string; question_type: string; position: number; options?: string[] | null };
+type SurveyResponse = { id: string; survey_id: string; answers: Record<string, any> };
 
 export default function AdminDashboard() {
   const { user, institutionId } = useAuth();
   const { data, setData } = useDashboardData(async ({ institutionId, userId }) => {
-    const [institutionRes, membersRes, clubsRes, announcementsRes, settingsRes, venuesRes] = await Promise.all([
+    const [institutionRes, membersRes, clubsRes, announcementsRes, settingsRes, venuesRes, surveysRes] = await Promise.all([
       supabase.from('ct_institutions').select('*').eq('id', institutionId).maybeSingle(),
       supabase.from('ct_users').select('id, full_name, email, role').eq('institution_id', institutionId).order('created_at', { ascending: false }),
       supabase.from('ct_clubs').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }),
       supabase.from('ct_announcements').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }),
       supabase.from('ct_platform_settings').select('*').eq('institution_id', institutionId).order('updated_at', { ascending: false }),
       supabase.from('ct_venues').select('id').eq('institution_id', institutionId),
+      supabase.from('ct_surveys').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }),
     ]);
     const venueIds = (venuesRes.data ?? []).map((venue: any) => venue.id);
     const bookingsRes = venueIds.length
       ? await supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, ct_venues(name, institution_id)').in('venue_id', venueIds).order('created_at', { ascending: false }).limit(40)
       : { data: [] };
-    const bookingIds = (bookingsRes.data ?? []).map((booking: any) => booking.id);
+    const surveys = surveysRes.data ?? [];
+    const surveyIds = surveys.map((s: AdminSurvey) => s.id);
+    const [bookingIds, questionsRes, responsesRes] = await Promise.all([
+      Promise.resolve((bookingsRes.data ?? []).map((booking: any) => booking.id)),
+      surveyIds.length ? supabase.from('ct_survey_questions').select('*').in('survey_id', surveyIds).order('position') : Promise.resolve({ data: [] }),
+      surveyIds.length ? supabase.from('ct_survey_responses').select('id, survey_id, answers').in('survey_id', surveyIds) : Promise.resolve({ data: [] }),
+    ]);
     const historyRes = bookingIds.length
       ? await supabase.from('ct_venue_booking_history').select('*').in('booking_id', bookingIds).order('created_at', { ascending: false })
       : { data: [] };
@@ -45,9 +56,12 @@ export default function AdminDashboard() {
       bookings: (bookingsRes.data ?? [])
         .map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues), history: historyByBookingId[booking.id] ?? [] })),
       settings: settingsRes.data ?? [],
+      surveys,
+      surveyQuestions: questionsRes.data ?? [],
+      surveyResponses: responsesRes.data ?? [],
       userId,
     };
-  }, { institution: null, members: [], clubs: [], announcements: [], bookings: [], settings: [], userId: null } as any);
+  }, { institution: null, members: [], clubs: [], announcements: [], bookings: [], settings: [], surveys: [], surveyQuestions: [], surveyResponses: [], userId: null } as any);
 
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [clubName, setClubName] = useState('');
@@ -56,6 +70,7 @@ export default function AdminDashboard() {
   const [lmsNotes, setLmsNotes] = useState('');
   const [helcimStatus, setHelcimStatus] = useState('draft');
   const [helcimNotes, setHelcimNotes] = useState('');
+  const [selectedSurveyId, setSelectedSurveyId] = useState('');
 
   const createAnnouncement = async () => {
     if (!user?.id || !institutionId || !announcementTitle.trim()) return;

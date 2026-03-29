@@ -8,6 +8,12 @@ import { useAuth } from '../../context/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
 
+type SurveyQuestion = { id: string; survey_id: string; prompt: string; question_type: string; options?: string[] | null; required?: boolean; position: number };
+type ActiveSurvey = { id: string; title: string; description: string | null; anonymous?: boolean | null; is_anonymous?: boolean | null; status?: string | null };
+type SportsLeague = { id: string; name: string; sport?: string | null; format?: string | null; season?: string | null; status?: string | null };
+type SportsGame = { id: string; league_id: string | null; home_team_id?: string | null; away_team_id?: string | null; scheduled_at?: string | null; status?: string | null; home_score?: number | null; away_score?: number | null };
+type SportParticipant = { id: string; league_id: string | null; team_id?: string | null; is_free_agent?: boolean | null };
+
 const INTEREST_OPTIONS = [
   { id: 'sports', label: '⚽ Sports & Athletics', category: 'sports' },
   { id: 'music', label: '🎵 Music & Arts', category: 'arts' },
@@ -39,20 +45,34 @@ export default function StudentDashboard() {
   const [savingInterests, setSavingInterests] = useState(false);
   const [mood, setMood] = useState('3');
   const [flash, setFlash] = useState('');
+  const [surveyModal, setSurveyModal] = useState<ActiveSurvey | null>(null);
+  const [surveyAnswers, setSurveyAnswers] = useState<Record<string, any>>({});
+  const [surveySubmitted, setSurveySubmitted] = useState(false);
 
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
-    const [clubsRes, membershipsRes, eventsRes, rsvpsRes, wellbeingRes, userRes] = await Promise.all([
+    const [clubsRes, membershipsRes, eventsRes, rsvpsRes, wellbeingRes, userRes, leaguesRes, participantsRes, surveysRes] = await Promise.all([
       supabase.from('ct_clubs').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(20),
       supabase.from('ct_club_members').select('*').eq('user_id', userId),
       supabase.from('ct_events').select('*').eq('institution_id', institutionId).order('start_time', { ascending: true }).limit(15),
       supabase.from('ct_event_rsvps').select('*').eq('user_id', userId),
       supabase.from('ct_wellbeing_checks').select('*').eq('user_id', userId).order('date', { ascending: false }).limit(7),
       supabase.from('ct_users').select('interests, onboarding_complete').eq('id', userId).maybeSingle(),
+      supabase.from('ct_sports_leagues').select('*').eq('institution_id', institutionId).eq('status', 'active').order('created_at', { ascending: false }),
+      supabase.from('ct_sport_participants').select('*').eq('user_id', userId),
+      supabase.from('ct_surveys').select('*').eq('institution_id', institutionId).eq('status', 'published').order('created_at', { ascending: false }),
     ]);
 
     const userProfile = userRes.data;
     const needsOnboarding = !userProfile?.onboarding_complete && (!userProfile?.interests || (userProfile.interests as string[]).length === 0);
-
+    const leagues = leaguesRes.data ?? [];
+    const leagueIds = leagues.map((l: SportsLeague) => l.id);
+    const gamesRes = leagueIds.length
+      ? await supabase.from('ct_sports_games').select('*').in('league_id', leagueIds).gte('scheduled_at', new Date().toISOString()).order('scheduled_at', { ascending: true }).limit(20)
+      : { data: [] };
+    const surveyIds = (surveysRes.data ?? []).map((s: ActiveSurvey) => s.id);
+    const questionsRes = surveyIds.length
+      ? await supabase.from('ct_survey_questions').select('*').in('survey_id', surveyIds).order('position')
+      : { data: [] };
     return {
       clubs: clubsRes.data ?? [],
       memberships: membershipsRes.data ?? [],
@@ -61,8 +81,48 @@ export default function StudentDashboard() {
       wellbeing: wellbeingRes.data ?? [],
       userInterests: (userProfile?.interests as string[]) || [],
       needsOnboarding,
+      leagues,
+      participants: participantsRes.data ?? [],
+      upcomingGames: gamesRes.data ?? [],
+      activeSurveys: surveysRes.data ?? [],
+      surveyQuestions: questionsRes.data ?? [],
     };
-  }, { clubs: [], memberships: [], events: [], rsvps: [], wellbeing: [], userInterests: [], needsOnboarding: false } as any);
+  }, { clubs: [], memberships: [], events: [], rsvps: [], wellbeing: [], userInterests: [], needsOnboarding: false, leagues: [], participants: [], upcomingGames: [], activeSurveys: [], surveyQuestions: [] } as any);
+
+  const joinFreeAgent = async (leagueId: string) => {
+    if (!user?.id || !institutionId) return;
+    const already = data.participants.some((p: SportParticipant) => p.league_id === leagueId);
+    if (already) return;
+    const { data: participant } = await supabase
+      .from('ct_sport_participants')
+      .insert({ user_id: user.id, league_id: leagueId, institution_id: institutionId, is_free_agent: true })
+      .select('*').single();
+    if (participant) {
+      setData((c: any) => ({ ...c, participants: [...c.participants, participant] }));
+      setFlash('You joined as a free agent! A coach will assign you to a team.');
+      setTimeout(() => setFlash(''), 3000);
+    }
+  };
+
+  const openSurveyModal = (survey: ActiveSurvey) => {
+    setSurveyModal(survey);
+    setSurveyAnswers({});
+    setSurveySubmitted(false);
+  };
+
+  const submitSurveyResponse = async () => {
+    if (!surveyModal) return;
+    const isAnon = surveyModal.anonymous || surveyModal.is_anonymous;
+    const answers: Record<string, any> = {};
+    const questions = (data.surveyQuestions as SurveyQuestion[]).filter(q => q.survey_id === surveyModal.id);
+    questions.forEach(q => { answers[q.id] = surveyAnswers[q.id] ?? null; });
+    await supabase.from('ct_survey_responses').insert({
+      survey_id: surveyModal.id,
+      user_id: isAnon ? null : (user?.id ?? null),
+      answers,
+    });
+    setSurveySubmitted(true);
+  };
 
   // Show onboarding if needed
   React.useEffect(() => {
@@ -383,6 +443,145 @@ export default function StudentDashboard() {
             )}
           </Card>
         </div>
+        {/* Sports & Leagues */}
+        <div className="grid lg:grid-cols-2 gap-6">
+          <Card>
+            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">🏆 Sports & Leagues</h2>
+            {(data.leagues as SportsLeague[]).length === 0 ? (
+              <p className="text-sm text-on-surface-variant">No active leagues yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {(data.leagues as SportsLeague[]).map((league) => {
+                  const isParticipant = (data.participants as SportParticipant[]).some(p => p.league_id === league.id);
+                  return (
+                    <div key={league.id} className="rounded-[1rem] bg-surface p-4 flex items-center justify-between gap-4">
+                      <div>
+                        <p className="font-jakarta font-700 text-on-surface">{league.name}</p>
+                        <p className="text-sm text-on-surface-variant">{league.sport || 'Sport'} · {league.format || 'Round Robin'} · {league.season || ''}</p>
+                      </div>
+                      <Button onClick={() => joinFreeAgent(league.id)} disabled={isParticipant} className="rounded-full shrink-0" size="sm">
+                        {isParticipant ? '✓ Joined' : 'Join free agent'}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+          <Card>
+            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">📅 Upcoming Games</h2>
+            {(data.upcomingGames as SportsGame[]).length === 0 ? (
+              <p className="text-sm text-on-surface-variant">No upcoming games scheduled.</p>
+            ) : (
+              <div className="space-y-2">
+                {(data.upcomingGames as SportsGame[]).slice(0, 8).map((game) => (
+                  <div key={game.id} className="rounded-[1rem] bg-surface p-4 flex items-center justify-between gap-4">
+                    <div>
+                      <p className="font-jakarta font-700 text-on-surface text-sm">
+                        {game.scheduled_at ? new Date(game.scheduled_at).toLocaleDateString('en', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'TBD'}
+                      </p>
+                    </div>
+                    <Badge label={game.status || 'scheduled'} variant="secondary" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
+
+        {/* Active Surveys */}
+        <Card>
+          <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">📋 Active Surveys</h2>
+          {(data.activeSurveys as ActiveSurvey[]).length === 0 ? (
+            <p className="text-sm text-on-surface-variant">No active surveys right now. Check back later!</p>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {(data.activeSurveys as ActiveSurvey[]).map((survey) => (
+                <div key={survey.id} className="rounded-[1rem] bg-surface p-5 flex flex-col gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-jakarta font-700 text-on-surface">{survey.title}</p>
+                      {(survey.anonymous || survey.is_anonymous) && (
+                        <span className="text-xs bg-tertiary-container text-on-tert-cont px-2 py-0.5 rounded-full font-jakarta font-700">Anonymous</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-on-surface-variant">{survey.description || 'Share your thoughts.'}</p>
+                    <p className="text-xs text-on-surface-variant mt-1">⏱ Est. 2–3 min</p>
+                  </div>
+                  <Button onClick={() => openSurveyModal(survey)} className="rounded-full w-full" size="sm">Take Survey</Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        {/* Survey Modal */}
+        {surveyModal && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+            <div className="bg-surface-container-lowest rounded-[2rem] p-8 max-w-xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+              {surveySubmitted ? (
+                <div className="text-center py-8">
+                  <div className="text-5xl mb-4">🎉</div>
+                  <h3 className="font-lexend text-2xl font-800 text-on-surface">Thank you!</h3>
+                  <p className="text-on-surface-variant mt-2">Your response has been recorded.</p>
+                  <Button onClick={() => setSurveyModal(null)} className="mt-6 rounded-full">Close</Button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="font-lexend text-xl font-800 text-on-surface">{surveyModal.title}</h3>
+                      {surveyModal.description && <p className="text-sm text-on-surface-variant mt-1">{surveyModal.description}</p>}
+                    </div>
+                    <button onClick={() => setSurveyModal(null)} className="text-on-surface-variant hover:text-on-surface text-xl">✕</button>
+                  </div>
+                  <div className="space-y-4">
+                    {(data.surveyQuestions as SurveyQuestion[])
+                      .filter(q => q.survey_id === surveyModal.id)
+                      .sort((a, b) => a.position - b.position)
+                      .map((question, idx) => (
+                        <div key={question.id} className="rounded-[1rem] bg-surface p-4">
+                          <p className="font-jakarta font-700 text-on-surface mb-3">{idx + 1}. {question.prompt}</p>
+                          {question.question_type === 'text' && (
+                            <textarea value={surveyAnswers[question.id] || ''} onChange={e => setSurveyAnswers(c => ({ ...c, [question.id]: e.target.value }))} rows={3} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-3 text-sm" />
+                          )}
+                          {question.question_type === 'rating' && (
+                            <div className="flex gap-2">
+                              {[1,2,3,4,5].map(n => (
+                                <button key={n} onClick={() => setSurveyAnswers(c => ({ ...c, [question.id]: n }))} className={`text-2xl transition-all ${surveyAnswers[question.id] >= n ? 'opacity-100' : 'opacity-30'}`}>⭐</button>
+                              ))}
+                            </div>
+                          )}
+                          {question.question_type === 'likert' && (
+                            <div className="flex flex-wrap gap-2">
+                              {['Strongly Agree', 'Agree', 'Neutral', 'Disagree', 'Strongly Disagree'].map(opt => (
+                                <button key={opt} onClick={() => setSurveyAnswers(c => ({ ...c, [question.id]: opt }))} className={`px-3 py-1.5 rounded-full text-xs font-jakarta font-700 transition-all ${surveyAnswers[question.id] === opt ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant hover:bg-primary-container'}`}>{opt}</button>
+                              ))}
+                            </div>
+                          )}
+                          {question.question_type === 'nps' && (
+                            <div className="flex flex-wrap gap-1">
+                              {Array.from({ length: 11 }, (_, n) => (
+                                <button key={n} onClick={() => setSurveyAnswers(c => ({ ...c, [question.id]: n }))} className={`w-9 h-9 rounded-full text-sm font-jakarta font-700 transition-all ${surveyAnswers[question.id] === n ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant hover:bg-primary-container'}`}>{n}</button>
+                              ))}
+                            </div>
+                          )}
+                          {(question.question_type === 'single_choice' || question.question_type === 'yes_no') && (
+                            <div className="flex flex-wrap gap-2">
+                              {(question.question_type === 'yes_no' ? ['Yes', 'No'] : (question.options || [])).map(opt => (
+                                <button key={opt} onClick={() => setSurveyAnswers(c => ({ ...c, [question.id]: opt }))} className={`px-3 py-1.5 rounded-full text-xs font-jakarta font-700 transition-all ${surveyAnswers[question.id] === opt ? 'bg-primary text-white' : 'bg-surface-container text-on-surface-variant hover:bg-primary-container'}`}>{opt}</button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                  <Button onClick={submitSurveyResponse} className="w-full rounded-full mt-6">Submit Response</Button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
