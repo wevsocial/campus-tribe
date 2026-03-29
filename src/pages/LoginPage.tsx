@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Eye, EyeOff, Mail } from 'lucide-react';
 import { getRoleDashboardPath, useAuth } from '../context/AuthContext';
 import { initializeGoogleButton } from '../lib/googleIdentity';
+import { supabase } from '../lib/supabase';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -13,7 +14,9 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
 
   const demoHint = useMemo(() => 'Use your Campus Tribe credentials', []);
@@ -41,18 +44,47 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setSubmitting(true);
 
     const result = await signIn(email, password);
     if (!result.success) {
       setSubmitting(false);
-      setError(result.error || 'Login failed.');
+      const msg = result.error || 'Login failed.';
+      if (/email not confirmed/i.test(msg)) {
+        setError('Email not confirmed. Please confirm from inbox, or tap Resend confirmation email below.');
+      } else {
+        setError(msg);
+      }
       return;
     }
 
     const profile = await refreshProfile();
     setSubmitting(false);
     navigate(getRoleDashboardPath(profile?.role));
+  };
+
+  const resendConfirmation = async () => {
+    if (!email) {
+      setError('Enter your email first, then tap resend.');
+      return;
+    }
+    setResending(true);
+    setError('');
+    setSuccess('');
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+      });
+      if (resendError) throw resendError;
+      setSuccess(`Confirmation email re-sent to ${email}.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not resend confirmation email.');
+    } finally {
+      setResending(false);
+    }
   };
 
   return (
@@ -110,8 +142,18 @@ const LoginPage: React.FC = () => {
               </div>
             )}
 
+            {success && (
+              <div className="bg-emerald-50 text-emerald-700 text-sm px-4 py-3 rounded-2xl font-jakarta">
+                {success}
+              </div>
+            )}
+
             <Button type="submit" variant="primary" size="lg" isLoading={submitting} className="w-full rounded-full">
               Sign In
+            </Button>
+
+            <Button type="button" variant="outline" size="md" isLoading={resending} onClick={resendConfirmation} className="w-full rounded-full">
+              Resend confirmation email
             </Button>
           </form>
 

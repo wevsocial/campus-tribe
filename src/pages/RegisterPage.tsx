@@ -23,8 +23,10 @@ const RegisterPage: React.FC = () => {
   const [institutionName, setInstitutionName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [pendingConfirmEmail, setPendingConfirmEmail] = useState('');
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
 
   const roles = useMemo(() => PLATFORM_ROLES[platformType], [platformType]);
@@ -63,6 +65,7 @@ const RegisterPage: React.FC = () => {
     setSubmitting(true);
     setError('');
     setSuccess('');
+    setPendingConfirmEmail('');
 
     try {
       persistPendingSignup({
@@ -94,7 +97,8 @@ const RegisterPage: React.FC = () => {
       if (!signUpData.user) throw new Error('Could not create auth user.');
 
       if (!signUpData.session) {
-        setSuccess('Account created. Check your email to confirm your account, then sign in to finish setup.');
+        setPendingConfirmEmail(email);
+        setSuccess('Account created. We sent a confirmation email. Open it, click confirm, then sign in. If nothing arrives, use Resend confirmation below.');
         setSubmitting(false);
         return;
       }
@@ -105,6 +109,26 @@ const RegisterPage: React.FC = () => {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed.');
       setSubmitting(false);
+    }
+  };
+
+  const resendConfirmation = async () => {
+    if (!pendingConfirmEmail) return;
+    setResending(true);
+    setError('');
+    setSuccess('');
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: pendingConfirmEmail,
+        options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+      });
+      if (resendError) throw resendError;
+      setSuccess(`Confirmation email re-sent to ${pendingConfirmEmail}.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not resend confirmation email.');
+    } finally {
+      setResending(false);
     }
   };
 
@@ -179,6 +203,12 @@ const RegisterPage: React.FC = () => {
           <Button type="submit" isLoading={submitting} className="w-full rounded-full" size="lg">
             Create account
           </Button>
+
+          {pendingConfirmEmail && (
+            <Button type="button" variant="outline" isLoading={resending} onClick={resendConfirmation} className="w-full rounded-full" size="lg">
+              Resend confirmation email
+            </Button>
+          )}
         </form>
 
         <div className="mt-4 flex justify-center">

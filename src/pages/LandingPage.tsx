@@ -1,8 +1,14 @@
 import { Link } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import PublicNav from '../components/layout/PublicNav';
 import PublicFooter from '../components/layout/PublicFooter';
 
+gsap.registerPlugin(ScrollTrigger);
+
 export default function LandingPage() {
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const pillars = [
     { title: 'Smart Matching', icon: 'psychology', img: '/assets/campus-matching.jpg' },
     { title: 'Event Hub', icon: 'event', img: '/assets/campus-events.jpg' },
@@ -22,28 +28,68 @@ export default function LandingPage() {
   const pillarsDouble = [...pillars, ...pillars];
   const rolesDouble = [...roles, ...roles];
 
+  useEffect(() => {
+    if (!rootRef.current) return;
+
+    const ctx = gsap.context(() => {
+      gsap.from('[data-hero-copy]', {
+        y: 22,
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+        stagger: 0.12,
+      });
+
+      gsap.from('[data-fade-up]', {
+        scrollTrigger: {
+          trigger: '[data-fade-up]',
+          start: 'top 85%',
+        },
+        y: 28,
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+        stagger: 0.08,
+      });
+
+      gsap.to('[data-parallax-orb]', {
+        yPercent: -25,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '[data-hero-section]',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 0.8,
+        },
+      });
+    }, rootRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <div className="bg-surface text-on-surface font-body">
+    <div ref={rootRef} className="bg-surface text-on-surface font-body">
       <PublicNav />
       <main className="pt-24 overflow-hidden">
         {/* Hero */}
-        <section className="relative max-w-7xl mx-auto px-8 py-16 lg:py-24 grid lg:grid-cols-2 gap-16 items-center">
+        <section data-hero-section className="relative max-w-7xl mx-auto px-8 py-16 lg:py-24 grid lg:grid-cols-2 gap-16 items-center">
           <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-container text-secondary text-xs font-label uppercase tracking-widest font-bold">
+            <div data-parallax-orb className="pointer-events-none absolute -left-16 top-28 h-40 w-40 rounded-full bg-primary/10 blur-2xl" />
+            <div data-hero-copy className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-container text-secondary text-xs font-label uppercase tracking-widest font-bold">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span>
               </span>
               Campus Tribe Connect
             </div>
-            <h1 className="font-headline font-extrabold text-5xl lg:text-7xl leading-[1.05] tracking-tight text-on-surface">
+            <h1 data-hero-copy className="font-headline font-extrabold text-5xl lg:text-7xl leading-[1.05] tracking-tight text-on-surface">
               Where Campus <br />
               <span className="text-primary italic">Life Connects</span>
             </h1>
-            <p className="text-xl text-on-surface-variant max-w-lg leading-relaxed">
+            <p data-hero-copy className="text-xl text-on-surface-variant max-w-lg leading-relaxed">
               The all-in-one student engagement platform. Events, venues, clubs, sports, wellbeing: unified in one platform your students will actually use.
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div data-hero-copy className="flex flex-wrap gap-4">
               <Link to="/demo" className="bg-primary text-on-primary font-headline font-bold px-8 py-4 rounded-full text-lg shadow-xl shadow-primary/30 hover:opacity-90 transition-all">Book a Demo</Link>
               <button className="bg-surface-container-high text-on-surface font-headline font-bold px-8 py-4 rounded-full text-lg hover:bg-surface-container-highest transition-all">Explore Platform</button>
             </div>
@@ -118,7 +164,7 @@ export default function LandingPage() {
               <h2 className="font-headline font-extrabold text-4xl lg:text-5xl text-on-surface tracking-tight">Everything your campus needs</h2>
               <p className="text-on-surface-variant max-w-2xl mx-auto">Scalable solutions across all educational tiers, designed with precision and engagement in mind.</p>
             </div>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div data-fade-up className="grid md:grid-cols-3 gap-8">
               {[
                 { tier: 'University', color: 'text-secondary', border: 'hover:border-secondary/20', iconBg: 'bg-secondary-container text-secondary', icon: 'school', title: 'Higher Ed Hub', desc: 'Empowering adults with sophisticated networking, career alignment, and elite sports coordination.', features: ['Varsity Sports Engine', 'Alumni Career Network', 'Venue Booking API'], btn: 'University Access', btnClass: 'border border-secondary text-secondary hover:bg-secondary hover:text-white', to: '/' },
                 { tier: 'School', color: 'text-primary', border: 'hover:border-primary/20', iconBg: 'bg-primary-container text-on-primary-container', icon: 'history_edu', title: 'Secondary Suite', desc: 'Building community and focus during the most transformative years of a student\'s life.', features: ['Club & Society Manager', 'Wellbeing Pulse Checks', 'House Points Tracking'], btn: 'School Portal', btnClass: 'bg-primary text-white hover:opacity-90', to: '/school' },
@@ -152,7 +198,7 @@ export default function LandingPage() {
               Pillars of student engagement, <span className="text-primary italic">Unified.</span>
             </h2>
           </div>
-          <div className="overflow-hidden">
+          <div data-fade-up className="overflow-hidden">
             <div className="pillar-track-continuous">
               {pillarsDouble.map((p, i) => (
                 <div key={i} className="flex-shrink-0 w-72 mx-4 bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden border border-outline-variant/10">
@@ -175,7 +221,7 @@ export default function LandingPage() {
             <h2 className="font-headline font-extrabold text-4xl lg:text-5xl text-on-surface tracking-tight">Built for <span className="text-primary italic">Every Role</span></h2>
             <p className="text-on-surface-variant mt-4 max-w-2xl mx-auto">From students discovering their place to IT directors securing the ecosystem.</p>
           </div>
-          <div className="overflow-hidden">
+          <div data-fade-up className="overflow-hidden">
             <div className="role-track">
               {rolesDouble.map((r, i) => (
                 <div key={i} className="flex-shrink-0 w-80 mx-4 bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-outline-variant/10">
