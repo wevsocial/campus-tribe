@@ -19,8 +19,18 @@ function resolveInitialTheme() {
   }
 }
 
+// Apply theme class immediately to avoid FOUC
+const initialDark = resolveInitialTheme();
+if (initialDark) {
+  document.documentElement.classList.add('dark');
+  document.documentElement.style.colorScheme = 'dark';
+} else {
+  document.documentElement.classList.remove('dark');
+  document.documentElement.style.colorScheme = 'light';
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [dark, setDark] = useState(resolveInitialTheme);
+  const [dark, setDark] = useState(initialDark);
 
   useEffect(() => {
     const root = document.documentElement;
