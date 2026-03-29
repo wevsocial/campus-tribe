@@ -58,7 +58,7 @@ export default function ClubLeaderDashboard() {
       budgets: (budgetsRes.data ?? []) as Budget[],
       fundingRequests: (fundingRes.data ?? []) as FundingRequest[],
     };
-  }, { clubs: [], members: [], events: [], bookings: [], venues: [], venueBookings: [], budgets: [], fundingRequests: [] } as any);
+  }, { clubs: [], members: [], events: [], bookings: [], venues: [], venueBookings: [], budgets: [], fundingRequests: [] } as any, { requireInstitution: true });
 
   const [clubName, setClubName] = useState('');
   const [eventTitle, setEventTitle] = useState('');

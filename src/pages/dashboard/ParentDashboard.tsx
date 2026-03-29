@@ -39,7 +39,7 @@ export default function ParentDashboard() {
       surveys,
       questions: questionsRes.data ?? [],
     };
-  }, { children: [], reports: [], announcements: [], unlinkedChildren: [], parentUpdates: [], surveys: [], questions: [] } as any);
+  }, { children: [], reports: [], announcements: [], unlinkedChildren: [], parentUpdates: [], surveys: [], questions: [] } as any, { requireInstitution: true });
 
   const [childName, setChildName] = useState('');
   const [room, setRoom] = useState('');

@@ -67,7 +67,7 @@ export default function TeacherDashboard() {
       responses: responsesRes.data ?? [],
       publishedSurveys,
     };
-  }, { classes: [], assignments: [], surveys: [], announcements: [], questions: [], responses: [], publishedSurveys: [] } as any);
+  }, { classes: [], assignments: [], surveys: [], announcements: [], questions: [], responses: [], publishedSurveys: [] } as any, { requireInstitution: true });
 
   const [courseCode, setCourseCode] = useState('');
   const [courseName, setCourseName] = useState('');

@@ -59,7 +59,7 @@ export default function StudentDashboard() {
       supabase.from('ct_users').select('interests, onboarding_complete').eq('id', userId).maybeSingle(),
       supabase.from('ct_sports_leagues').select('*').eq('institution_id', institutionId).eq('status', 'active').order('created_at', { ascending: false }),
       supabase.from('ct_sport_participants').select('*').eq('user_id', userId),
-      supabase.from('ct_surveys').select('*').eq('institution_id', institutionId).eq('status', 'published').order('created_at', { ascending: false }),
+      supabase.from('ct_surveys').select('*').eq('institution_id', institutionId).eq('status', 'active').order('created_at', { ascending: false }),
     ]);
 
     const userProfile = userRes.data;
@@ -87,7 +87,7 @@ export default function StudentDashboard() {
       activeSurveys: surveysRes.data ?? [],
       surveyQuestions: questionsRes.data ?? [],
     };
-  }, { clubs: [], memberships: [], events: [], rsvps: [], wellbeing: [], userInterests: [], needsOnboarding: false, leagues: [], participants: [], upcomingGames: [], activeSurveys: [], surveyQuestions: [] } as any);
+  }, { clubs: [], memberships: [], events: [], rsvps: [], wellbeing: [], userInterests: [], needsOnboarding: false, leagues: [], participants: [], upcomingGames: [], activeSurveys: [], surveyQuestions: [] } as any, { requireInstitution: true });
 
   const joinFreeAgent = async (leagueId: string) => {
     if (!user?.id || !institutionId) return;

@@ -36,7 +36,7 @@ export default function StudentRepDashboard() {
       events: eventsRes.data ?? [],
       announcements: announcementsRes.data ?? [],
     };
-  }, { venues: [], bookings: [], institutionBookings: [], clubs: [], events: [], announcements: [] } as any);
+  }, { venues: [], bookings: [], institutionBookings: [], clubs: [], events: [], announcements: [] } as any, { requireInstitution: true });
 
   const [eventTitle, setEventTitle] = useState('');
   const [eventDate, setEventDate] = useState('');

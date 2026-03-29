@@ -31,7 +31,7 @@ export default function CoachDashboard() {
         ])
       : [{ data: [] }, { data: [] }];
     return { teams, games: gamesRes.data ?? [], training: trainingRes.data ?? [], athletes: athletesRes.data ?? [], users: usersRes.data ?? [] };
-  }, { teams: [], games: [], training: [], athletes: [], users: [] } as any);
+  }, { teams: [], games: [], training: [], athletes: [], users: [] } as any, { requireInstitution: true });
 
   const [teamName, setTeamName] = useState('');
   const [sport, setSport] = useState('');

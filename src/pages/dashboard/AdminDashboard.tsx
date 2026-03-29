@@ -61,7 +61,7 @@ export default function AdminDashboard() {
       surveyResponses: responsesRes.data ?? [],
       userId,
     };
-  }, { institution: null, members: [], clubs: [], announcements: [], bookings: [], settings: [], surveys: [], surveyQuestions: [], surveyResponses: [], userId: null } as any);
+  }, { institution: null, members: [], clubs: [], announcements: [], bookings: [], settings: [], surveys: [], surveyQuestions: [], surveyResponses: [], userId: null } as any, { requireInstitution: true });
 
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [clubName, setClubName] = useState('');

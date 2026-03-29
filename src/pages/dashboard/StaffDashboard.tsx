@@ -55,7 +55,7 @@ export default function StaffDashboard() {
       bookings: (bookingsRes.data ?? [])
         .map((booking: any) => ({ ...booking, ct_venues: normalizeRelation(booking.ct_venues) })),
     };
-  }, { children: [], reports: [], classes: [], announcements: [], parents: [], updates: [], bookings: [] } as any);
+  }, { children: [], reports: [], classes: [], announcements: [], parents: [], updates: [], bookings: [] } as any, { requireInstitution: true });
 
   const childOptions = useMemo(() => data.children, [data.children]);
 

@@ -51,7 +51,7 @@ export default function ITDashboard() {
       auditLogs: auditRes.data ?? [],
       announcements: announcementsRes.data ?? [],
     };
-  }, { users: [], apiKeys: [], auditLogs: [], announcements: [] } as any);
+  }, { users: [], apiKeys: [], auditLogs: [], announcements: [] } as any, { requireInstitution: true });
 
   const filteredUsers = useMemo(() => data.users.filter((entry: any) => {
     const haystack = `${entry.full_name || ''} ${entry.email || ''} ${entry.role || ''}`.toLowerCase();
