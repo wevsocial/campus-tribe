@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Button } from '../components/ui/Button';
-import { Eye, EyeOff, Mail, Lock, GraduationCap, School, Baby, Backpack, Vote, BookOpen, Award, Trophy, Monitor, UserCheck, Building2, Users, Check } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, GraduationCap, School, Baby, Backpack, Vote, BookOpen, Award, Trophy, Monitor, UserCheck, Building2, Users } from 'lucide-react';
 import { getRoleDashboardPath, useAuth } from '../context/AuthContext';
 import { initializeGoogleButton } from '../lib/googleIdentity';
 import { AnimatedIcon } from '../components/ui/AnimatedIcon';
+import { supabase } from '../lib/supabase';
 import type { LucideIcon } from 'lucide-react';
 
 const PLATFORM_CARDS: { icon: LucideIcon; label: string; desc: string; iconBg: string }[] = [
@@ -125,12 +125,26 @@ const LoginPage: React.FC = () => {
         }
         return;
       }
-      const profile = await refreshProfile();
-      const roles: string[] = profile?.roles?.length ? profile.roles : (profile?.role ? [profile.role] : []);
+      // Fetch profile directly from DB (bypasses any AuthContext timing issues)
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      let roles: string[] = [];
+      let primaryRole = 'student';
+      if (userId) {
+        const { data: profileRow } = await supabase
+          .from('ct_users')
+          .select('role, roles')
+          .eq('id', userId)
+          .maybeSingle();
+        if (profileRow) {
+          primaryRole = profileRow.role || 'student';
+          roles = profileRow.roles?.length ? profileRow.roles : [primaryRole];
+        }
+      }
       if (roles.length > 1) {
         setRoleSelectRoles(roles);
       } else {
-        navigate(getRoleDashboardPath(profile?.role));
+        navigate(getRoleDashboardPath(primaryRole));
       }
     } finally {
       setSubmitting(false);
