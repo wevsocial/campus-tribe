@@ -175,6 +175,18 @@ const LoginPage: React.FC = () => {
           roles = profileRow.roles?.length ? profileRow.roles : [primaryRole];
         }
       }
+      if (roles.length <= 1) {
+        // Fallback to AuthContext profile refresh in case direct query races with auth state
+        const refreshed = await refreshProfile();
+        const fallbackRoles: string[] = refreshed?.roles?.length ? refreshed.roles : (refreshed?.role ? [refreshed.role] : []);
+        if (fallbackRoles.length > 1) {
+          roles = fallbackRoles;
+          primaryRole = fallbackRoles[0];
+        } else if (refreshed?.role) {
+          primaryRole = refreshed.role;
+        }
+      }
+
       if (roles.length > 1) {
         setRoleSelectRoles(roles);
       } else {
