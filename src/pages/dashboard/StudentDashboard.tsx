@@ -7,7 +7,7 @@ import { Badge } from '../../components/ui/Badge';
 import { useAuth } from '../../context/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
-import { SmilePlus, Smile, Meh, Frown, Trophy, Calendar, Megaphone, ClipboardList, User, CheckCircle, BookOpen, Users, Dumbbell, Camera, Gamepad2, Rocket, Globe, Leaf, ChefHat, Mic2, GraduationCap, Star } from 'lucide-react';
+import { SmilePlus, Smile, Meh, Frown, Trophy, Calendar, Megaphone, ClipboardList, User, CheckCircle, BookOpen, Users, Dumbbell, Camera, Gamepad2, Rocket, Globe, Leaf, ChefHat, Mic2, GraduationCap, Star, Building2 } from 'lucide-react';
 
 type SurveyQuestion = { id: string; survey_id: string; prompt: string; question_type: string; options?: string[] | null; required?: boolean; position: number };
 type ActiveSurvey = { id: string; title: string; description: string | null; anonymous?: boolean | null; is_anonymous?: boolean | null; status?: string | null };
@@ -372,7 +372,7 @@ React.useEffect(() => {
             </div>
             {recommendedClubs.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-4xl mb-3">🏛️</p>
+                <Building2 size={40} className="mx-auto mb-3 text-on-surface-variant opacity-40" />
                 <p className="text-sm text-on-surface-variant">No clubs yet. Ask your admin to create some!</p>
               </div>
             ) : (

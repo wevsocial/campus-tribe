@@ -1,16 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
-import { Eye, EyeOff, Mail, Lock, GraduationCap, School, Baby } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, GraduationCap, School, Baby, Backpack, Vote, BookOpen, Award, Trophy, Monitor, UserCheck, Building2, Users, Check } from 'lucide-react';
 import { getRoleDashboardPath, useAuth } from '../context/AuthContext';
 import { initializeGoogleButton } from '../lib/googleIdentity';
 import { AnimatedIcon } from '../components/ui/AnimatedIcon';
 import type { LucideIcon } from 'lucide-react';
 
-const PLATFORM_CARDS: { icon: LucideIcon; label: string; desc: string }[] = [
-  { icon: GraduationCap, label: 'University', desc: 'Students, faculty, clubs, sports, surveys, venue booking' },
-  { icon: School,        label: 'School',     desc: 'Students, teachers, parents, clubs, events' },
-  { icon: Baby,          label: 'Preschool',  desc: 'Parents, teachers, staff, daily reports' },
+const PLATFORM_CARDS: { icon: LucideIcon; label: string; desc: string; iconBg: string }[] = [
+  { icon: GraduationCap, label: 'University', desc: 'Students, faculty, clubs, sports, surveys, venue booking', iconBg: 'bg-primary' },
+  { icon: School,        label: 'School',     desc: 'Students, teachers, parents, clubs, events', iconBg: 'bg-secondary' },
+  { icon: Baby,          label: 'Preschool',  desc: 'Parents, teachers, staff, daily reports', iconBg: 'bg-tertiary' },
 ];
 
 const ALL_ROLES = ['Student', 'Student Rep', 'Teacher', 'Club Leader', 'Coach', 'IT Director', 'Staff', 'Admin', 'Parent'];
@@ -21,28 +21,62 @@ const STATS = [
   { val: '4K+', label: 'Events/mo' },
 ];
 
-// Role selector overlay for multi-role users
+const ROLE_META: Record<string, { label: string; description: string; icon: LucideIcon }> = {
+  student: { label: 'Student', description: 'Classes, clubs and campus life', icon: Backpack },
+  student_rep: { label: 'Student Rep', description: 'Venues, announcements, events', icon: Vote },
+  teacher: { label: 'Teacher', description: 'Courses and student progress', icon: BookOpen },
+  club_leader: { label: 'Club Leader', description: 'Members, budget and activities', icon: Award },
+  coach: { label: 'Coach', description: 'Teams, leagues and schedules', icon: Trophy },
+  it_director: { label: 'IT Director', description: 'Platform security and integrations', icon: Monitor },
+  staff: { label: 'Staff', description: 'Operations and reports', icon: UserCheck },
+  admin: { label: 'Admin', description: 'Institution-wide management', icon: Building2 },
+  parent: { label: 'Parent', description: 'Track your child and updates', icon: Users },
+};
+
 function RoleSelector({ roles, onSelect }: { roles: string[]; onSelect: (role: string) => void }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [remember, setRemember] = useState(false);
+
+  const selectRole = (role: string) => {
+    if (remember) localStorage.setItem('ct.role-choice.' + today, role);
+    onSelect(role);
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-sm w-full space-y-6 shadow-2xl">
-        <div>
-          <h2 className="font-lexend font-black text-2xl text-gray-900 dark:text-white">Which role today?</h2>
-          <p className="text-sm text-gray-500 dark:text-slate-400 font-jakarta mt-1">You have multiple roles. Pick one to continue.</p>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+      <div className="w-full max-w-xl rounded-3xl bg-surface dark:bg-slate-900 p-8 shadow-2xl border border-primary/20">
+        <div className="mb-6">
+          <p className="font-lexend font-black text-primary text-xl">Campus Tribe</p>
+          <h2 className="font-lexend font-black text-2xl text-on-surface mt-2">Choose your role</h2>
+          <p className="text-sm text-on-surface-variant font-jakarta mt-1">Platform context: Multi-role account detected. Select one role for this session.</p>
         </div>
-        <div className="space-y-3">
-          {roles.map(role => (
-            <button
-              key={role}
-              onClick={() => onSelect(role)}
-              className="w-full flex items-center gap-3 p-4 rounded-2xl border-2 border-gray-200 dark:border-slate-700 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left"
-            >
-              <span className="font-jakarta font-bold text-gray-900 dark:text-white capitalize text-sm">
-                {role.replace('_', ' ')}
-              </span>
-            </button>
-          ))}
+        <div className="grid sm:grid-cols-2 gap-3">
+          {roles.map((role, idx) => {
+            const meta = ROLE_META[role] ?? { label: role.replace('_', ' '), description: 'Continue with this role', icon: Users };
+            const Icon = meta.icon;
+            const isPrimary = idx === 0;
+            return (
+              <button
+                key={role}
+                onClick={() => selectRole(role)}
+                className={`w-full text-left p-4 rounded-2xl border-2 transition-all hover:bg-primary-container/40 ${isPrimary ? 'border-primary bg-primary-container/30' : 'border-outline/40'}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center"><Icon size={18} /></div>
+                  <div className="min-w-0">
+                    <p className="font-jakarta font-bold text-on-surface text-sm">{meta.label}</p>
+                    <p className="text-xs text-on-surface-variant font-jakarta">{meta.description}</p>
+                    {isPrimary && <span className="inline-block mt-1 text-[11px] px-2 py-0.5 rounded-full bg-primary text-white">Primary role</span>}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
+        <label className="mt-5 flex items-center gap-2 text-sm font-jakarta text-on-surface-variant cursor-pointer">
+          <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="accent-primary" />
+          Remember this choice for today
+        </label>
       </div>
     </div>
   );
@@ -109,6 +143,15 @@ const LoginPage: React.FC = () => {
     navigate(getRoleDashboardPath(role));
   };
 
+  useEffect(() => {
+    if (!roleSelectRoles?.length) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const remembered = localStorage.getItem('ct.role-choice.' + today);
+    if (remembered && roleSelectRoles.includes(remembered)) {
+      handleRoleSelect(remembered);
+    }
+  }, [roleSelectRoles]);
+
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       {roleSelectRoles && <RoleSelector roles={roleSelectRoles} onSelect={handleRoleSelect} />}
@@ -116,7 +159,7 @@ const LoginPage: React.FC = () => {
       {/* Left: brand panel */}
       <div
         className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden"
-        style={{ background: 'linear-gradient(135deg, #0047AB 0%, #3A6FD0 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #0047AB 0%, #1a5fc9 60%)' }}
       >
         {/* Decorative orbs */}
         <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/3" />
@@ -139,7 +182,9 @@ const LoginPage: React.FC = () => {
           <div className="grid grid-cols-3 gap-3">
             {PLATFORM_CARDS.map((p) => (
               <div key={p.label} className="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/10">
-                <AnimatedIcon icon={p.icon} size={22} className="text-white" />
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${p.iconBg}`}>
+                  <AnimatedIcon icon={p.icon} size={18} className="text-white" />
+                </div>
                 <p className="font-lexend font-700 text-white text-sm mt-2">{p.label}</p>
                 <p className="text-white/60 text-xs mt-1 font-jakarta leading-relaxed">{p.desc}</p>
               </div>

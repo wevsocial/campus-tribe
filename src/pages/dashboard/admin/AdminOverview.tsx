@@ -5,7 +5,7 @@ import StatCard from '../../../components/ui/StatCard';
 import Card from '../../../components/ui/Card';
 import Badge from '../../../components/ui/Badge';
 import { StatSkeleton } from '../../../components/ui/LoadingSkeleton';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Building2, Calendar, MapPin, Trophy, BarChart2, Settings } from 'lucide-react';
 
 interface Stats {
   clubs: number; events: number; users: number; surveys: number;
@@ -139,15 +139,15 @@ export default function AdminOverview() {
         <h2 className="font-lexend font-bold text-primary text-lg mb-2">Admin Quick Links</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {[
-            { label: 'Approve Clubs', path: '/dashboard/admin/clubs', emoji: '🏛️' },
-            { label: 'Manage Events', path: '/dashboard/admin/events', emoji: 'calendar' },
-            { label: 'Venue Queue', path: '/dashboard/admin/venues', emoji: '🏟️' },
-            { label: 'Sports', path: '/dashboard/admin/sports', emoji: 'trophy' },
-            { label: 'Reports', path: '/dashboard/admin/reports', emoji: 'chart' },
-            { label: 'Settings', path: '/dashboard/admin/settings', emoji: 'settings' },
+            { label: 'Approve Clubs', path: '/dashboard/admin/clubs', Icon: Building2 },
+            { label: 'Manage Events', path: '/dashboard/admin/events', Icon: Calendar },
+            { label: 'Venue Queue', path: '/dashboard/admin/venues', Icon: MapPin },
+            { label: 'Sports', path: '/dashboard/admin/sports', Icon: Trophy },
+            { label: 'Reports', path: '/dashboard/admin/reports', Icon: BarChart2 },
+            { label: 'Settings', path: '/dashboard/admin/settings', Icon: Settings },
           ].map(link => (
             <a key={link.path} href={link.path} className="bg-surface-lowest rounded-xl p-4 flex items-center gap-3 hover:bg-white transition-colors group">
-              <span className="text-2xl">{link.emoji}</span>
+              <link.Icon size={18} className="text-primary flex-shrink-0" />
               <span className="font-jakarta font-bold text-sm text-on-surface group-hover:text-primary">{link.label}</span>
             </a>
           ))}

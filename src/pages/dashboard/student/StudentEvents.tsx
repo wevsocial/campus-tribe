@@ -48,7 +48,7 @@ export default function StudentEvents() {
       .insert({ event_id: eventId, user_id: user.id, status: 'going' });
     if (!error) {
       setMyRsvps(new Set([...myRsvps, eventId]));
-      showFlash('RSVP confirmed! You\'ll get a reminder before the event. 🎉');
+      showFlash('RSVP confirmed! You\'ll get a reminder before the event.');
     }
   };
 
