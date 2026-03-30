@@ -126,21 +126,24 @@ const LoginPage: React.FC = () => {
         return;
       }
       // Fetch profile directly from DB (bypasses any AuthContext timing issues)
+      await new Promise(resolve => setTimeout(resolve, 300));
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
       let roles: string[] = [];
       let primaryRole = 'student';
       if (userId) {
-        const { data: profileRow } = await supabase
+        const { data: profileRow, error: profileErr } = await supabase
           .from('ct_users')
           .select('role, roles')
           .eq('id', userId)
           .maybeSingle();
+        console.log('[Login] profile query:', profileRow, profileErr);
         if (profileRow) {
           primaryRole = profileRow.role || 'student';
           roles = profileRow.roles?.length ? profileRow.roles : [primaryRole];
         }
       }
+      console.log('[Login] userId:', userId, 'roles:', roles);
       if (roles.length > 1) {
         setRoleSelectRoles(roles);
       } else {
