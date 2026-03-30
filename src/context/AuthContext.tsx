@@ -9,6 +9,7 @@ export interface CampusProfile {
   email: string;
   full_name: string | null;
   role: CampusRole;
+  roles: CampusRole[] | null;
   institution_id: string | null;
   avatar_url?: string | null;
   bio?: string | null;
@@ -36,6 +37,7 @@ interface AuthContextValue {
   user: SupabaseUser | null;
   profile: CampusProfile | null;
   role: CampusRole | null;
+  roles: CampusRole[];
   institutionId: string | null;
   loading: boolean;
   isEmailVerified: boolean;
@@ -302,6 +304,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user,
       profile,
       role: profile?.role ?? null,
+      roles: profile?.roles?.length ? profile.roles : (profile?.role ? [profile.role] : []),
       institutionId: profile?.institution_id ?? null,
       loading,
       isEmailVerified: user?.email_confirmed_at != null,

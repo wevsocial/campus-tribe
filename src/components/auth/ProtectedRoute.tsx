@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { loading, session, user, profile, role, isEmailVerified } = useAuth();
+  const { loading, session, user, roles, role, isEmailVerified } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -23,24 +23,10 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
     return <Navigate to="/login" replace />;
   }
 
-  // Multi-role check: if user has roles[], any of those roles can access the route
-  const userRoles: string[] = (profile as any)?.roles?.length
-    ? (profile as any).roles
-    : role
-      ? [role]
-      : [];
-
-  if (allowedRoles && userRoles.length > 0) {
-    const hasAccess = allowedRoles.some(r => userRoles.includes(r));
+  if (allowedRoles && roles.length > 0) {
+    const hasAccess = allowedRoles.some(r => roles.includes(r as any));
     if (!hasAccess) {
-      // Check sessionStorage for chosen role this session
-      const sessionRole = sessionStorage.getItem('ct.session-role');
-      if (sessionRole && userRoles.includes(sessionRole) && allowedRoles.includes(sessionRole)) {
-        // Allow — session role has access
-      } else {
-        // Redirect to their primary role dashboard
-        return <Navigate to={getRoleDashboardPath(role)} replace />;
-      }
+      return <Navigate to={getRoleDashboardPath(role)} replace />;
     }
   }
 

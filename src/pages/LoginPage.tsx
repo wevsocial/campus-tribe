@@ -126,7 +126,7 @@ const LoginPage: React.FC = () => {
         return;
       }
       const profile = await refreshProfile();
-      const roles: string[] = (profile as any)?.roles ?? [];
+      const roles: string[] = profile?.roles?.length ? profile.roles : (profile?.role ? [profile.role] : []);
       if (roles.length > 1) {
         setRoleSelectRoles(roles);
       } else {
