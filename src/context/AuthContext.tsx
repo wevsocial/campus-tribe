@@ -83,7 +83,7 @@ export function getRoleDashboardPath(role?: string | null) {
     case 'student':
       return '/dashboard/student';
     case 'student_rep':
-      return '/dashboard/student-rep';
+      return '/dashboard/student';
     case 'teacher':
       return '/dashboard/teacher';
     case 'admin':
@@ -91,11 +91,11 @@ export function getRoleDashboardPath(role?: string | null) {
     case 'staff':
       return '/dashboard/staff';
     case 'club_leader':
-      return '/dashboard/club';
+      return '/dashboard/student';
     case 'coach':
       return '/dashboard/coach';
     case 'it_director':
-      return '/dashboard/it';
+      return '/dashboard/admin';
     case 'parent':
       return '/dashboard/parent';
     default:

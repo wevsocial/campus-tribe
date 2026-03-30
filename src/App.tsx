@@ -21,65 +21,24 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import { getRoleDashboardPath, useAuth } from './context/AuthContext';
 import DashboardShell from './components/layout/DashboardShell';
 
-// Admin
-import AdminOverview from './pages/dashboard/admin/AdminOverview';
-import AdminClubs from './pages/dashboard/admin/AdminClubs';
-import AdminEvents from './pages/dashboard/admin/AdminEvents';
-import AdminVenues from './pages/dashboard/admin/AdminVenues';
-import AdminSports from './pages/dashboard/admin/AdminSports';
-import AdminReports from './pages/dashboard/admin/AdminReports';
-import AdminSettings from './pages/dashboard/admin/AdminSettings';
+// New unified platforms
+import StudentPlatform from './pages/dashboard/StudentPlatform';
+import TeacherPlatform from './pages/dashboard/TeacherPlatform';
+import StaffPlatform from './pages/dashboard/StaffPlatform';
+import AdminITPlatform from './pages/dashboard/AdminITPlatform';
 
-// Student
-import StudentHome from './pages/dashboard/student/StudentHome';
-import StudentDiscover from './pages/dashboard/student/StudentDiscover';
-import StudentEvents from './pages/dashboard/student/StudentEvents';
-import StudentSports from './pages/dashboard/student/StudentSports';
-import StudentWellness from './pages/dashboard/student/StudentWellness';
-import StudentSurveys from './pages/dashboard/student/StudentSurveys';
-
-// IT
-import ITOverview from './pages/dashboard/it/ITOverview';
-import ITUsers from './pages/dashboard/it/ITUsers';
-import ITApiKeys from './pages/dashboard/it/ITApiKeys';
-import ITAudit from './pages/dashboard/it/ITAudit';
-import ITIntegrations from './pages/dashboard/it/ITIntegrations';
-import ITSettings from './pages/dashboard/it/ITSettings';
-
-// Coach
+// Coach (existing)
 import CoachOverview from './pages/dashboard/coach/CoachOverview';
 import CoachLeagues from './pages/dashboard/coach/CoachLeagues';
 import CoachTeams from './pages/dashboard/coach/CoachTeams';
 import CoachSchedule from './pages/dashboard/coach/CoachSchedule';
 import CoachAthletes from './pages/dashboard/coach/CoachAthletes';
 
-// Teacher
-import TeacherOverview from './pages/dashboard/teacher/TeacherOverview';
-import TeacherCourses from './pages/dashboard/teacher/TeacherCourses';
-import TeacherSurveys from './pages/dashboard/teacher/TeacherSurveys';
-
-// Club Leader
-import ClubLeaderOverview from './pages/dashboard/club/ClubLeaderOverview';
-import ClubLeaderMembers from './pages/dashboard/club/ClubLeaderMembers';
-import ClubLeaderEvents from './pages/dashboard/club/ClubLeaderEvents';
-import ClubLeaderBudget from './pages/dashboard/club/ClubLeaderBudget';
-
-// Student Rep
-import StudentRepOverview from './pages/dashboard/student-rep/StudentRepOverview';
-import StudentRepVenues from './pages/dashboard/student-rep/StudentRepVenues';
-import StudentRepEvents from './pages/dashboard/student-rep/StudentRepEvents';
-import StudentRepAnnouncements from './pages/dashboard/student-rep/StudentRepAnnouncements';
-
-// Parent
+// Parent (existing)
 import ParentOverview from './pages/dashboard/parent/ParentOverview';
 import ParentChildren from './pages/dashboard/parent/ParentChildren';
 import ParentReports from './pages/dashboard/parent/ParentReports';
 import ParentMessages from './pages/dashboard/parent/ParentMessages';
-
-// Staff
-import StaffOverview from './pages/dashboard/staff/StaffOverview';
-import StaffReports from './pages/dashboard/staff/StaffReports';
-import StaffUpdates from './pages/dashboard/staff/StaffUpdates';
 
 function DashboardRedirect() {
   const { role, session } = useAuth();
@@ -112,39 +71,20 @@ export default function App() {
         {/* Dashboard root */}
         <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />
 
-        {/* Admin */}
-        <Route path="/dashboard/admin" element={<ProtectedRoute allowedRoles={['admin']}><DashboardShell role="admin" /></ProtectedRoute>}>
-          <Route index element={<Navigate to="overview" replace />} />
-          <Route path="overview" element={<AdminOverview />} />
-          <Route path="clubs" element={<AdminClubs />} />
-          <Route path="events" element={<AdminEvents />} />
-          <Route path="venues" element={<AdminVenues />} />
-          <Route path="sports" element={<AdminSports />} />
-          <Route path="reports" element={<AdminReports />} />
-          <Route path="settings" element={<AdminSettings />} />
-        </Route>
+        {/* Student Platform (unified: student + student_rep + club_leader) */}
+        <Route path="/dashboard/student" element={<ProtectedRoute allowedRoles={['student', 'student_rep', 'club_leader']}><StudentPlatform /></ProtectedRoute>} />
+        <Route path="/dashboard/student-rep" element={<Navigate to="/dashboard/student" replace />} />
+        <Route path="/dashboard/club" element={<Navigate to="/dashboard/student" replace />} />
 
-        {/* Student */}
-        <Route path="/dashboard/student" element={<ProtectedRoute allowedRoles={['student']}><DashboardShell role="student" /></ProtectedRoute>}>
-          <Route index element={<Navigate to="home" replace />} />
-          <Route path="home" element={<StudentHome />} />
-          <Route path="discover" element={<StudentDiscover />} />
-          <Route path="events" element={<StudentEvents />} />
-          <Route path="sports" element={<StudentSports />} />
-          <Route path="wellness" element={<StudentWellness />} />
-          <Route path="surveys" element={<StudentSurveys />} />
-        </Route>
+        {/* Teacher Platform */}
+        <Route path="/dashboard/teacher" element={<ProtectedRoute allowedRoles={['teacher']}><TeacherPlatform /></ProtectedRoute>} />
 
-        {/* IT Director */}
-        <Route path="/dashboard/it" element={<ProtectedRoute allowedRoles={['it_director']}><DashboardShell role="it_director" /></ProtectedRoute>}>
-          <Route index element={<Navigate to="overview" replace />} />
-          <Route path="overview" element={<ITOverview />} />
-          <Route path="users" element={<ITUsers />} />
-          <Route path="api-keys" element={<ITApiKeys />} />
-          <Route path="audit" element={<ITAudit />} />
-          <Route path="integrations" element={<ITIntegrations />} />
-          <Route path="settings" element={<ITSettings />} />
-        </Route>
+        {/* Staff Platform */}
+        <Route path="/dashboard/staff" element={<ProtectedRoute allowedRoles={['staff']}><StaffPlatform /></ProtectedRoute>} />
+
+        {/* Admin + IT Director Platform (unified) */}
+        <Route path="/dashboard/admin" element={<ProtectedRoute allowedRoles={['admin', 'it_director']}><AdminITPlatform /></ProtectedRoute>} />
+        <Route path="/dashboard/it" element={<Navigate to="/dashboard/admin" replace />} />
 
         {/* Coach */}
         <Route path="/dashboard/coach" element={<ProtectedRoute allowedRoles={['coach']}><DashboardShell role="coach" /></ProtectedRoute>}>
@@ -156,32 +96,6 @@ export default function App() {
           <Route path="athletes" element={<CoachAthletes />} />
         </Route>
 
-        {/* Teacher */}
-        <Route path="/dashboard/teacher" element={<ProtectedRoute allowedRoles={['teacher']}><DashboardShell role="teacher" /></ProtectedRoute>}>
-          <Route index element={<Navigate to="overview" replace />} />
-          <Route path="overview" element={<TeacherOverview />} />
-          <Route path="courses" element={<TeacherCourses />} />
-          <Route path="surveys" element={<TeacherSurveys />} />
-        </Route>
-
-        {/* Club Leader */}
-        <Route path="/dashboard/club" element={<ProtectedRoute allowedRoles={['club_leader']}><DashboardShell role="club_leader" /></ProtectedRoute>}>
-          <Route index element={<Navigate to="overview" replace />} />
-          <Route path="overview" element={<ClubLeaderOverview />} />
-          <Route path="members" element={<ClubLeaderMembers />} />
-          <Route path="events" element={<ClubLeaderEvents />} />
-          <Route path="budget" element={<ClubLeaderBudget />} />
-        </Route>
-
-        {/* Student Rep */}
-        <Route path="/dashboard/student-rep" element={<ProtectedRoute allowedRoles={['student_rep']}><DashboardShell role="student_rep" /></ProtectedRoute>}>
-          <Route index element={<Navigate to="overview" replace />} />
-          <Route path="overview" element={<StudentRepOverview />} />
-          <Route path="venues" element={<StudentRepVenues />} />
-          <Route path="events" element={<StudentRepEvents />} />
-          <Route path="announcements" element={<StudentRepAnnouncements />} />
-        </Route>
-
         {/* Parent */}
         <Route path="/dashboard/parent" element={<ProtectedRoute allowedRoles={['parent']}><DashboardShell role="parent" /></ProtectedRoute>}>
           <Route index element={<Navigate to="overview" replace />} />
@@ -189,14 +103,6 @@ export default function App() {
           <Route path="children" element={<ParentChildren />} />
           <Route path="reports" element={<ParentReports />} />
           <Route path="messages" element={<ParentMessages />} />
-        </Route>
-
-        {/* Staff */}
-        <Route path="/dashboard/staff" element={<ProtectedRoute allowedRoles={['staff']}><DashboardShell role="staff" /></ProtectedRoute>}>
-          <Route index element={<Navigate to="overview" replace />} />
-          <Route path="overview" element={<StaffOverview />} />
-          <Route path="reports" element={<StaffReports />} />
-          <Route path="updates" element={<StaffUpdates />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
