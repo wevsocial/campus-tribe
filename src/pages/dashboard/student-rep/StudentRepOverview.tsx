@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { supabase } from '../../../lib/supabase';
 import StatCard from '../../../components/ui/StatCard';
+import { MapPin, Calendar, Megaphone } from 'lucide-react';
 import { StatSkeleton } from '../../../components/ui/LoadingSkeleton';
 
 export default function StudentRepOverview() {
@@ -33,12 +34,12 @@ export default function StudentRepOverview() {
       </div>
       <div className="grid grid-cols-2 gap-4">
         {[
-          { label: 'Book Venue', href: '/dashboard/student-rep/venues', emoji: '🏟️' },
-          { label: 'Create Event', href: '/dashboard/student-rep/events', emoji: 'calendar' },
-          { label: 'Announce', href: '/dashboard/student-rep/announcements', emoji: '📢' },
+          { label: 'Book Venue', href: '/dashboard/student-rep/venues', Icon: MapPin },
+          { label: 'Create Event', href: '/dashboard/student-rep/events', Icon: Calendar },
+          { label: 'Announce', href: '/dashboard/student-rep/announcements', Icon: Megaphone },
         ].map(l => (
           <a key={l.href} href={l.href} className="bg-surface-lowest rounded-xl p-4 flex items-center gap-3 hover:bg-primary-container transition-colors group">
-            <span className="text-2xl">{l.emoji}</span>
+            <l.Icon size={18} className="text-primary flex-shrink-0" />
             <span className="font-jakarta font-bold text-sm text-on-surface group-hover:text-primary">{l.label}</span>
           </a>
         ))}

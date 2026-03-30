@@ -2,6 +2,7 @@ import React from 'react';
 import Card from '../../../components/ui/Card';
 import EmptyState from '../../../components/ui/EmptyState';
 
+import { Baby, LayoutList, MessageSquare } from 'lucide-react';
 export default function ParentOverview() {
   return (
     <div className="space-y-6">
@@ -12,12 +13,12 @@ export default function ParentOverview() {
       </Card>
       <div className="grid grid-cols-2 gap-4">
         {[
-          { label: 'My Children', href: '/dashboard/parent/children', emoji: '👶' },
-          { label: 'Reports', href: '/dashboard/parent/reports', emoji: 'list' },
-          { label: 'Messages', href: '/dashboard/parent/messages', emoji: 'message' },
+          { label: 'My Children', href: '/dashboard/parent/children', Icon: Baby },
+          { label: 'Reports', href: '/dashboard/parent/reports', Icon: LayoutList },
+          { label: 'Messages', href: '/dashboard/parent/messages', Icon: MessageSquare },
         ].map(l => (
           <a key={l.href} href={l.href} className="bg-surface-lowest rounded-xl p-4 flex items-center gap-3 hover:bg-primary-container transition-colors group">
-            <span className="text-2xl">{l.emoji}</span>
+            <l.Icon size={18} className="text-primary flex-shrink-0" />
             <span className="font-jakarta font-bold text-sm text-on-surface group-hover:text-primary">{l.label}</span>
           </a>
         ))}

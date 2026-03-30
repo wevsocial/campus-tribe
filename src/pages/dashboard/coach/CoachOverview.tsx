@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { supabase } from '../../../lib/supabase';
 import StatCard from '../../../components/ui/StatCard';
+import { Trophy, Users, Calendar, Dumbbell } from 'lucide-react';
 import { StatSkeleton } from '../../../components/ui/LoadingSkeleton';
 
 export default function CoachOverview() {
@@ -35,13 +36,13 @@ export default function CoachOverview() {
       </div>
       <div className="grid grid-cols-2 gap-4">
         {[
-          { label: 'Manage Leagues', href: '/dashboard/coach/leagues', emoji: 'trophy' },
-          { label: 'Manage Teams', href: '/dashboard/coach/teams', emoji: '👥' },
-          { label: 'Schedule & Scores', href: '/dashboard/coach/schedule', emoji: 'calendar' },
-          { label: 'Athletes', href: '/dashboard/coach/athletes', emoji: 'run' },
+          { label: 'Manage Leagues', href: '/dashboard/coach/leagues', Icon: Trophy },
+          { label: 'Manage Teams', href: '/dashboard/coach/teams', Icon: Users },
+          { label: 'Schedule & Scores', href: '/dashboard/coach/schedule', Icon: Calendar },
+          { label: 'Athletes', href: '/dashboard/coach/athletes', Icon: Dumbbell },
         ].map(l => (
           <a key={l.href} href={l.href} className="bg-surface-lowest rounded-xl p-4 flex items-center gap-3 hover:bg-primary-container transition-colors group">
-            <span className="text-2xl">{l.emoji}</span>
+            <l.Icon size={18} className="text-primary flex-shrink-0" />
             <span className="font-jakarta font-bold text-sm text-on-surface group-hover:text-primary">{l.label}</span>
           </a>
         ))}
