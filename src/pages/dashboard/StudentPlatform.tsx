@@ -46,6 +46,10 @@ export default function StudentPlatform() {
   const roleLabel = isLeader ? 'Club Leader' : isRep ? 'Student Rep' : 'Student';
 
   const handleSignOut = async () => { await signOut(); navigate('/login'); };
+  const switchRole = () => {
+    sessionStorage.removeItem('ct.session-role');
+    navigate('/login?multiRole=1');
+  };
 
   const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
     <aside className={`${mobile ? 'w-64 flex flex-col h-full' : 'hidden lg:flex flex-col w-64 fixed top-0 left-0 h-full z-30'} bg-surface-lowest shadow-float`}>
@@ -85,6 +89,11 @@ export default function StudentPlatform() {
             <p className="text-xs text-on-surface-variant truncate">{user?.email}</p>
           </div>
         </div>
+        {roles.length > 1 && (
+          <button onClick={switchRole} className="mt-2 w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-jakarta text-on-surface-variant hover:bg-secondary-container hover:text-secondary transition-colors">
+            <ChevronRight size={18} /> Switch role
+          </button>
+        )}
         <button onClick={handleSignOut} className="mt-2 w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-jakarta text-on-surface-variant hover:bg-red-50 hover:text-red-600 transition-colors">
           <LogOut size={18} /> Sign out
         </button>

@@ -163,6 +163,7 @@ function UsersSection({ institutionId, currentUserId }: { institutionId: string 
   const [search, setSearch] = useState('');
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [newRole, setNewRole] = useState('student');
+  const [selectedRoles, setSelectedRoles] = useState<string[]>(['student']);
 
   const load = async () => {
     if (!institutionId) return;
@@ -173,12 +174,18 @@ function UsersSection({ institutionId, currentUserId }: { institutionId: string 
   useEffect(() => { load(); }, [institutionId]);
 
   const updateRole = async (userId: string) => {
-    await supabase.from('ct_users').update({ role: newRole }).eq('id', userId);
+    const rolesToSave = selectedRoles.length ? selectedRoles : [newRole];
+    const primaryRole = rolesToSave[0] || newRole;
+    await supabase.from('ct_users').update({ role: primaryRole, roles: rolesToSave }).eq('id', userId);
     if (userId && institutionId) {
-      await sendNotification(userId, institutionId, 'Role Updated', `Your role has been updated to ${newRole}`, 'info');
+      await sendNotification(userId, institutionId, 'Role Access Updated', `Your access roles are now: ${rolesToSave.join(', ')}`, 'info');
     }
     setEditingUser(null);
     load();
+  };
+
+  const toggleRole = (role: string) => {
+    setSelectedRoles(prev => prev.includes(role) ? prev.filter(r => r !== role) : [...prev, role]);
   };
 
   const toggleActive = async (userId: string, current: boolean | null) => {
@@ -210,19 +217,30 @@ function UsersSection({ institutionId, currentUserId }: { institutionId: string 
                 {u.is_active === false && <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600 font-jakarta">Inactive</span>}
                 {u.id !== currentUserId && (
                   <div className="flex gap-1">
-                    <button onClick={() => { setEditingUser(u.id); setNewRole(u.role); }} className="px-2 py-1 rounded-lg bg-surface-low text-on-surface-variant text-xs font-jakarta hover:bg-outline/20">Edit Role</button>
+                    <button onClick={() => { setEditingUser(u.id); setNewRole(u.role); setSelectedRoles(u.roles?.length ? u.roles : [u.role]); }} className="px-2 py-1 rounded-lg bg-surface-low text-on-surface-variant text-xs font-jakarta hover:bg-outline/20">Edit Roles</button>
                     <button onClick={() => toggleActive(u.id, u.is_active)} className="px-2 py-1 rounded-lg bg-surface-low text-on-surface-variant text-xs font-jakarta hover:bg-outline/20">{u.is_active === false ? 'Activate' : 'Deactivate'}</button>
                   </div>
                 )}
               </div>
             </div>
             {editingUser === u.id && (
-              <div className="mt-3 flex items-center gap-2 pl-11">
+              <div className="mt-3 pl-11 space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  {ROLES.map(r => (
+                    <label key={r} className={`px-2 py-1 rounded-lg border text-xs font-jakarta cursor-pointer ${selectedRoles.includes(r) ? 'bg-primary-container border-primary text-primary' : 'bg-surface border-outline-variant text-on-surface-variant'}`}>
+                      <input type="checkbox" className="hidden" checked={selectedRoles.includes(r)} onChange={() => toggleRole(r)} />
+                      {r}
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-on-surface-variant font-jakarta">Primary role (dashboard default)</p>
                 <select className="border border-outline-variant rounded-lg px-3 py-1.5 font-jakarta text-sm bg-surface" value={newRole} onChange={e => setNewRole(e.target.value)}>
-                  {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                  {selectedRoles.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
-                <button onClick={() => updateRole(u.id)} className="px-3 py-1.5 rounded-lg bg-secondary text-white text-xs font-jakarta font-700">Save</button>
-                <button onClick={() => setEditingUser(null)} className="px-3 py-1.5 rounded-lg bg-surface-low text-on-surface-variant text-xs font-jakarta">Cancel</button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => updateRole(u.id)} className="px-3 py-1.5 rounded-lg bg-secondary text-white text-xs font-jakarta font-700">Save</button>
+                  <button onClick={() => setEditingUser(null)} className="px-3 py-1.5 rounded-lg bg-surface-low text-on-surface-variant text-xs font-jakarta">Cancel</button>
+                </div>
               </div>
             )}
           </div>

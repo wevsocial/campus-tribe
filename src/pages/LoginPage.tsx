@@ -107,8 +107,23 @@ const LoginPage: React.FC = () => {
       } finally {
         sessionStorage.removeItem('ct.pending-role-select');
       }
+      return;
     }
-  }, []);
+
+    // Switch-role mode from dashboard
+    if (searchParams.get('multiRole') === '1') {
+      supabase.auth.getSession().then(async ({ data: { session } }) => {
+        if (!session?.user?.id) return;
+        const { data: profileRow } = await supabase
+          .from('ct_users')
+          .select('role, roles')
+          .eq('id', session.user.id)
+          .maybeSingle();
+        const nextRoles: string[] = profileRow?.roles?.length ? profileRow.roles : (profileRow?.role ? [profileRow.role] : []);
+        if (nextRoles.length > 1) setRoleSelectRoles(nextRoles);
+      });
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!googleButtonRef.current) return;
@@ -150,18 +165,16 @@ const LoginPage: React.FC = () => {
       let roles: string[] = [];
       let primaryRole = 'student';
       if (userId) {
-        const { data: profileRow, error: profileErr } = await supabase
+        const { data: profileRow } = await supabase
           .from('ct_users')
           .select('role, roles')
           .eq('id', userId)
           .maybeSingle();
-        console.log('[Login] profile query:', profileRow, profileErr);
         if (profileRow) {
           primaryRole = profileRow.role || 'student';
           roles = profileRow.roles?.length ? profileRow.roles : [primaryRole];
         }
       }
-      console.log('[Login] userId:', userId, 'roles:', roles);
       if (roles.length > 1) {
         setRoleSelectRoles(roles);
       } else {
@@ -178,13 +191,10 @@ const LoginPage: React.FC = () => {
     navigate(getRoleDashboardPath(role));
   };
 
+  // Intentionally do not auto-apply remembered role here.
+  // Users with multi-role access should explicitly choose a role at sign-in.
   useEffect(() => {
     if (!roleSelectRoles?.length) return;
-    const today = new Date().toISOString().slice(0, 10);
-    const remembered = localStorage.getItem('ct.role-choice.' + today);
-    if (remembered && roleSelectRoles.includes(remembered)) {
-      handleRoleSelect(remembered);
-    }
   }, [roleSelectRoles]);
 
   return (

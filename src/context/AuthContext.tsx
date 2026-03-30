@@ -158,8 +158,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const metadata = authUser.user_metadata || {};
     const pending = readPendingSignup();
-    const signupData = (pending?.email?.toLowerCase() === authUser.email?.toLowerCase()
-      ? pending
+    const canUsePending = !!pending && (
+      !pending.email || pending.email.toLowerCase() === authUser.email?.toLowerCase()
+    );
+
+    const signupData = (canUsePending
+      ? {
+          ...pending,
+          email: authUser.email || pending?.email || '',
+        }
       : {
           email: authUser.email || '',
           full_name: metadata.full_name || metadata.name || authUser.email || 'Campus User',
@@ -226,6 +233,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email: signupData.email,
       full_name: signupData.full_name,
       role: signupData.role,
+      roles: [signupData.role],
       institution_id: institutionId,
       platform_type: institutionType,
       institution_type: institutionType,
