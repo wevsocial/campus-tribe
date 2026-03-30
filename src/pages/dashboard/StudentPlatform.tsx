@@ -350,9 +350,9 @@ function VenueSection({ institutionId }: { institutionId: string | null }) {
     if (!form.date || !user) return;
     setSaving(true);
     await supabase.from('ct_venue_bookings').insert({
-      venue_id: venueId, institution_id: institutionId,
-      booked_by: user.id, booking_date: form.date,
-      start_time: form.start_time, end_time: form.end_time,
+      venue_id: venueId,
+      booked_by: user.id, start_time: form.date + 'T' + form.start_time,
+      end_time: form.date + 'T' + form.end_time,
       purpose: form.purpose, status: 'pending'
     });
     setBooking(null);
@@ -462,14 +462,24 @@ function AnnouncementsSection({ institutionId, canCreate }: { institutionId: str
 
 // ─── Budget Section ───────────────────────────────────────────────────────────
 function BudgetSection({ institutionId }: { institutionId: string | null }) {
-  const [transactions, setTransactions] = useState<Array<{ id: string; description: string; amount: number; transaction_type: string; created_at: string }>>([]);
+  const [transactions, setTransactions] = useState<Array<{ id: string; description: string; amount: number; category: string | null; created_at: string }>>([]);
   const [form, setForm] = useState({ description: '', amount: '', transaction_type: 'expense' });
   const [saving, setSaving] = useState(false);
-  const { user } = useAuth();
+  const [budgetId, setBudgetId] = useState<string | null>(null);
+
+  const ensureBudget = async () => {
+    if (!institutionId) return null;
+    const { data: existing } = await supabase.from('ct_budgets').select('id').eq('institution_id', institutionId).limit(1).maybeSingle();
+    if (existing?.id) return existing.id;
+    const { data: created } = await supabase.from('ct_budgets').insert({ institution_id: institutionId, fiscal_year: new Date().getFullYear(), total_allocated: 0, total_spent: 0 }).select('id').single();
+    return created?.id ?? null;
+  };
 
   const load = async () => {
-    if (!institutionId) return;
-    const { data } = await supabase.from('ct_club_budgets').select('id,description,amount,transaction_type,created_at').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(20);
+    const bId = await ensureBudget();
+    setBudgetId(bId);
+    if (!bId) return;
+    const { data } = await supabase.from('ct_budget_items').select('id,description,amount,category,created_at').eq('budget_id', bId).order('created_at', { ascending: false }).limit(20);
     setTransactions(data || []);
   };
 
@@ -477,14 +487,16 @@ function BudgetSection({ institutionId }: { institutionId: string | null }) {
 
   const save = async () => {
     if (!form.description || !form.amount) return;
+    const bId = budgetId || await ensureBudget();
+    if (!bId) return;
     setSaving(true);
-    await supabase.from('ct_club_budgets').insert({ ...form, amount: parseFloat(form.amount), institution_id: institutionId, created_by: user?.id });
+    await supabase.from('ct_budget_items').insert({ description: form.description, amount: parseFloat(form.amount), budget_id: bId, category: form.transaction_type });
     setForm({ description: '', amount: '', transaction_type: 'expense' });
     setSaving(false);
     load();
   };
 
-  const balance = transactions.reduce((acc, t) => acc + (t.transaction_type === 'income' ? t.amount : -t.amount), 0);
+  const balance = transactions.reduce((acc, t) => acc + (t.category === 'income' ? t.amount : -t.amount), 0);
 
   return (
     <div className="space-y-5">
@@ -496,11 +508,11 @@ function BudgetSection({ institutionId }: { institutionId: string | null }) {
         </div>
         <div className="bg-tertiary-container rounded-2xl p-4 text-center">
           <p className="text-xs font-jakarta text-tertiary mb-1">Income</p>
-          <p className="font-lexend font-900 text-xl text-tertiary">${transactions.filter(t => t.transaction_type === 'income').reduce((a, t) => a + t.amount, 0).toFixed(2)}</p>
+          <p className="font-lexend font-900 text-xl text-tertiary">${transactions.filter(t => t.category === 'income').reduce((a, t) => a + t.amount, 0).toFixed(2)}</p>
         </div>
         <div className="bg-secondary-container rounded-2xl p-4 text-center">
           <p className="text-xs font-jakarta text-secondary mb-1">Expenses</p>
-          <p className="font-lexend font-900 text-xl text-secondary">${transactions.filter(t => t.transaction_type === 'expense').reduce((a, t) => a + t.amount, 0).toFixed(2)}</p>
+          <p className="font-lexend font-900 text-xl text-secondary">${transactions.filter(t => t.category !== 'income').reduce((a, t) => a + t.amount, 0).toFixed(2)}</p>
         </div>
       </div>
       <div className="bg-surface-lowest rounded-2xl p-5 shadow-float border border-outline-variant/30">
@@ -522,8 +534,8 @@ function BudgetSection({ institutionId }: { institutionId: string | null }) {
               <p className="font-jakarta font-700 text-on-surface text-sm">{t.description}</p>
               <p className="text-xs text-on-surface-variant">{new Date(t.created_at).toLocaleDateString()}</p>
             </div>
-            <span className={`font-jakarta font-700 ${t.transaction_type === 'income' ? 'text-tertiary' : 'text-secondary'}`}>
-              {t.transaction_type === 'income' ? '+' : '-'}${t.amount.toFixed(2)}
+            <span className={`font-jakarta font-700 ${t.category === 'income' ? 'text-tertiary' : 'text-secondary'}`}>
+              {t.category === 'income' ? '+' : '-'}${t.amount.toFixed(2)}
             </span>
           </div>
         ))}
@@ -534,11 +546,11 @@ function BudgetSection({ institutionId }: { institutionId: string | null }) {
 
 // ─── Sports Section ───────────────────────────────────────────────────────────
 function SportsSection({ institutionId }: { institutionId: string | null }) {
-  const [leagues, setLeagues] = useState<Array<{ id: string; name: string; sport_type: string; status: string }>>([]);
+  const [leagues, setLeagues] = useState<Array<{ id: string; name: string; sport: string; status: string }>>([]);
 
   useEffect(() => {
     if (!institutionId) return;
-    supabase.from('ct_leagues').select('id,name,sport_type,status').eq('institution_id', institutionId).limit(20).then(({ data }) => setLeagues(data || []));
+    supabase.from('ct_sports_leagues').select('id,name,sport,status').eq('institution_id', institutionId).limit(20).then(({ data }) => setLeagues(data || []));
   }, [institutionId]);
 
   return (
@@ -551,7 +563,7 @@ function SportsSection({ institutionId }: { institutionId: string | null }) {
               <div className="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center"><Trophy size={18} className="text-secondary" /></div>
               <div>
                 <p className="font-lexend font-700 text-on-surface">{l.name}</p>
-                <p className="text-xs text-on-surface-variant">{l.sport_type} · {l.status}</p>
+                <p className="text-xs text-on-surface-variant">{l.sport} · {l.status}</p>
               </div>
             </div>
             <button className="mt-3 w-full py-2 rounded-xl bg-secondary text-white text-sm font-jakarta font-700 hover:bg-secondary/90 transition-colors">Join as Free Agent</button>

@@ -95,6 +95,22 @@ const LoginPage: React.FC = () => {
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    const pending = sessionStorage.getItem('ct.pending-role-select');
+    if (pending) {
+      try {
+        const parsed = JSON.parse(pending);
+        if (Array.isArray(parsed) && parsed.length > 1) {
+          setRoleSelectRoles(parsed);
+        }
+      } catch {
+        // ignore
+      } finally {
+        sessionStorage.removeItem('ct.pending-role-select');
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     if (!googleButtonRef.current) return;
     initializeGoogleButton({
       element: googleButtonRef.current,
@@ -102,7 +118,9 @@ const LoginPage: React.FC = () => {
       onSuccess: async () => {
         const profile = await refreshProfile();
         setSubmitting(false);
-        navigate(getRoleDashboardPath(profile?.role));
+        const nextRoles = profile?.roles?.length ? profile.roles : (profile?.role ? [profile.role] : []);
+        if (nextRoles.length > 1) setRoleSelectRoles(nextRoles);
+        else navigate(getRoleDashboardPath(profile?.role));
       },
       onError: (message) => { setSubmitting(false); setError(message); },
     }).catch((err) => setError(err instanceof Error ? err.message : 'Google sign-in failed.'));

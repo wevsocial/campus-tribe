@@ -99,7 +99,7 @@ function StaffOverviewSection({ institutionId }: { institutionId: string | null 
     Promise.all([
       supabase.from('ct_users').select('id', { count: 'exact', head: true }).eq('institution_id', institutionId),
       supabase.from('ct_events').select('id', { count: 'exact', head: true }).eq('institution_id', institutionId),
-      supabase.from('ct_venue_bookings').select('id', { count: 'exact', head: true }).eq('institution_id', institutionId).eq('status', 'pending'),
+      supabase.from('ct_venue_bookings').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       supabase.from('ct_announcements').select('id', { count: 'exact', head: true }).eq('institution_id', institutionId),
     ]).then(([u, e, v, a]) => setStats({ users: u.count || 0, events: e.count || 0, venues: v.count || 0, announcements: a.count || 0 }));
   }, [institutionId]);
@@ -121,13 +121,13 @@ function StaffOverviewSection({ institutionId }: { institutionId: string | null 
 }
 
 function ReportsSection({ institutionId, userId }: { institutionId: string | null; userId?: string }) {
-  const [reports, setReports] = useState<Array<{ id: string; title: string; content: string | null; created_at: string }>>([]);
+  const [reports, setReports] = useState<Array<{ id: string; note_type: string | null; note: string | null; created_at: string }>>([]);
   const [form, setForm] = useState({ title: '', content: '' });
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
     if (!institutionId) return;
-    const { data } = await supabase.from('ct_daily_reports').select('id,title,content,created_at').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(20);
+    const { data } = await supabase.from('ct_parent_updates').select('id,note_type,note,created_at').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(20);
     setReports(data || []);
   };
 
@@ -136,7 +136,7 @@ function ReportsSection({ institutionId, userId }: { institutionId: string | nul
   const save = async () => {
     if (!form.title || !institutionId) return;
     setSaving(true);
-    await supabase.from('ct_daily_reports').insert({ ...form, institution_id: institutionId, created_by: userId });
+    await supabase.from('ct_parent_updates').insert({ institution_id: institutionId, author_id: userId, note_type: form.title || 'daily', note: form.content || '' });
     setForm({ title: '', content: '' });
     setSaving(false);
     load();
@@ -154,8 +154,8 @@ function ReportsSection({ institutionId, userId }: { institutionId: string | nul
       <div className="space-y-3">
         {reports.map(r => (
           <div key={r.id} className="bg-surface-lowest rounded-2xl p-4 shadow-float border border-outline-variant/30">
-            <p className="font-lexend font-700 text-on-surface">{r.title}</p>
-            {r.content && <p className="text-sm text-on-surface-variant mt-1">{r.content}</p>}
+            <p className="font-lexend font-700 text-on-surface">{r.note_type || 'Update'}</p>
+            {r.note && <p className="text-sm text-on-surface-variant mt-1">{r.note}</p>}
             <p className="text-xs text-on-surface-variant mt-2">{new Date(r.created_at).toLocaleDateString()}</p>
           </div>
         ))}
@@ -192,11 +192,10 @@ function EventsSection({ institutionId }: { institutionId: string | null }) {
 }
 
 function VenueQueueSection({ institutionId }: { institutionId: string | null }) {
-  const [bookings, setBookings] = useState<Array<{ id: string; status: string; purpose: string | null; booking_date: string; venue_id: string }>>([]);
+  const [bookings, setBookings] = useState<Array<{ id: string; status: string; purpose: string | null; start_time: string; venue_id: string }>>([]);
 
   const load = async () => {
-    if (!institutionId) return;
-    const { data } = await supabase.from('ct_venue_bookings').select('id,status,purpose,booking_date,venue_id').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(30);
+    const { data } = await supabase.from('ct_venue_bookings').select('id,status,purpose,start_time,venue_id').order('created_at', { ascending: false }).limit(30);
     setBookings(data || []);
   };
 
@@ -220,7 +219,7 @@ function VenueQueueSection({ institutionId }: { institutionId: string | null }) 
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-jakarta font-700 text-on-surface text-sm">{b.purpose || 'No purpose specified'}</p>
-                <p className="text-xs text-on-surface-variant">{new Date(b.booking_date).toLocaleDateString()}</p>
+                <p className="text-xs text-on-surface-variant">{new Date(b.start_time).toLocaleDateString()}</p>
               </div>
               <span className={`px-2 py-1 rounded-full text-xs font-jakarta font-700 ${b.status === 'approved' ? 'bg-tertiary-container text-tertiary' : b.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-secondary-container text-secondary'}`}>{b.status}</span>
             </div>

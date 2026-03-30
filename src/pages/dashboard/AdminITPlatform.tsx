@@ -335,11 +335,10 @@ function EventsSection({ institutionId, userId }: { institutionId: string | null
 }
 
 function VenuesSection({ institutionId }: { institutionId: string | null }) {
-  const [bookings, setBookings] = useState<Array<{ id: string; status: string; purpose: string | null; booking_date: string }>>([]);
+  const [bookings, setBookings] = useState<Array<{ id: string; status: string; purpose: string | null; start_time: string }>>([]);
 
   const load = async () => {
-    if (!institutionId) return;
-    const { data } = await supabase.from('ct_venue_bookings').select('id,status,purpose,booking_date').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(50);
+    const { data } = await supabase.from('ct_venue_bookings').select('id,status,purpose,start_time').order('created_at', { ascending: false }).limit(50);
     setBookings(data || []);
   };
 
@@ -359,7 +358,7 @@ function VenuesSection({ institutionId }: { institutionId: string | null }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-jakarta font-700 text-on-surface">{b.purpose || 'No purpose'}</p>
-                <p className="text-xs text-on-surface-variant">{new Date(b.booking_date).toLocaleDateString()}</p>
+                <p className="text-xs text-on-surface-variant">{new Date(b.start_time).toLocaleDateString()}</p>
               </div>
               <span className={`px-2 py-1 rounded-full text-xs font-jakarta font-700 ${b.status === 'approved' ? 'bg-tertiary-container text-tertiary' : b.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-secondary-container text-secondary'}`}>{b.status}</span>
             </div>
@@ -378,14 +377,14 @@ function VenuesSection({ institutionId }: { institutionId: string | null }) {
 }
 
 function SportsSection({ institutionId }: { institutionId: string | null }) {
-  const [leagues, setLeagues] = useState<Array<{ id: string; name: string; sport_type: string; status: string }>>([]);
+  const [leagues, setLeagues] = useState<Array<{ id: string; name: string; sport: string; status: string }>>([]);
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ name: '', sport_type: '', status: 'active' });
+  const [form, setForm] = useState({ name: '', sport: '', status: 'active' });
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
     if (!institutionId) return;
-    const { data } = await supabase.from('ct_leagues').select('id,name,sport_type,status').eq('institution_id', institutionId).limit(20);
+    const { data } = await supabase.from('ct_sports_leagues').select('id,name,sport,status').eq('institution_id', institutionId).limit(20);
     setLeagues(data || []);
   };
 
@@ -394,8 +393,8 @@ function SportsSection({ institutionId }: { institutionId: string | null }) {
   const save = async () => {
     if (!form.name || !institutionId) return;
     setSaving(true);
-    await supabase.from('ct_leagues').insert({ ...form, institution_id: institutionId });
-    setForm({ name: '', sport_type: '', status: 'active' });
+    await supabase.from('ct_sports_leagues').insert({ ...form, institution_id: institutionId });
+    setForm({ name: '', sport: '', status: 'active' });
     setShowCreate(false);
     setSaving(false);
     load();
@@ -413,7 +412,7 @@ function SportsSection({ institutionId }: { institutionId: string | null }) {
         <div className="bg-surface-lowest rounded-2xl p-5 shadow-float border border-outline-variant/30">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input className="border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface" placeholder="League Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-            <input className="border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface" placeholder="Sport Type" value={form.sport_type} onChange={e => setForm(f => ({ ...f, sport_type: e.target.value }))} />
+            <input className="border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface" placeholder="Sport Type" value={form.sport} onChange={e => setForm(f => ({ ...f, sport: e.target.value }))} />
           </div>
           <div className="flex gap-3 mt-4">
             <button onClick={save} disabled={saving} className="px-5 py-2 rounded-xl bg-secondary text-white font-jakarta font-700 text-sm disabled:opacity-50">{saving ? 'Saving…' : 'Create'}</button>
@@ -425,7 +424,7 @@ function SportsSection({ institutionId }: { institutionId: string | null }) {
         {leagues.map(l => (
           <div key={l.id} className="bg-surface-lowest rounded-2xl p-4 shadow-float border border-outline-variant/30">
             <p className="font-lexend font-700 text-on-surface">{l.name}</p>
-            <p className="text-xs text-on-surface-variant">{l.sport_type} · {l.status}</p>
+            <p className="text-xs text-on-surface-variant">{l.sport} · {l.status}</p>
           </div>
         ))}
         {leagues.length === 0 && <p className="text-on-surface-variant font-jakarta col-span-2 text-center py-8">No leagues</p>}
@@ -537,13 +536,13 @@ function ReportsSection({ institutionId }: { institutionId: string | null }) {
 }
 
 function ApiKeysSection({ institutionId }: { institutionId: string | null }) {
-  const [keys, setKeys] = useState<Array<{ id: string; key_name: string; api_key: string | null; is_active: boolean | null; created_at: string }>>([]);
+  const [keys, setKeys] = useState<Array<{ id: string; name: string; key_prefix: string | null; is_active: boolean | null; created_at: string }>>([]);
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
     if (!institutionId) return;
-    const { data } = await supabase.from('ct_api_keys').select('id,key_name,api_key,is_active,created_at').eq('institution_id', institutionId).order('created_at', { ascending: false });
+    const { data } = await supabase.from('ct_api_keys').select('id,name,key_prefix,is_active,created_at').eq('institution_id', institutionId).order('created_at', { ascending: false });
     setKeys(data || []);
   };
 
@@ -552,8 +551,8 @@ function ApiKeysSection({ institutionId }: { institutionId: string | null }) {
   const generate = async () => {
     if (!name || !institutionId) return;
     setSaving(true);
-    const key = `ct_${crypto.randomUUID().replace(/-/g, '')}`;
-    await supabase.from('ct_api_keys').insert({ key_name: name, api_key: key, institution_id: institutionId, is_active: true });
+    const prefix = `ct_${Math.random().toString(36).slice(2, 10)}`;
+    await supabase.from('ct_api_keys').insert({ name: name, key_prefix: prefix, institution_id: institutionId, is_active: true });
     setName('');
     setSaving(false);
     load();
@@ -578,8 +577,8 @@ function ApiKeysSection({ institutionId }: { institutionId: string | null }) {
           <div key={k.id} className="bg-surface-lowest rounded-2xl p-4 shadow-float border border-outline-variant/30">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-lexend font-700 text-on-surface">{k.key_name}</p>
-                <p className="text-xs font-mono text-on-surface-variant mt-1">{k.api_key?.slice(0, 20)}…</p>
+                <p className="font-lexend font-700 text-on-surface">{k.name}</p>
+                <p className="text-xs font-mono text-on-surface-variant mt-1">{k.key_prefix}…</p>
                 <p className="text-xs text-on-surface-variant">{new Date(k.created_at).toLocaleDateString()}</p>
               </div>
               <div className="flex items-center gap-2">
