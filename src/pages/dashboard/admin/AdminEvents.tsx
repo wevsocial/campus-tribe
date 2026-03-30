@@ -161,7 +161,7 @@ export default function AdminEvents() {
             </div>
             <input value={broadcast.title} onChange={e => setBroadcast({ ...broadcast, title: e.target.value })} placeholder="Notification title..." className={inputCls} />
             <textarea value={broadcast.body} onChange={e => setBroadcast({ ...broadcast, body: e.target.value })} placeholder="Notification body..." rows={4} className={`${inputCls} resize-none`} />
-            {broadcastSent && <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-3 font-jakarta">✅ Broadcast sent successfully!</div>}
+            {broadcastSent && <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-3 font-jakarta">Broadcast sent successfully!</div>}
             <Button onClick={sendBroadcast} isLoading={broadcasting} className="rounded-full flex items-center gap-2">
               <Send size={14} />
               Send Broadcast

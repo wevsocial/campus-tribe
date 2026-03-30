@@ -89,7 +89,7 @@ export default function ClubLeaderOverview() {
       {monthsOld >= 10 && (
         <Card className="border-amber-300 bg-amber-50">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">⚠️</span>
+            <span className="text-2xl">Warning</span>
             <div>
               <p className="font-jakarta font-bold text-amber-800">Re-recognition Required</p>
               <p className="text-sm text-amber-700">Your club is {monthsOld} months old. Submit re-recognition paperwork before the semester ends.</p>
@@ -170,7 +170,7 @@ export default function ClubLeaderOverview() {
 
             {handoffDone ? (
               <div className="text-center py-6">
-                <div className="text-4xl mb-3">✅</div>
+                <div className="text-4xl mb-3">Saved</div>
                 <p className="font-jakarta font-bold text-gray-900">Handoff Initiated</p>
                 <p className="text-sm text-gray-500 mt-1">Audit log entry created. {successor.name} ({successor.email}) will be notified.</p>
                 <Button className="mt-4" onClick={() => setShowHandoff(false)}>Close</Button>

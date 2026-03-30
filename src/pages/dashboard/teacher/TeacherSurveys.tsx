@@ -308,7 +308,7 @@ export default function TeacherSurveys() {
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => setView('list')}>Done Adding</Button>
           <Button onClick={() => publishSurvey(createdSurvey)} disabled={createdSurvey.status === 'active'}>
-            {createdSurvey.status === 'active' ? '✅ Published' : 'Publish Survey'}
+            {createdSurvey.status === 'active' ? 'Published' : 'Publish Survey'}
           </Button>
         </div>
       </div>

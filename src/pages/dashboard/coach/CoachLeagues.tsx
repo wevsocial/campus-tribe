@@ -238,7 +238,7 @@ export default function CoachLeagues() {
             <Card padding="none">
               <div className="px-4 py-3 border-b border-outline-variant/30">
                 <p className="font-lexend font-bold text-on-surface">
-                  Generated Schedule ({schedule.length} games) {generated && '✅ Saved'}
+                  Generated Schedule ({schedule.length} games) {generated && 'Saved'}
                 </p>
               </div>
               <div className="overflow-x-auto">

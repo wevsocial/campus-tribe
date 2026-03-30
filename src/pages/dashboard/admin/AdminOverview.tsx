@@ -114,7 +114,7 @@ export default function AdminOverview() {
         {atRiskLoading ? (
           <p className="text-sm text-on-surface-variant font-jakarta">Analyzing…</p>
         ) : atRisk.length === 0 ? (
-          <p className="text-sm text-on-surface-variant font-jakarta">✅ No at-risk students detected. All students show healthy engagement.</p>
+          <p className="text-sm text-on-surface-variant font-jakarta">No at-risk students detected. All students show healthy engagement.</p>
         ) : (
           <div className="space-y-2">
             <p className="text-xs text-on-surface-variant font-jakarta mb-3">Rule-based detection: low wellbeing avg (&lt;3) + no club + no event RSVPs</p>

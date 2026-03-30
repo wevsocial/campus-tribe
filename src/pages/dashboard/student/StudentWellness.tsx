@@ -111,7 +111,7 @@ export default function StudentWellness() {
       <Card>
         <h2 className="font-lexend font-bold text-on-surface mb-1">Daily Check-in</h2>
         <p className="text-sm text-on-surface-variant font-jakarta mb-4">
-          {todayChecked ? "✅ Already checked in today! Come back tomorrow." : "How are you doing today?"}
+          {todayChecked ? "Already checked in today! Come back tomorrow." : "How are you doing today?"}
         </p>
 
         {!todayChecked && (
