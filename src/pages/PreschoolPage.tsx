@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import PublicNav from '../components/layout/PublicNav';
 import PublicFooter from '../components/layout/PublicFooter';
+import { DemoRequestForm } from '../components/marketing/DemoRequestForm';
 
 export default function PreschoolPage() {
   return (
@@ -202,6 +203,7 @@ export default function PreschoolPage() {
           </div>
         </section>
       </main>
+      <DemoRequestForm />
       <PublicFooter />
     </div>
   );

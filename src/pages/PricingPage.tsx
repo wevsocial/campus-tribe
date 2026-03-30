@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import PublicNav from '../components/layout/PublicNav';
 import PublicFooter from '../components/layout/PublicFooter';
+import { DemoRequestForm } from '../components/marketing/DemoRequestForm';
 
 const STARTER_FEATURES = [
   'Student hub & club directory',
@@ -207,6 +208,7 @@ export default function PricingPage() {
           </div>
         </section>
       </main>
+      <DemoRequestForm />
       <PublicFooter />
     </div>
   );

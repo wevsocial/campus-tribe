@@ -4,6 +4,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import PublicNav from '../components/layout/PublicNav';
 import PublicFooter from '../components/layout/PublicFooter';
+import { DemoRequestForm } from '../components/marketing/DemoRequestForm';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -272,6 +273,7 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
+      <DemoRequestForm />
       <PublicFooter />
     </div>
   );

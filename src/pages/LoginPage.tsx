@@ -1,27 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, GraduationCap, School, Baby } from 'lucide-react';
 import { getRoleDashboardPath, useAuth } from '../context/AuthContext';
 import { initializeGoogleButton } from '../lib/googleIdentity';
+import { AnimatedIcon } from '../components/ui/AnimatedIcon';
+import type { LucideIcon } from 'lucide-react';
 
-const PLATFORM_CARDS = [
-  {
-    emoji: '🎓',
-    label: 'University',
-    desc: 'Students, faculty, clubs, sports, surveys, venue booking',
-  },
-  {
-    emoji: '🏫',
-    label: 'School',
-    desc: 'Students, teachers, parents, clubs, events',
-  },
-  {
-    emoji: '🧸',
-    label: 'Preschool',
-    desc: 'Parents, teachers, staff, daily reports',
-  },
+const PLATFORM_CARDS: { icon: LucideIcon; label: string; desc: string }[] = [
+  { icon: GraduationCap, label: 'University', desc: 'Students, faculty, clubs, sports, surveys, venue booking' },
+  { icon: School,        label: 'School',     desc: 'Students, teachers, parents, clubs, events' },
+  { icon: Baby,          label: 'Preschool',  desc: 'Parents, teachers, staff, daily reports' },
 ];
 
 const ALL_ROLES = ['Student', 'Student Rep', 'Teacher', 'Club Leader', 'Coach', 'IT Director', 'Staff', 'Admin', 'Parent'];
@@ -32,6 +21,33 @@ const STATS = [
   { val: '4K+', label: 'Events/mo' },
 ];
 
+// Role selector overlay for multi-role users
+function RoleSelector({ roles, onSelect }: { roles: string[]; onSelect: (role: string) => void }) {
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-sm w-full space-y-6 shadow-2xl">
+        <div>
+          <h2 className="font-lexend font-black text-2xl text-gray-900 dark:text-white">Which role today?</h2>
+          <p className="text-sm text-gray-500 dark:text-slate-400 font-jakarta mt-1">You have multiple roles. Pick one to continue.</p>
+        </div>
+        <div className="space-y-3">
+          {roles.map(role => (
+            <button
+              key={role}
+              onClick={() => onSelect(role)}
+              className="w-full flex items-center gap-3 p-4 rounded-2xl border-2 border-gray-200 dark:border-slate-700 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left"
+            >
+              <span className="font-jakarta font-bold text-gray-900 dark:text-white capitalize text-sm">
+                {role.replace('_', ' ')}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -41,6 +57,7 @@ const LoginPage: React.FC = () => {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState(searchParams.get('email') ? 'Account already exists — please sign in here.' : '');
   const [submitting, setSubmitting] = useState(false);
+  const [roleSelectRoles, setRoleSelectRoles] = useState<string[] | null>(null);
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -74,15 +91,28 @@ const LoginPage: React.FC = () => {
         }
         return;
       }
-      navigate('/dashboard');
-      void refreshProfile();
+      const profile = await refreshProfile();
+      const roles: string[] = (profile as any)?.roles ?? [];
+      if (roles.length > 1) {
+        setRoleSelectRoles(roles);
+      } else {
+        navigate(getRoleDashboardPath(profile?.role));
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
+  const handleRoleSelect = (role: string) => {
+    sessionStorage.setItem('ct.session-role', role);
+    setRoleSelectRoles(null);
+    navigate(getRoleDashboardPath(role));
+  };
+
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
+      {roleSelectRoles && <RoleSelector roles={roleSelectRoles} onSelect={handleRoleSelect} />}
+
       {/* Left: brand panel */}
       <div
         className="hidden lg:flex flex-col justify-between p-12 relative overflow-hidden"
@@ -109,7 +139,7 @@ const LoginPage: React.FC = () => {
           <div className="grid grid-cols-3 gap-3">
             {PLATFORM_CARDS.map((p) => (
               <div key={p.label} className="bg-white/10 backdrop-blur rounded-2xl p-4 border border-white/10">
-                <span className="text-2xl">{p.emoji}</span>
+                <AnimatedIcon icon={p.icon} size={22} className="text-white" />
                 <p className="font-lexend font-700 text-white text-sm mt-2">{p.label}</p>
                 <p className="text-white/60 text-xs mt-1 font-jakarta leading-relaxed">{p.desc}</p>
               </div>

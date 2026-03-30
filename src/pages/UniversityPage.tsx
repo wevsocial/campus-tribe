@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import PublicNav from '../components/layout/PublicNav';
 import PublicFooter from '../components/layout/PublicFooter';
+import { DemoRequestForm } from '../components/marketing/DemoRequestForm';
 
 export default function UniversityPage() {
   return (
@@ -316,6 +317,7 @@ export default function UniversityPage() {
         </div>
       </section>
 
+      <DemoRequestForm />
       <PublicFooter />
     </div>
   );

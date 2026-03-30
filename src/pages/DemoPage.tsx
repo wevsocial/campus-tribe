@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import PublicNav from '../components/layout/PublicNav';
 import PublicFooter from '../components/layout/PublicFooter';
+import { DemoRequestForm } from '../components/marketing/DemoRequestForm';
 
 export default function DemoPage() {
   return (
@@ -209,6 +210,7 @@ export default function DemoPage() {
           </div>
         </section>
       </main>
+      <DemoRequestForm />
       <PublicFooter />
     </div>
   );

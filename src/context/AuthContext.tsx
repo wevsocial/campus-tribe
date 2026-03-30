@@ -38,6 +38,7 @@ interface AuthContextValue {
   role: CampusRole | null;
   institutionId: string | null;
   loading: boolean;
+  isEmailVerified: boolean;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   refreshProfile: (userId?: string) => Promise<CampusProfile | null>;
@@ -303,6 +304,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       role: profile?.role ?? null,
       institutionId: profile?.institution_id ?? null,
       loading,
+      isEmailVerified: user?.email_confirmed_at != null,
       signIn: async (email: string, password: string) => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
