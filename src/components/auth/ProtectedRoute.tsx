@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { loading, session, role, isEmailVerified } = useAuth();
+  const { loading, session, user, role, isEmailVerified } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -23,8 +23,10 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
     return <Navigate to={getRoleDashboardPath(role)} replace />;
   }
 
-  // Email verification gate: if not verified, only allow dashboard root
-  if (!isEmailVerified) {
+  // Email verification gate: only for email/password users, not OAuth users
+  const isEmailProvider = user?.app_metadata?.provider === 'email' ||
+    (user?.app_metadata?.providers as string[] | undefined)?.includes('email');
+  if (isEmailProvider && !isEmailVerified) {
     const dashRoot = getRoleDashboardPath(role);
     if (location.pathname !== dashRoot) {
       return <Navigate to={dashRoot} replace />;
@@ -33,3 +35,4 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
 
   return children;
 }
+

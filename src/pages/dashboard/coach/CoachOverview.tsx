@@ -35,10 +35,10 @@ export default function CoachOverview() {
       </div>
       <div className="grid grid-cols-2 gap-4">
         {[
-          { label: 'Manage Leagues', href: '/dashboard/coach/leagues', emoji: '🏆' },
+          { label: 'Manage Leagues', href: '/dashboard/coach/leagues', emoji: 'trophy' },
           { label: 'Manage Teams', href: '/dashboard/coach/teams', emoji: '👥' },
-          { label: 'Schedule & Scores', href: '/dashboard/coach/schedule', emoji: '📅' },
-          { label: 'Athletes', href: '/dashboard/coach/athletes', emoji: '🏃' },
+          { label: 'Schedule & Scores', href: '/dashboard/coach/schedule', emoji: 'calendar' },
+          { label: 'Athletes', href: '/dashboard/coach/athletes', emoji: 'run' },
         ].map(l => (
           <a key={l.href} href={l.href} className="bg-surface-lowest rounded-xl p-4 flex items-center gap-3 hover:bg-primary-container transition-colors group">
             <span className="text-2xl">{l.emoji}</span>

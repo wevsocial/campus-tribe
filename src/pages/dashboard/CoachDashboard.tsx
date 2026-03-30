@@ -386,7 +386,7 @@ React.useEffect(() => {
         {/* Standings */}
         <div className="grid lg:grid-cols-2 gap-6">
           <Card>
-            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">🏆 Standings</h2>
+            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Standings</h2>
             {filteredTeams.length === 0 ? (
               <p className="text-sm text-on-surface-variant">No teams yet. Create your first league and team.</p>
             ) : (
@@ -450,7 +450,7 @@ React.useEffect(() => {
 
         {/* Games */}
         <Card>
-          <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">📅 Games & Scores</h2>
+          <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Games & Scores</h2>
           {filteredGames.length === 0 ? (
             <p className="text-sm text-on-surface-variant">No games yet. Schedule games between teams above.</p>
           ) : (

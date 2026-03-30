@@ -7,6 +7,7 @@ import { Badge } from '../../components/ui/Badge';
 import { useAuth } from '../../context/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
+import { SmilePlus, Smile, Meh, Frown, Trophy, Calendar, Megaphone, ClipboardList, User, CheckCircle, BookOpen, Users, Dumbbell, Camera, Gamepad2, Rocket, Globe, Leaf, ChefHat, Mic2, GraduationCap, Star } from 'lucide-react';
 
 type SurveyQuestion = { id: string; survey_id: string; prompt: string; question_type: string; options?: string[] | null; required?: boolean; position: number };
 type ActiveSurvey = { id: string; title: string; description: string | null; anonymous?: boolean | null; is_anonymous?: boolean | null; status?: string | null };
@@ -15,26 +16,26 @@ type SportsGame = { id: string; league_id: string | null; home_team_id?: string 
 type SportParticipant = { id: string; league_id: string | null; team_id?: string | null; is_free_agent?: boolean | null };
 
 const INTEREST_OPTIONS = [
-  { id: 'sports', label: '⚽ Sports & Athletics', category: 'sports' },
-  { id: 'music', label: '🎵 Music & Arts', category: 'arts' },
-  { id: 'tech', label: '💻 Technology & Coding', category: 'academic' },
-  { id: 'volunteering', label: '🤝 Volunteering', category: 'social' },
-  { id: 'debate', label: '🎤 Debate & Public Speaking', category: 'academic' },
-  { id: 'fitness', label: '🏋️ Fitness & Wellness', category: 'sports' },
-  { id: 'photography', label: '📷 Photography & Film', category: 'arts' },
-  { id: 'gaming', label: '🎮 Gaming & Esports', category: 'social' },
-  { id: 'entrepreneurship', label: '🚀 Entrepreneurship', category: 'academic' },
-  { id: 'cultural', label: '🌍 Cultural Exchange', category: 'social' },
-  { id: 'environment', label: '🌱 Environment & Sustainability', category: 'social' },
-  { id: 'cooking', label: '👨‍🍳 Food & Cooking', category: 'arts' },
+  { id: 'sports',          label: 'Sports & Athletics',           category: 'sports',    Icon: Trophy },
+  { id: 'music',           label: 'Music & Arts',                 category: 'arts',      Icon: Mic2 },
+  { id: 'tech',            label: 'Technology & Coding',          category: 'academic',  Icon: Gamepad2 },
+  { id: 'volunteering',    label: 'Volunteering',                 category: 'social',    Icon: Users },
+  { id: 'debate',          label: 'Debate & Public Speaking',     category: 'academic',  Icon: Mic2 },
+  { id: 'fitness',         label: 'Fitness & Wellness',           category: 'sports',    Icon: Dumbbell },
+  { id: 'photography',     label: 'Photography & Film',           category: 'arts',      Icon: Camera },
+  { id: 'gaming',          label: 'Gaming & Esports',             category: 'social',    Icon: Gamepad2 },
+  { id: 'entrepreneurship',label: 'Entrepreneurship',             category: 'academic',  Icon: Rocket },
+  { id: 'cultural',        label: 'Cultural Exchange',            category: 'social',    Icon: Globe },
+  { id: 'environment',     label: 'Environment & Sustainability', category: 'social',    Icon: Leaf },
+  { id: 'cooking',         label: 'Food & Cooking',               category: 'arts',      Icon: ChefHat },
 ];
 
 const MOOD_OPTIONS = [
-  { value: '5', emoji: '😄', label: 'Great' },
-  { value: '4', emoji: '😊', label: 'Good' },
-  { value: '3', emoji: '😐', label: 'Okay' },
-  { value: '2', emoji: '😔', label: 'Low' },
-  { value: '1', emoji: '😞', label: 'Very Low' },
+  { value: '5', Icon: SmilePlus, label: 'Great',    color: 'text-green-500' },
+  { value: '4', Icon: Smile,     label: 'Good',     color: 'text-lime-500' },
+  { value: '3', Icon: Meh,       label: 'Okay',     color: 'text-yellow-500' },
+  { value: '2', Icon: Frown,     label: 'Low',      color: 'text-orange-500' },
+  { value: '1', Icon: Frown,     label: 'Very Low', color: 'text-red-500' },
 ];
 
 export default function StudentDashboard() {
@@ -214,7 +215,7 @@ export default function StudentDashboard() {
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="bg-surface-container-lowest rounded-[2rem] p-8 max-w-2xl w-full shadow-2xl">
             <div className="text-center mb-8">
-              <div className="text-5xl mb-4">🎓</div>
+              <div className="flex justify-center mb-4"><GraduationCap size={48} className="text-primary" /></div>
               <h2 className="font-lexend text-3xl font-900 text-on-surface">Welcome to Campus Tribe!</h2>
               <p className="mt-2 text-on-surface-variant">Tell us what you love and we'll help you find your community.</p>
             </div>
@@ -302,7 +303,7 @@ React.useEffect(() => {
               onClick={() => setShowOnboarding(true)}
               className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-full text-sm font-jakarta font-700 transition-all"
             >
-              ✨ Update interests
+              Update interests
             </button>
           </div>
         </section>
@@ -335,7 +336,7 @@ React.useEffect(() => {
                     mood === option.value ? 'bg-primary text-white' : 'bg-surface hover:bg-primary-container'
                   }`}
                 >
-                  <span className="text-2xl">{option.emoji}</span>
+                  {option.Icon && <option.Icon size={22} className={mood === option.value ? "text-white" : option.color} />}
                   <span className="text-xs font-jakarta font-700">{option.label}</span>
                 </button>
               ))}
@@ -363,7 +364,7 @@ React.useEffect(() => {
           <Card id="discover" className="lg:col-span-2 scroll-mt-24">
             <div className="flex items-center justify-between mb-4">
               <h2 id="clubs" className="font-lexend text-lg font-800 text-on-surface scroll-mt-24">
-                {data.userInterests?.length > 0 ? '✨ Recommended for you' : 'Club directory'}
+                {data.userInterests?.length > 0 ? 'Recommended for you' : 'Club directory'}
               </h2>
               {data.userInterests?.length > 0 && (
                 <span className="text-xs text-on-surface-variant">Based on your interests</span>
@@ -398,10 +399,10 @@ React.useEffect(() => {
         {/* Events feed */}
         <div className="grid lg:grid-cols-2 gap-6">
           <Card id="events" className="scroll-mt-24">
-            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">🗓️ Upcoming events</h2>
+            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Upcoming events</h2>
             {data.events.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-4xl mb-3">📅</p>
+                <div className="flex justify-center mb-3"><Calendar size={36} className="text-gray-400" /></div>
                 <p className="text-sm text-on-surface-variant">No events yet. Check back soon!</p>
               </div>
             ) : (
@@ -432,10 +433,10 @@ React.useEffect(() => {
 
           {/* Recent check-ins */}
           <Card id="wellness" className="scroll-mt-24">
-            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">💚 Wellbeing history</h2>
+            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Wellbeing history</h2>
             {data.wellbeing.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-4xl mb-3">💚</p>
+                <div className="flex justify-center mb-3"><Dumbbell size={36} className="text-gray-400" /></div>
                 <p className="text-sm text-on-surface-variant">Submit your first check-in to start tracking your wellbeing.</p>
               </div>
             ) : (
@@ -449,7 +450,7 @@ React.useEffect(() => {
                         <p className="text-sm text-on-surface-variant">Energy: {entry.energy}/5 · Stress: {entry.stress}/5</p>
                       </div>
                       <div className="text-right">
-                        <span className="text-2xl">{moodOption?.emoji || '😐'}</span>
+                        <span className="text-2xl">{moodOption ? <moodOption.Icon size={24} className={moodOption.color} /> : <Meh size={24} className='text-yellow-500' />}</span>
                         <p className="text-xs text-on-surface-variant">{moodOption?.label || 'Okay'}</p>
                       </div>
                     </div>
@@ -462,7 +463,7 @@ React.useEffect(() => {
         {/* Sports & Leagues */}
         <div className="grid lg:grid-cols-2 gap-6">
           <Card id="sports" className="scroll-mt-24">
-            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">🏆 Sports & Leagues</h2>
+            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Sports & Leagues</h2>
             {(data.leagues as SportsLeague[]).length === 0 ? (
               <p className="text-sm text-on-surface-variant">No active leagues yet.</p>
             ) : (
@@ -485,7 +486,7 @@ React.useEffect(() => {
             )}
           </Card>
           <Card>
-            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">📅 Upcoming Games</h2>
+            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Upcoming Games</h2>
             {(data.upcomingGames as SportsGame[]).length === 0 ? (
               <p className="text-sm text-on-surface-variant">No upcoming games scheduled.</p>
             ) : (
@@ -507,7 +508,7 @@ React.useEffect(() => {
 
         {/* Active Surveys */}
         <Card id="surveys" className="scroll-mt-24">
-          <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">📋 Active Surveys</h2>
+          <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Active Surveys</h2>
           {(data.activeSurveys as ActiveSurvey[]).length === 0 ? (
             <p className="text-sm text-on-surface-variant">No active surveys right now. Check back later!</p>
           ) : (
@@ -532,7 +533,7 @@ React.useEffect(() => {
         </Card>
 
         <Card id="profile" className="scroll-mt-24">
-          <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">👤 Profile</h2>
+          <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Profile</h2>
           <div className="rounded-[1rem] bg-surface p-4 space-y-2">
             <p className="text-sm"><span className="font-jakarta font-700 text-on-surface">Name:</span> <span className="text-on-surface-variant">{profile?.full_name || 'Campus User'}</span></p>
             <p className="text-sm"><span className="font-jakarta font-700 text-on-surface">Email:</span> <span className="text-on-surface-variant">{profile?.email || user?.email}</span></p>
@@ -547,7 +548,7 @@ React.useEffect(() => {
             <div className="bg-surface-container-lowest rounded-[2rem] p-8 max-w-xl w-full shadow-2xl max-h-[90vh] overflow-y-auto">
               {surveySubmitted ? (
                 <div className="text-center py-8">
-                  <div className="text-5xl mb-4">🎉</div>
+                  <div className="flex justify-center mb-4"><CheckCircle size={48} className="text-green-500" /></div>
                   <h3 className="font-lexend text-2xl font-800 text-on-surface">Thank you!</h3>
                   <p className="text-on-surface-variant mt-2">Your response has been recorded.</p>
                   <Button onClick={() => setSurveyModal(null)} className="mt-6 rounded-full">Close</Button>

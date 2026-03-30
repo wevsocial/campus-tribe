@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { getRoleDashboardPath, persistPendingSignup, useAuth } from '../context/AuthContext';
-import { initializeGoogleButton } from '../lib/googleIdentity';
 import {
   User, Mail, Lock, Building2, KeyRound, Eye, EyeOff,
   GraduationCap, School, Baby, ChevronRight, CheckCircle, XCircle,
@@ -74,7 +73,6 @@ const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { refreshProfile } = useAuth();
-  const googleRef = useRef<HTMLDivElement | null>(null);
 
   const initPlat = (['university','school','preschool'].includes(searchParams.get('platform') ?? '')
     ? searchParams.get('platform')! : 'university') as string;
@@ -97,36 +95,31 @@ const RegisterPage: React.FC = () => {
   const pwMatch = confirmPassword.length > 0 && password === confirmPassword;
   const pwMismatch = confirmPassword.length > 0 && password !== confirmPassword;
 
-  useEffect(() => {
-    if (!googleRef.current) return;
-    initializeGoogleButton({
-      element: googleRef.current,
-      onBeforeAuth: () => {
-        persistPendingSignup({ email: email || 'google-user@pending.com', full_name: fullName || 'Campus User', role: role as any, platform_type: platformType as any, institution_name: institutionName.trim() || undefined, invite_code: inviteCode.trim().toLowerCase() || undefined });
-        setSubmitting(true); setError('');
-      },
-      onSuccess: async () => {
-        const p = await refreshProfile();
-        setSubmitting(false);
-        navigate(getRoleDashboardPath(p?.role || role));
-      },
-      onError: (msg) => { setSubmitting(false); setError(msg); },
-    }).catch((err) => setError(err instanceof Error ? err.message : 'Google sign-up failed.'));
-  }, [email, fullName, institutionName, inviteCode, navigate, platformType, refreshProfile, role]);
-
-  const handleGoogleSignup = () => {
+  const handleGoogleSignup = async () => {
+    setError('');
     if (!platformType) { setError('Please select a platform first.'); return; }
     if (!role) { setError('Please select your role first.'); return; }
-    // Store pending signup so OAuth callback can pick it up
+
     persistPendingSignup({
-      email: 'google-user@pending.com',
-      full_name: 'Campus User',
+      email: '',
+      full_name: 'Google User',
       role: role as any,
       platform_type: platformType as any,
     });
-    // The Google button click will be triggered by the ref div
-    const btn = googleRef.current?.querySelector('div[role="button"]') as HTMLElement | null;
-    btn?.click();
+
+    setSubmitting(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: { access_type: 'offline', prompt: 'select_account' },
+      },
+    });
+    if (error) {
+      setSubmitting(false);
+      setError(error.message);
+    }
+    // If no error, browser redirects — no need to setSubmitting(false)
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -145,7 +138,7 @@ const RegisterPage: React.FC = () => {
       persistPendingSignup({ email, full_name: fullName, role: role as any, platform_type: platformType as any, institution_name: institutionName.trim() || undefined, invite_code: inviteCode.trim().toLowerCase() || undefined });
       const { data, error: signUpError } = await supabase.auth.signUp({
         email, password,
-        options: { data: { email, full_name: fullName, role, platform_type: platformType, institution_name: institutionName.trim() || undefined, invite_code: inviteCode.trim().toLowerCase() || undefined }, emailRedirectTo: `${window.location.origin}/dashboard` },
+        options: { data: { email, full_name: fullName, role, platform_type: platformType, institution_name: institutionName.trim() || undefined, invite_code: inviteCode.trim().toLowerCase() || undefined }, emailRedirectTo: `${window.location.origin}/auth/callback` },
       });
       if (signUpError) {
         if (/already registered|already exists/i.test(signUpError.message)) {
@@ -299,7 +292,7 @@ const RegisterPage: React.FC = () => {
                   </svg>
                   Sign up with Google
                 </button>
-                <div ref={googleRef} className="hidden" />
+                <div className="hidden" />
               </div>
 
               <div className="relative flex items-center gap-4">

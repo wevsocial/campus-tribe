@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { SmilePlus, Smile, Meh, Frown, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { supabase } from '../../../lib/supabase';
 import Card from '../../../components/ui/Card';
@@ -19,11 +20,11 @@ interface Question {
 interface WellbeingCheck { id: string; user_id: string; date: string; mood: number; energy: number; stress: number; }
 
 const MOOD = [
-  { val: 5, emoji: '😄', label: 'Great' },
-  { val: 4, emoji: '😊', label: 'Good' },
-  { val: 3, emoji: '😐', label: 'Okay' },
-  { val: 2, emoji: '😔', label: 'Low' },
-  { val: 1, emoji: '😞', label: 'Very Low' },
+  { val: 5, Icon: SmilePlus, label: 'Great',    color: 'text-green-500' },
+  { val: 4, Icon: Smile,     label: 'Good',     color: 'text-lime-500' },
+  { val: 3, Icon: Meh,       label: 'Okay',     color: 'text-yellow-500' },
+  { val: 2, Icon: Frown,     label: 'Low',      color: 'text-orange-500' },
+  { val: 1, Icon: Frown,     label: 'Very Low', color: 'text-red-500' },
 ];
 
 export default function StudentWellness() {
@@ -62,7 +63,7 @@ export default function StudentWellness() {
     if (!user?.id) return;
     const today = new Date().toISOString().slice(0, 10);
     if (checks.some(c => c.date === today)) {
-      showFlash("You've already checked in today! See you tomorrow 💚");
+      showFlash("You've already checked in today! See you tomorrow");
       return;
     }
     const { data } = await supabase.from('ct_wellbeing_checks')
@@ -70,7 +71,7 @@ export default function StudentWellness() {
       .select('*').single();
     if (data) {
       setChecks([data, ...checks]);
-      showFlash('Check-in saved! Consistency builds insights 🌱');
+      showFlash('Check-in saved! Consistency builds insights');
     }
   };
 
@@ -121,7 +122,7 @@ export default function StudentWellness() {
                 {MOOD.map(m => (
                   <button key={m.val} onClick={() => setMood(m.val)}
                     className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl transition-all ${mood === m.val ? 'bg-primary text-white' : 'bg-surface-low hover:bg-primary-container'}`}>
-                    <span className="text-2xl">{m.emoji}</span>
+                    <m.Icon size={22} className={mood === m.val ? "text-white" : m.color} />
                     <span className="text-xs font-jakarta font-bold">{m.label}</span>
                   </button>
                 ))}
@@ -137,7 +138,7 @@ export default function StudentWellness() {
                 <input type="range" min={1} max={5} value={stress} onChange={e => setStress(+e.target.value)} className="w-full accent-secondary" />
               </div>
             </div>
-            <Button onClick={submit} className="w-full rounded-full">Save Check-in 💚</Button>
+            <Button onClick={submit} className="w-full rounded-full">Save Check-in</Button>
           </div>
         )}
 
@@ -149,7 +150,7 @@ export default function StudentWellness() {
               {checks.slice(0,7).reverse().map((c,i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1">
                   <div className="w-full bg-primary rounded-full transition-all" style={{ height: `${(c.mood/5)*100}%`, minHeight: 4 }} />
-                  <span className="text-xs text-on-surface-variant font-jakarta">{MOOD.find(m=>m.val===c.mood)?.emoji}</span>
+                  {(() => { const mo = MOOD.find(m=>m.val===c.mood); return mo ? <mo.Icon size={14} className={mo.color} /> : null; })()}
                 </div>
               ))}
             </div>
@@ -181,7 +182,7 @@ export default function StudentWellness() {
       {/* Active surveys */}
       {surveys.length > 0 && (
         <div>
-          <h2 className="font-lexend font-bold text-on-surface mb-3">📋 Wellbeing Surveys</h2>
+          <h2 className="font-lexend font-bold text-on-surface mb-3">Wellbeing Surveys</h2>
           <div className="space-y-3">
             {surveys.map(s => (
               <Card key={s.id} className="flex items-center justify-between gap-4">
@@ -205,7 +206,7 @@ export default function StudentWellness() {
           <div className="bg-surface-lowest rounded-2xl p-6 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
             {submitted ? (
               <div className="text-center py-8">
-                <div className="text-5xl mb-4">🎉</div>
+                <div className="flex justify-center mb-4"><CheckCircle size={48} className="text-green-500" /></div>
                 <h3 className="font-lexend text-xl font-bold">Thank you!</h3>
                 <p className="text-on-surface-variant mt-2">Your response has been recorded.</p>
                 <Button onClick={() => setActiveSurvey(null)} className="mt-4 rounded-full">Close</Button>

@@ -31,8 +31,8 @@ export default function TeacherOverview() {
       </div>
       <div className="grid grid-cols-2 gap-4">
         {[
-          { label: 'My Surveys', href: '/dashboard/teacher/surveys', emoji: '📋' },
-          { label: 'Courses', href: '/dashboard/teacher/courses', emoji: '📚' },
+          { label: 'My Surveys', href: '/dashboard/teacher/surveys', emoji: 'list' },
+          { label: 'Courses', href: '/dashboard/teacher/courses', emoji: 'book' },
         ].map(l => (
           <a key={l.href} href={l.href} className="bg-surface-lowest rounded-xl p-4 flex items-center gap-3 hover:bg-primary-container transition-colors group">
             <span className="text-2xl">{l.emoji}</span>

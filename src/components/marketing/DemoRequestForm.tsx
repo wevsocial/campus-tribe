@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { CheckCircle } from 'lucide-react';
+
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jZnRrdXV4ZmxseW9oaXhpdXNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MjI1MTAsImV4cCI6MjA4MzI5ODUxMH0.R7Tsu32PLgZqz5C4oSQ9tMLmsbFp8k87ao17_S-M6ik';
 
 const inputCls =
   'w-full px-4 py-3 rounded-xl text-sm font-jakarta ' +
@@ -38,6 +41,17 @@ export function DemoRequestForm() {
         message: message || null,
       });
       if (dbError) throw dbError;
+
+      // Fire email notification (non-blocking)
+      fetch('https://ncftkuuxfllyohixiusb.supabase.co/functions/v1/send-demo-request-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ full_name: fullName, email, institution_name: institutionName, institution_type: institutionType, student_count: studentCount, message }),
+      }).catch(console.error);
+
       setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Submission failed. Please try again.');
@@ -61,8 +75,8 @@ export function DemoRequestForm() {
 
         {success ? (
           <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-300 rounded-3xl px-8 py-10 text-center font-jakarta">
-            <div className="text-4xl mb-3">🎉</div>
-            <p className="font-bold text-lg">We'll be in touch within 24 hours! 🎉</p>
+            <div className="flex justify-center mb-3"><CheckCircle size={48} className="text-green-500" /></div>
+            <p className="font-bold text-lg">We'll be in touch within 24 hours!</p>
             <p className="text-sm mt-1 opacity-80">Our team will reach out to schedule your personalized demo.</p>
           </div>
         ) : (

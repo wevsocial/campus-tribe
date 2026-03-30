@@ -13,8 +13,8 @@ export default function ParentOverview() {
       <div className="grid grid-cols-2 gap-4">
         {[
           { label: 'My Children', href: '/dashboard/parent/children', emoji: '👶' },
-          { label: 'Reports', href: '/dashboard/parent/reports', emoji: '📋' },
-          { label: 'Messages', href: '/dashboard/parent/messages', emoji: '💬' },
+          { label: 'Reports', href: '/dashboard/parent/reports', emoji: 'list' },
+          { label: 'Messages', href: '/dashboard/parent/messages', emoji: 'message' },
         ].map(l => (
           <a key={l.href} href={l.href} className="bg-surface-lowest rounded-xl p-4 flex items-center gap-3 hover:bg-primary-container transition-colors group">
             <span className="text-2xl">{l.emoji}</span>

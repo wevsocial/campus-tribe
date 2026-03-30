@@ -34,7 +34,7 @@ export default function StudentRepOverview() {
       <div className="grid grid-cols-2 gap-4">
         {[
           { label: 'Book Venue', href: '/dashboard/student-rep/venues', emoji: '🏟️' },
-          { label: 'Create Event', href: '/dashboard/student-rep/events', emoji: '📅' },
+          { label: 'Create Event', href: '/dashboard/student-rep/events', emoji: 'calendar' },
           { label: 'Announce', href: '/dashboard/student-rep/announcements', emoji: '📢' },
         ].map(l => (
           <a key={l.href} href={l.href} className="bg-surface-lowest rounded-xl p-4 flex items-center gap-3 hover:bg-primary-container transition-colors group">

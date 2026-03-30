@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { BookOpen, Home as HomeIcon, Search, Calendar, Megaphone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { supabase } from '../../../lib/supabase';
@@ -12,7 +13,7 @@ interface FeedEvent { id: string; title: string; start_time: string | null; even
 interface Announcement { id: string; title: string; body: string | null; created_at: string; }
 interface Club { id: string; name: string; category: string | null; }
 
-const CATEGORY_EMOJI: Record<string, string> = { sports: '⚽', academic: '📚', arts: '🎨', social: '🎉', career: '💼', wellness: '💚', club: '🏛️', default: '📅' };
+const CATEGORY_EMOJI: Record<string, string> = { sports: 'trophy', academic: 'book', arts: 'palette', social: 'star', career: 'briefcase', wellness: 'heart', club: 'building', default: 'calendar' };
 
 export default function StudentHome() {
   const { user, institutionId, profile } = useAuth();
@@ -70,10 +71,10 @@ export default function StudentHome() {
           <p className="font-jakarta text-white/70 text-sm mt-1">Here's your campus life today.</p>
           <div className="flex gap-3 mt-4 flex-wrap">
             <Button onClick={() => navigate('/dashboard/student/discover')} size="sm" className="rounded-full bg-white/20 hover:bg-white/30 text-white border-0 font-jakarta font-bold">
-              🔍 Discover Clubs
+              Discover Clubs
             </Button>
             <Button onClick={() => navigate('/dashboard/student/events')} size="sm" className="rounded-full bg-white/20 hover:bg-white/30 text-white border-0 font-jakarta font-bold">
-              📅 Browse Events
+              Browse Events
             </Button>
           </div>
         </div>
@@ -96,7 +97,7 @@ export default function StudentHome() {
           <div className="flex gap-3 flex-wrap">
             {myClubs.map((c) => (
               <div key={c.id} className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary-container">
-                <span className="text-sm">{CATEGORY_EMOJI[c.category?.toLowerCase() ?? 'default'] ?? '🏛️'}</span>
+                <span className="text-sm"><Calendar size={14} className="inline text-gray-400" /></span>
                 <span className="font-jakarta font-bold text-sm text-primary">{c.name}</span>
               </div>
             ))}
@@ -107,7 +108,7 @@ export default function StudentHome() {
       {/* Announcements */}
       {announcements.length > 0 && (
         <div>
-          <h2 className="font-lexend font-bold text-on-surface mb-3">📣 Announcements</h2>
+          <h2 className="font-lexend font-bold text-on-surface mb-3">Announcements</h2>
           <div className="space-y-3">
             {announcements.map(a => (
               <Card key={a.id} className="border-l-4 border-primary">
@@ -123,7 +124,7 @@ export default function StudentHome() {
       {/* Upcoming events feed */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-lexend font-bold text-on-surface">🗓️ Upcoming Events</h2>
+          <h2 className="font-lexend font-bold text-on-surface">Upcoming Events</h2>
           <button onClick={() => navigate('/dashboard/student/events')} className="text-sm text-primary font-jakarta font-bold hover:underline">View all →</button>
         </div>
         {events.length === 0 ? (
@@ -133,7 +134,7 @@ export default function StudentHome() {
             {events.map(ev => (
               <Card key={ev.id} className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-primary-container rounded-xl flex items-center justify-center flex-shrink-0 text-xl">
-                  {CATEGORY_EMOJI[ev.category?.toLowerCase() ?? 'default'] ?? '📅'}
+                  <Calendar size={14} className="inline text-gray-400" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-jakarta font-bold text-on-surface truncate">{ev.title}</p>
@@ -151,9 +152,9 @@ export default function StudentHome() {
         <h2 className="font-lexend font-bold text-on-surface mb-3">📌 Campus Boards</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
-            { icon: '🏠', label: 'Housing', desc: 'Find roommates, sublets, off-campus housing', color: 'bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800' },
+            { icon: 'home', label: 'Housing', desc: 'Find roommates, sublets, off-campus housing', color: 'bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800' },
             { icon: '🚗', label: 'Rides',   desc: 'Carpool, share rides, post your route',        color: 'bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800' },
-            { icon: '📚', label: 'Study Groups', desc: 'Join or start a study group',             color: 'bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800' },
+            { icon: 'book', label: 'Study Groups', desc: 'Join or start a study group',             color: 'bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800' },
           ].map(b => (
             <div key={b.label} className={`p-4 rounded-2xl ${b.color} cursor-pointer hover:shadow-sm transition-shadow`}>
               <span className="text-2xl">{b.icon}</span>

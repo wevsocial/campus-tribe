@@ -7,6 +7,7 @@ import PreschoolPage from './pages/PreschoolPage';
 import DemoPage from './pages/DemoPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import AuthCallback from './pages/AuthCallback';
 import PricingPage from './pages/PricingPage';
 import AboutPage from './pages/static/AboutPage';
 import CareersPage from './pages/static/CareersPage';
@@ -98,6 +99,7 @@ export default function App() {
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/careers" element={<CareersPage />} />
         <Route path="/blog" element={<BlogPage />} />

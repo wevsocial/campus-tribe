@@ -79,7 +79,7 @@ export default function StudentDiscover() {
               <Card key={club.id} className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg">{club.category === 'Sports' ? '⚽' : club.category === 'Arts' ? '🎨' : '🏛️'}</span>
+                    <span className="text-xs px-2 py-0.5 bg-primary-container text-primary rounded-full font-jakarta">{club.category ?? 'Club'}</span>
                   </div>
                   <div className="min-w-0">
                     <p className="font-jakarta font-bold text-on-surface truncate">{club.name}</p>

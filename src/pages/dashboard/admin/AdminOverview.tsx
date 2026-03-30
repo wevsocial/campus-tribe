@@ -140,11 +140,11 @@ export default function AdminOverview() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {[
             { label: 'Approve Clubs', path: '/dashboard/admin/clubs', emoji: '🏛️' },
-            { label: 'Manage Events', path: '/dashboard/admin/events', emoji: '📅' },
+            { label: 'Manage Events', path: '/dashboard/admin/events', emoji: 'calendar' },
             { label: 'Venue Queue', path: '/dashboard/admin/venues', emoji: '🏟️' },
-            { label: 'Sports', path: '/dashboard/admin/sports', emoji: '🏆' },
-            { label: 'Reports', path: '/dashboard/admin/reports', emoji: '📊' },
-            { label: 'Settings', path: '/dashboard/admin/settings', emoji: '⚙️' },
+            { label: 'Sports', path: '/dashboard/admin/sports', emoji: 'trophy' },
+            { label: 'Reports', path: '/dashboard/admin/reports', emoji: 'chart' },
+            { label: 'Settings', path: '/dashboard/admin/settings', emoji: 'settings' },
           ].map(link => (
             <a key={link.path} href={link.path} className="bg-surface-lowest rounded-xl p-4 flex items-center gap-3 hover:bg-white transition-colors group">
               <span className="text-2xl">{link.emoji}</span>

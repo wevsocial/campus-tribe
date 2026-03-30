@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Calendar } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { supabase } from '../../../lib/supabase';
 import Card from '../../../components/ui/Card';
@@ -14,7 +15,7 @@ interface Event {
 }
 
 const CATEGORY_EMOJI: Record<string, string> = {
-  sports: '⚽', academic: '📚', arts: '🎨', social: '🎉', career: '💼', wellness: '💚', club: '🏛️',
+  sports: 'trophy', academic: 'book', arts: 'palette', social: 'star', career: 'briefcase', wellness: 'heart', club: 'building',
 };
 
 export default function StudentEvents() {
@@ -89,13 +90,13 @@ export default function StudentEvents() {
             className={`px-4 py-1.5 rounded-full text-xs font-jakarta font-bold transition-all ${
               filter === cat ? 'bg-primary text-white' : 'bg-surface-low text-on-surface-variant hover:bg-primary-container'
             }`}>
-            {cat === 'all' ? '📋 All' : `${CATEGORY_EMOJI[cat ?? ''] ?? '📌'} ${cat}`}
+            {cat === 'all' ? 'All' : `$<Calendar size={14} className="inline text-gray-400" /> ${cat}`}
           </button>
         ))}
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState icon="📅" message="No events in this category." />
+        <EmptyState icon={undefined} message="No events in this category." />
       ) : (
         <div className="space-y-4">
           {filtered.map(ev => {
@@ -104,15 +105,15 @@ export default function StudentEvents() {
               <Card key={ev.id} className="flex flex-col sm:flex-row sm:items-center gap-4">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <div className="w-14 h-14 bg-primary-container rounded-2xl flex items-center justify-center flex-shrink-0 text-2xl">
-                    {CATEGORY_EMOJI[ev.category?.toLowerCase() ?? ''] ?? '📅'}
+                    <Calendar size={14} className="inline text-gray-400" />
                   </div>
                   <div className="min-w-0">
                     <p className="font-jakarta font-bold text-on-surface">{ev.title}</p>
                     {ev.description && <p className="text-sm text-on-surface-variant mt-0.5 line-clamp-1">{ev.description}</p>}
                     <p className="text-sm text-on-surface-variant mt-1">
-                      🕐 {formatDate(ev.start_time || ev.event_date)}
-                      {ev.location && ` · 📍 ${ev.location}`}
-                      {ev.capacity && ` · 👥 Capacity: ${ev.capacity}`}
+                       {formatDate(ev.start_time || ev.event_date)}
+                      {ev.location && ` ·  ${ev.location}`}
+                      {ev.capacity && ` · Capacity: ${ev.capacity}`}
                     </p>
                   </div>
                 </div>

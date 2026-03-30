@@ -31,7 +31,7 @@ export default function StaffOverview() {
       </div>
       <div className="grid grid-cols-2 gap-4">
         {[
-          { label: 'Daily Reports', href: '/dashboard/staff/reports', emoji: '📋' },
+          { label: 'Daily Reports', href: '/dashboard/staff/reports', emoji: 'list' },
           { label: 'Parent Updates', href: '/dashboard/staff/updates', emoji: '👨‍👩‍👧' },
         ].map(l => (
           <a key={l.href} href={l.href} className="bg-surface-lowest rounded-xl p-4 flex items-center gap-3 hover:bg-primary-container transition-colors group">
