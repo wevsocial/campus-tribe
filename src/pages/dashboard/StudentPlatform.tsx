@@ -345,6 +345,8 @@ function EventsSection({ institutionId, canCreate }: { institutionId: string | n
 function ClubsSection({ institutionId, isLeader, userId }: { institutionId: string | null; isLeader: boolean; userId?: string }) {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
+  const [joinedClubs, setJoinedClubs] = useState<Set<string>>(new Set());
+  const [joining, setJoining] = useState<string | null>(null);
 
   useEffect(() => {
     if (!institutionId) return;
@@ -354,10 +356,19 @@ function ClubsSection({ institutionId, isLeader, userId }: { institutionId: stri
     });
   }, [institutionId]);
 
-  const join = async (clubId: string) => {
+  useEffect(() => {
     if (!userId) return;
-    await supabase.from('ct_club_members').insert({ club_id: clubId, user_id: userId, role: 'member' });
-    alert('Joined club!');
+    supabase.from('ct_club_members').select('club_id').eq('user_id', userId).then(({ data }) => {
+      setJoinedClubs(new Set((data || []).map(m => m.club_id)));
+    });
+  }, [userId]);
+
+  const join = async (clubId: string) => {
+    if (!userId || joining) return;
+    setJoining(clubId);
+    await supabase.from('ct_club_members').upsert({ club_id: clubId, user_id: userId, role: 'member', status: 'active' }, { onConflict: 'club_id,user_id' });
+    setJoinedClubs(prev => new Set([...prev, clubId]));
+    setJoining(null);
   };
 
   return (
@@ -374,7 +385,19 @@ function ClubsSection({ institutionId, isLeader, userId }: { institutionId: stri
               {c.description && <p className="text-sm text-on-surface-variant mt-1 line-clamp-2">{c.description}</p>}
               {c.member_count != null && <p className="text-xs text-on-surface-variant mt-2">{c.member_count} members</p>}
               {!isLeader && (
-                <button onClick={() => join(c.id)} className="mt-3 w-full py-2 rounded-xl bg-secondary text-white text-sm font-jakarta font-700 hover:bg-secondary/90 transition-colors">Join Club</button>
+                joinedClubs.has(c.id) ? (
+                  <div className="mt-3 w-full py-2 rounded-xl bg-tertiary-container text-tertiary text-sm font-jakarta font-700 flex items-center justify-center gap-2">
+                    <CheckCircle size={14} /> Member
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => join(c.id)}
+                    disabled={joining === c.id}
+                    className="mt-3 w-full py-2 rounded-xl bg-secondary text-white text-sm font-jakarta font-700 hover:bg-secondary/90 transition-colors disabled:opacity-50"
+                  >
+                    {joining === c.id ? 'Joining...' : 'Join Club'}
+                  </button>
+                )
               )}
             </div>
           ))}
