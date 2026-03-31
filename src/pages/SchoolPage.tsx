@@ -77,7 +77,7 @@ export default function SchoolPage() {
                 <h3 className="font-headline text-2xl font-bold mb-2">Study Groups</h3>
                 <p className="opacity-80">Match students by subject, learning style, and schedule.</p>
               </div>
-              <div className="md:col-span-4 bg-tertiary-container text-on-tertiary-container rounded-xl p-8 flex flex-col justify-center text-center">
+              <div className="md:col-span-4 bg-tertiary-container dark:bg-slate-800 text-on-tertiary-container rounded-xl p-8 flex flex-col justify-center text-center">
                 <span className="material-symbols-outlined text-5xl mb-6">family_restroom</span>
                 <h3 className="font-headline text-2xl font-bold mb-2 dark:text-slate-100">Parent Portals</h3>
                 <p className="opacity-80 text-sm dark:text-slate-300">Give parents a real-time window into their child's school life.</p>

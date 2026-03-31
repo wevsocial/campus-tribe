@@ -110,7 +110,7 @@ export default function PricingPage() {
           </div>
 
           {/* Growth — Most Popular */}
-          <div className="relative bg-hero-gradient rounded-[1.5rem] p-8 flex flex-col shadow-2xl shadow-primary/30 hover:-translate-y-2 transition-all">
+          <div className="relative bg-gradient-to-br from-primary to-primary/80 rounded-[1.5rem] p-8 flex flex-col shadow-2xl shadow-primary/30 hover:-translate-y-2 transition-all">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
               <span className="bg-secondary text-white px-4 py-1 rounded-full text-xs font-jakarta font-700 uppercase tracking-widest shadow-md">
                 Most Popular
@@ -171,7 +171,7 @@ export default function PricingPage() {
               <div className="text-white/60 text-xs font-jakarta font-700 uppercase tracking-widest mb-3">Platform Impact</div>
               <h4 className="font-lexend text-2xl font-800 mb-2">Proven ROI at Scale</h4>
               <p className="text-white/70 text-sm leading-relaxed">
-                Institutions running Campus Tribe see a 14-point retention advantage — 92% retention for
+                Institutions running Campus Tribe see a 14-point retention advantage: 92% retention for
                 engaged students vs. 78% for non-engaged. At $28,700 average annual tuition, 500 retained
                 students = $14.35M additional tuition revenue.
               </p>
@@ -192,7 +192,7 @@ export default function PricingPage() {
                 <h4 className="font-lexend text-2xl font-800">Payment method</h4>
                 <p className="text-on-surface-variant text-sm mt-1">
                   Annual prepayment via bank wire, ACH, or institutional cheque. No credit card required.
-                  Internal campus payments (club dues, event tickets, intramural fees) processed via Helcim — 
+                  Internal campus payments (club dues, event tickets, intramural fees) processed via Helcim; 
                   Canadian-first, PCI-DSS Level 1.
                 </p>
               </div>

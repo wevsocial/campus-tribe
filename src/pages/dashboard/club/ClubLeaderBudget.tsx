@@ -92,7 +92,7 @@ export default function ClubLeaderBudget() {
               className="w-full px-4 py-2.5 rounded-xl bg-surface-low border border-outline-variant/50 font-jakarta text-sm text-on-surface focus:outline-none" min={0} />
             <div className="flex items-center gap-2 p-3 rounded-xl bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800">
               <span className="text-green-500">✓</span>
-              <p className="text-xs font-jakarta text-green-700 dark:text-green-400">Dues collection active — ${duesAmount}/year per member</p>
+              <p className="text-xs font-jakarta text-green-700 dark:text-green-400">Dues collection active: ${duesAmount}/year per member</p>
             </div>
           </div>
         )}

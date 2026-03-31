@@ -103,7 +103,7 @@ export default function StudentWellness() {
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <StatCard value={checks.length} label="Total check-ins" color="tertiary" />
-        <StatCard value={avgMood ?? '—'} label="7-day avg mood" color="primary" />
+        <StatCard value={avgMood ?? '-'} label="7-day avg mood" color="primary" />
         <StatCard value={surveys.length} label="Active surveys" color="secondary" />
       </div>
 

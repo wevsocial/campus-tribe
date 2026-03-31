@@ -4,6 +4,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { supabase } from '../../../lib/supabase';
 import Card from '../../../components/ui/Card';
 import EmptyState from '../../../components/ui/EmptyState';
+import ProfilePhotoUpload from '../../../components/ui/ProfilePhotoUpload';
 
 interface Child {
   id: string;
@@ -112,6 +113,13 @@ export default function ParentOverview() {
   return (
     <div className="space-y-6">
       <h1 className="font-lexend text-2xl font-extrabold text-on-surface">Parent Overview</h1>
+
+      {user?.id && (
+        <div className="bg-surface-lowest rounded-2xl p-5 border border-outline-variant/30 shadow-float">
+          <p className="font-lexend font-700 text-on-surface mb-3">Profile Photo</p>
+          <ProfilePhotoUpload userId={user.id} displayName={user.email || ''} />
+        </div>
+      )}
 
       <Card variant="primary-tinted">
         <p className="font-jakarta font-bold text-on-surface">Welcome to the Parent Portal</p>

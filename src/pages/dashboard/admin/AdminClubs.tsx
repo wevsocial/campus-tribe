@@ -152,7 +152,7 @@ export default function AdminClubs() {
                 {pending.map(c => (
                   <tr key={c.id} className="hover:bg-surface-low/50">
                     <td className="px-4 py-3 font-jakarta font-bold text-on-surface text-sm">{c.name}</td>
-                    <td className="px-4 py-3 text-on-surface-variant text-sm">{c.category || '—'}</td>
+                    <td className="px-4 py-3 text-on-surface-variant text-sm">{c.category || 'N/A'}</td>
                     <td className="px-4 py-3 text-on-surface-variant text-sm">{new Date(c.created_at).toLocaleDateString()}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">

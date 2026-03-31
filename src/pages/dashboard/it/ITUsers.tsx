@@ -160,7 +160,7 @@ export default function ITUsers() {
                   <span className="font-jakarta font-bold text-primary text-xs">{(u.full_name || u.email).slice(0,2).toUpperCase()}</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="font-jakarta font-bold text-on-surface text-sm truncate">{u.full_name || '—'}</p>
+                  <p className="font-jakarta font-bold text-on-surface text-sm truncate">{u.full_name || '-'}</p>
                   <p className="text-xs text-on-surface-variant truncate">{u.email}</p>
                   {/* Role chips */}
                   {u.roles && u.roles.length > 1 && (

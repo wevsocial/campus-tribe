@@ -165,7 +165,7 @@ export default function TeacherSurveys() {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <button className="text-on-surface-variant hover:text-on-surface" onClick={() => setView('list')}>← Back</button>
-          <h1 className="font-lexend text-2xl font-extrabold text-on-surface">{selectedSurvey.title} — Results</h1>
+          <h1 className="font-lexend text-2xl font-extrabold text-on-surface">{selectedSurvey.title} : Results</h1>
           <Badge label={selectedSurvey.status} variant={selectedSurvey.status === 'active' ? 'success' : 'neutral'} />
         </div>
         <p className="text-sm text-on-surface-variant">{responses.length} responses total</p>

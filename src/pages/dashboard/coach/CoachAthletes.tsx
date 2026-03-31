@@ -103,8 +103,8 @@ export default function CoachAthletes() {
                 {athletes.map(a => (
                   <tr key={a.id} className="hover:bg-surface-low/50">
                     <td className="px-4 py-3 font-jakarta font-bold text-on-surface text-sm">{a.user?.full_name || 'Unknown'}</td>
-                    <td className="px-4 py-3 text-on-surface-variant text-sm">{a.user?.email || '—'}</td>
-                    <td className="px-4 py-3 text-on-surface-variant text-sm">{a.team?.name || '—'}</td>
+                    <td className="px-4 py-3 text-on-surface-variant text-sm">{a.user?.email || 'N/A'}</td>
+                    <td className="px-4 py-3 text-on-surface-variant text-sm">{a.team?.name || 'N/A'}</td>
                     <td className="px-4 py-3">
                       <Badge label={a.is_free_agent ? 'Yes' : 'No'} variant={a.is_free_agent ? 'warning' : 'neutral'} />
                     </td>

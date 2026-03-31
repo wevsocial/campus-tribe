@@ -26,7 +26,7 @@ export default function SupportPage() {
     try {
       const res = await fetch('https://ncftkuuxfllyohixiusb.supabase.co/functions/v1/send-demo-request-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jZnRrdXV4ZmxseW9oaXhpdXNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU3MjI1MTAsImV4cCI6MjA4MTI5ODUxMH0.qMXAzX_5R7Tsu32PLgZqz5C4oSQ9tMLmsbFp8k87ao17_S-M6ik' },
         body: JSON.stringify({
           name: form.name,
           email: form.email,

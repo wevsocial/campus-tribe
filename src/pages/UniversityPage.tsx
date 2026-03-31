@@ -48,10 +48,10 @@ export default function UniversityPage() {
             <div className="relative z-10 grid grid-cols-2 gap-4">
               <div className="space-y-4 pt-12">
                 <div className="aspect-[3/4] rounded-xl overflow-hidden shadow-2xl rotate-[-3deg] border-4 border-white dark:border-slate-700">
-                  <picture><source type="image/webp" srcSet="/assets/campus-university.webp" /><img
-                    alt="Student Library"
+                  <picture><source type="image/webp" srcSet="/assets/campus-students.webp" /><img
+                    alt="Students searching"
                     className="w-full h-full object-cover"
-                    src="/assets/campus-university.jpg"
+                    src="/assets/campus-students.jpg"
                   /></picture>
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-xl flex items-center gap-4">

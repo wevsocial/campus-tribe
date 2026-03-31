@@ -194,7 +194,7 @@ React.useEffect(() => {
               <div key={report.id} className="mb-3 rounded-[1rem] bg-surface p-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-jakarta font-700 text-on-surface">{report.ct_children?.full_name || 'Child report'}</p>
-                  <Badge label={`Mood ${report.mood || '—'}`} variant="secondary" />
+                  <Badge label={`Mood ${report.mood || '-'}`} variant="secondary" />
                 </div>
                 <p className="mt-1 text-sm text-on-surface-variant">{report.report_date} · {(report.activities || []).join(', ') || 'No activities listed'}</p>
                 <p className="text-sm text-on-surface-variant">Meals: {report.meals?.summary || 'No meal summary'} · Nap: {report.nap_duration_minutes || 0} min</p>

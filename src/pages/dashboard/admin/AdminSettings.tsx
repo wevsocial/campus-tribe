@@ -76,7 +76,7 @@ export default function AdminSettings() {
 
   const testConnection = () => {
     if (!lmsConfig.canvas_url) { showToast('Enter Canvas URL first.', false); return; }
-    showToast('Connection test simulated — Canvas LTI 1.3 config appears valid.', true);
+    showToast('Connection test simulated. Canvas LTI 1.3 config appears valid.', true);
   };
 
   const exportCSV = () => {
@@ -120,15 +120,15 @@ export default function AdminSettings() {
         <div className="space-y-2">
           <div className="flex justify-between">
             <span className="font-jakarta text-sm text-on-surface-variant">Institution Name</span>
-            <span className="font-jakarta font-bold text-on-surface text-sm">{institution?.name || '—'}</span>
+            <span className="font-jakarta font-bold text-on-surface text-sm">{institution?.name || 'N/A'}</span>
           </div>
           <div className="flex justify-between">
             <span className="font-jakarta text-sm text-on-surface-variant">Platform Type</span>
-            <span className="font-jakarta font-bold text-on-surface text-sm capitalize">{institution?.platform_type || '—'}</span>
+            <span className="font-jakarta font-bold text-on-surface text-sm capitalize">{institution?.platform_type || 'N/A'}</span>
           </div>
           <div className="flex justify-between">
             <span className="font-jakarta text-sm text-on-surface-variant">Contact Email</span>
-            <span className="font-jakarta font-bold text-on-surface text-sm">{institution?.contact_email || '—'}</span>
+            <span className="font-jakarta font-bold text-on-surface text-sm">{institution?.contact_email || 'N/A'}</span>
           </div>
         </div>
       </Card>
@@ -136,7 +136,7 @@ export default function AdminSettings() {
       {/* LMS — Canvas LTI 1.3 */}
       <Card>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-lexend font-bold text-on-surface">LMS Integration — Canvas LTI 1.3</h2>
+          <h2 className="font-lexend font-bold text-on-surface">LMS Integration: Canvas LTI 1.3</h2>
           <Badge label={lmsStatus} variant={lmsStatus === 'Configured' ? 'success' : 'warning'} />
         </div>
         <div className="space-y-3">
@@ -165,7 +165,7 @@ export default function AdminSettings() {
       {/* Helcim */}
       <Card>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-lexend font-bold text-on-surface">Payment Integration — Helcim</h2>
+          <h2 className="font-lexend font-bold text-on-surface">Payment Integration: Helcim</h2>
           <Badge label={helcimStatus} variant={helcimStatus === 'Configured' ? 'success' : 'warning'} />
         </div>
         <div className="space-y-3">
@@ -182,7 +182,7 @@ export default function AdminSettings() {
           <Button onClick={saveHelcim} className="flex items-center gap-2"><Save size={14} /> Save Helcim Config</Button>
           <div className="flex items-start gap-2 p-3 bg-green-50 rounded-xl">
             <AlertTriangle size={16} className="text-green-700 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-green-700">PCI-DSS Level 1 — Card data never stored on Campus Tribe servers. All payments processed directly by Helcim.</p>
+            <p className="text-xs text-green-700">PCI-DSS Level 1. Card data never stored on Campus Tribe servers. All payments processed directly by Helcim.</p>
           </div>
         </div>
       </Card>

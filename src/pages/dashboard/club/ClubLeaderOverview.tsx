@@ -121,7 +121,7 @@ export default function ClubLeaderOverview() {
           <div className="flex items-center gap-3">
             <DollarSign size={20} className="text-tertiary" />
             <div>
-              <p className="text-2xl font-lexend font-black text-on-surface">—</p>
+              <p className="text-2xl font-lexend font-black text-on-surface">-</p>
               <p className="text-sm text-on-surface-variant">Budget</p>
             </div>
           </div>

@@ -640,79 +640,140 @@ function AuditSection({ institutionId }: { institutionId: string | null }) {
   );
 }
 
+interface LmsConfig { domain?: string; url?: string; token?: string; sync_enabled?: boolean; }
+
 function IntegrationsSection({ institutionId }: { institutionId: string | null }) {
-  const [canvasDomain, setCanvasDomain] = useState('');
+  const [lmsSettings, setLmsSettings] = useState<Record<string, { status: string; config: LmsConfig }>>({});
+  const [editProvider, setEditProvider] = useState<string | null>(null);
+  const [editConfig, setEditConfig] = useState<LmsConfig>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
+  const loadSettings = () => {
     if (!institutionId) return;
     supabase.from('ct_platform_settings')
-      .select('config')
+      .select('provider, status, config')
       .eq('institution_id', institutionId)
       .eq('category', 'lms')
-      .eq('provider', 'canvas')
-      .maybeSingle()
       .then(({ data }) => {
-        if (data?.config && typeof data.config === 'object') {
-          const cfg = data.config as { domain?: string };
-          if (cfg.domain) setCanvasDomain(cfg.domain);
+        if (data) {
+          const map: Record<string, { status: string; config: LmsConfig }> = {};
+          data.forEach(row => { map[row.provider] = { status: row.status, config: (row.config as LmsConfig) || {} }; });
+          setLmsSettings(map);
         }
       });
-  }, [institutionId]);
+  };
 
-  const saveCanvas = async () => {
+  useEffect(() => { loadSettings(); }, [institutionId]);
+
+  const saveLms = async (provider: string) => {
     if (!institutionId) return;
     setSaving(true);
+    const cfg = editConfig;
+    const hasUrl = !!(cfg.domain || cfg.url || cfg.token);
     await supabase.from('ct_platform_settings').upsert({
       institution_id: institutionId,
       category: 'lms',
-      provider: 'canvas',
-      status: canvasDomain ? 'connected' : 'not_connected',
-      config: { domain: canvasDomain },
+      provider,
+      status: hasUrl ? 'connected' : 'draft',
+      config: cfg,
     }, { onConflict: 'institution_id,category,provider' });
     setSaving(false);
     setSaved(true);
+    setEditProvider(null);
+    loadSettings();
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const integrations = [
-    { name: 'Helcim Payments', desc: 'Accept payments for events and activities', status: 'Not Connected' },
-    { name: 'Webhooks', desc: 'Send real-time events to external systems', status: 'Not Connected' },
-    { name: 'Google Workspace', desc: 'SSO and calendar integration', status: 'Connected' },
+  const disconnectLms = async (provider: string) => {
+    if (!institutionId) return;
+    await supabase.from('ct_platform_settings').upsert({
+      institution_id: institutionId,
+      category: 'lms',
+      provider,
+      status: 'draft',
+      config: { sync_enabled: false },
+    }, { onConflict: 'institution_id,category,provider' });
+    loadSettings();
+  };
+
+  const lmsProviders = [
+    { id: 'canvas', name: 'Canvas LMS', desc: 'Sync courses and grades with Canvas LMS', fields: [{ key: 'domain', label: 'Canvas Domain', placeholder: 'yourschool.instructure.com' }, { key: 'token', label: 'API Token', placeholder: 'canvas_token...' }] },
+    { id: 'moodle', name: 'Moodle', desc: 'Connect to Moodle for course sync and grade passback', fields: [{ key: 'url', label: 'Moodle URL', placeholder: 'https://moodle.yourschool.edu' }, { key: 'token', label: 'Web Service Token', placeholder: 'moodle_ws_token...' }] },
+    { id: 'minerva', name: 'Minerva (McGill)', desc: 'Integrate with McGill Minerva student information system', fields: [{ key: 'url', label: 'Minerva URL', placeholder: 'https://minerva.mcgill.ca' }] },
+    { id: 'blackboard', name: 'Blackboard', desc: 'Sync with Blackboard Learn LMS', fields: [{ key: 'url', label: 'Blackboard URL', placeholder: 'https://blackboard.yourschool.edu' }, { key: 'token', label: 'REST API Key', placeholder: 'bb_api_key...' }] },
+    { id: 'google_classroom', name: 'Google Classroom', desc: 'Pull Google Classroom assignments and rosters', fields: [{ key: 'token', label: 'OAuth Token', placeholder: 'google_oauth_token...' }] },
   ];
 
   return (
     <div className="space-y-5">
-      <h1 className="font-lexend font-900 text-2xl text-on-surface">Integrations</h1>
-      {/* Canvas LMS */}
-      <div className="bg-surface-lowest rounded-2xl p-5 shadow-float border border-outline-variant/30">
-        <div className="flex items-center justify-between mb-2">
-          <p className="font-lexend font-700 text-on-surface">Canvas LMS</p>
-          <span className={`px-2 py-0.5 rounded-full text-xs font-jakarta font-700 ${canvasDomain ? 'bg-tertiary-container text-tertiary' : 'bg-surface-low text-on-surface-variant'}`}>{canvasDomain ? 'Configured' : 'Not Connected'}</span>
-        </div>
-        <p className="text-sm text-on-surface-variant mb-3">Sync courses and grades with Canvas LMS</p>
-        <div>
-          <label className="text-xs font-jakarta font-700 text-on-surface-variant mb-1 block">Canvas Domain</label>
-          <input
-            className="w-full border border-outline-variant rounded-xl px-4 py-2 font-jakarta text-sm bg-surface mb-3"
-            placeholder="e.g. yourschool.instructure.com"
-            value={canvasDomain}
-            onChange={e => setCanvasDomain(e.target.value)}
-          />
-          <button onClick={saveCanvas} disabled={saving} className={`px-4 py-2 rounded-xl text-sm font-jakarta font-700 text-white transition-colors ${saved ? 'bg-tertiary' : 'bg-primary hover:bg-primary/90'}`}>
-            {saving ? 'Saving...' : saved ? 'Saved!' : 'Save'}
-          </button>
-        </div>
-      </div>
+      <h1 className="font-lexend font-900 text-2xl text-on-surface dark:text-slate-100">Integrations</h1>
+      <p className="text-sm text-on-surface-variant dark:text-slate-400">Connect Campus Tribe to your institution's LMS and other systems.</p>
+      {saved && <div className="bg-tertiary-container text-tertiary rounded-xl p-3 text-sm font-jakarta font-700">Settings saved successfully.</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {integrations.map(i => (
-          <div key={i.name} className="bg-surface-lowest rounded-2xl p-5 shadow-float border border-outline-variant/30">
-            <div className="flex items-center justify-between mb-2">
-              <p className="font-lexend font-700 text-on-surface">{i.name}</p>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-jakarta font-700 ${i.status === 'Connected' ? 'bg-tertiary-container text-tertiary' : 'bg-surface-low text-on-surface-variant'}`}>{i.status}</span>
+        {lmsProviders.map(lms => {
+          const setting = lmsSettings[lms.id];
+          const isConnected = setting?.status === 'connected';
+          const isEditing = editProvider === lms.id;
+          const cfg = setting?.config || {};
+          const displayUrl = cfg.domain || cfg.url || '';
+          return (
+            <div key={lms.id} className="bg-surface-lowest dark:bg-slate-800 rounded-2xl p-5 shadow-float border border-outline-variant/30 dark:border-slate-700 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <p className="font-lexend font-700 text-on-surface dark:text-slate-100">{lms.name}</p>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-jakarta font-700 ${isConnected ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-surface-low dark:bg-slate-700 text-on-surface-variant dark:text-slate-400'}`}>
+                  {isConnected ? 'Connected' : 'Not Connected'}
+                </span>
+              </div>
+              <p className="text-sm text-on-surface-variant dark:text-slate-400">{lms.desc}</p>
+              {isConnected && displayUrl && <p className="text-xs font-mono bg-surface-container dark:bg-slate-900 px-3 py-1.5 rounded-lg text-on-surface-variant dark:text-slate-400 truncate">{displayUrl}</p>}
+              {isEditing ? (
+                <div className="space-y-2">
+                  {lms.fields.map(f => (
+                    <div key={f.key}>
+                      <label className="text-xs font-jakarta font-700 text-on-surface-variant dark:text-slate-400 mb-1 block">{f.label}</label>
+                      <input
+                        className="w-full border border-outline-variant dark:border-slate-600 rounded-xl px-4 py-2 font-jakarta text-sm bg-surface dark:bg-slate-900 dark:text-slate-200"
+                        placeholder={f.placeholder}
+                        value={(editConfig as Record<string, string>)[f.key] || ''}
+                        onChange={e => setEditConfig(prev => ({ ...prev, [f.key]: e.target.value }))}
+                      />
+                    </div>
+                  ))}
+                  <div className="flex gap-2 pt-1">
+                    <button onClick={() => saveLms(lms.id)} disabled={saving} className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-jakarta font-700 hover:bg-primary/90 transition-colors">
+                      {saving ? 'Saving...' : 'Save'}
+                    </button>
+                    <button onClick={() => setEditProvider(null)} className="px-4 py-2 rounded-xl bg-surface-container dark:bg-slate-700 text-on-surface dark:text-slate-200 text-sm font-jakarta font-700">Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <button onClick={() => { setEditProvider(lms.id); setEditConfig(cfg); }} className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-jakarta font-700 hover:bg-primary/90 transition-colors">
+                    {isConnected ? 'Configure' : 'Connect'}
+                  </button>
+                  {isConnected && <button onClick={() => disconnectLms(lms.id)} className="px-4 py-2 rounded-xl bg-surface-container dark:bg-slate-700 text-on-surface dark:text-slate-200 text-sm font-jakarta font-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Disconnect</button>}
+                  {isConnected && <button className="px-4 py-2 rounded-xl bg-tertiary-container text-tertiary text-sm font-jakarta font-700 hover:opacity-80 transition-colors">Sync Courses</button>}
+                </div>
+              )}
             </div>
-            <p className="text-sm text-on-surface-variant">{i.desc}</p>
+          );
+        })}
+      </div>
+      {/* Other integrations */}
+      <h2 className="font-lexend font-700 text-lg text-on-surface dark:text-slate-100 mt-4">Other Integrations</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[
+          { name: 'Helcim Payments', desc: 'Accept payments for events and activities', status: 'Not Connected' },
+          { name: 'Webhooks', desc: 'Send real-time events to external systems', status: 'Not Connected' },
+          { name: 'Google Workspace', desc: 'SSO and calendar integration', status: 'Connected' },
+        ].map(i => (
+          <div key={i.name} className="bg-surface-lowest dark:bg-slate-800 rounded-2xl p-5 shadow-float border border-outline-variant/30 dark:border-slate-700">
+            <div className="flex items-center justify-between mb-2">
+              <p className="font-lexend font-700 text-on-surface dark:text-slate-100">{i.name}</p>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-jakarta font-700 ${i.status === 'Connected' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-surface-low dark:bg-slate-700 text-on-surface-variant dark:text-slate-400'}`}>{i.status}</span>
+            </div>
+            <p className="text-sm text-on-surface-variant dark:text-slate-400">{i.desc}</p>
             <button className="mt-3 px-4 py-2 rounded-xl bg-primary text-white text-sm font-jakarta font-700 hover:bg-primary/90 transition-colors">{i.status === 'Connected' ? 'Configure' : 'Connect'}</button>
           </div>
         ))}

@@ -272,7 +272,7 @@ export default function ITDashboard() {
                 <div className="rounded-[1rem] bg-surface p-4 flex items-center justify-between">
                   <div>
                     <p className="font-jakarta font-700 text-on-surface">Email confirmations</p>
-                    <p className="text-sm text-on-surface-variant">Auto-confirm new signups — users can log in immediately</p>
+                    <p className="text-sm text-on-surface-variant">Auto-confirm new signups; users can log in immediately</p>
                   </div>
                   <span className="px-3 py-1 rounded-full bg-tertiary-container text-tertiary text-xs font-jakarta font-700">Enabled</span>
                 </div>

@@ -111,7 +111,7 @@ export default function CoachSchedule() {
                   </p>
                   {game.status === 'completed' && game.home_score !== null && (
                     <p className="font-lexend font-black text-lg text-primary mt-1">
-                      {game.home_score} — {game.away_score}
+                      {game.home_score} - {game.away_score}
                     </p>
                   )}
                 </div>
@@ -128,7 +128,7 @@ export default function CoachSchedule() {
                       placeholder="0"
                     />
                   </div>
-                  <span className="text-on-surface-variant font-bold mt-4">—</span>
+                  <span className="text-on-surface-variant font-bold mt-4">-</span>
                   <div>
                     <label className="block text-xs text-on-surface-variant mb-1">{game.away_team?.name || 'Away'}</label>
                     <input type="number" min={0} className="w-16 border border-outline-variant rounded-lg px-2 py-1 text-sm text-on-surface bg-surface-lowest"

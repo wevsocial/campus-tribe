@@ -14,7 +14,7 @@ export default function AboutPage() {
             Built for <span className="text-primary">Students</span>,<br />by People Who Care.
           </h1>
           <p className="text-xl text-on-surface-variant dark:text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Campus Tribe is a product of WevSocial Inc. — a social technology company focused on meaningful human connection, modern campus operations, and healthier digital ecosystems.
+            Campus Tribe is a product of WevSocial Inc., a social technology company focused on meaningful human connection, modern campus operations, and healthier digital ecosystems.
           </p>
         </section>
 
@@ -23,7 +23,7 @@ export default function AboutPage() {
             <div>
               <h2 className="font-headline font-bold text-4xl text-on-surface dark:text-slate-100 mb-6">Our Mission</h2>
               <p className="text-on-surface-variant dark:text-slate-400 text-lg leading-relaxed mb-6">
-                We believe every student deserves to feel connected — to peers, mentors, teachers, staff, and purpose. Too many learners drift through education feeling invisible, overwhelmed, or disconnected from the real communities around them.
+                We believe every student deserves to feel connected: to peers, mentors, teachers, staff, and purpose. Too many learners drift through education feeling invisible, overwhelmed, or disconnected from the real communities around them.
               </p>
               <p className="text-on-surface-variant dark:text-slate-400 text-lg leading-relaxed mb-8">
                 Campus Tribe exists to change that. We are building the infrastructure for belonging: a privacy-conscious, multi-platform system that brings student life, communication, operations, and support into one living institutional layer.
@@ -51,7 +51,7 @@ export default function AboutPage() {
           <div className="bg-primary text-white rounded-3xl p-12 text-center">
             <h2 className="font-headline font-bold text-3xl mb-4">Powered by WevSocial</h2>
             <p className="text-primary-container max-w-2xl mx-auto leading-relaxed">
-              WevSocial is the parent company behind Campus Tribe. The product is being shaped as a real operational system for university, school, and preschool communities — not just a front-end shell. That means real data, real workflows, real onboarding, and a roadmap aligned to measurable student connection and institutional ROI.
+              WevSocial is the parent company behind Campus Tribe. The product is being shaped as a real operational system for university, school, and preschool communities, not just a front-end shell. That means real data, real workflows, real onboarding, and a roadmap aligned to measurable student connection and institutional ROI.
             </p>
           </div>
         </section>

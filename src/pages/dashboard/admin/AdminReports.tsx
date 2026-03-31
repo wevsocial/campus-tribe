@@ -86,7 +86,7 @@ export default function AdminReports() {
         <div className="flex items-center gap-3 p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800">
           <AlertTriangle size={18} className="text-amber-500 flex-shrink-0" />
           <div>
-            <p className="font-jakarta font-700 text-amber-800 dark:text-amber-400 text-sm">Wellness Alert — Cohort avg mood below threshold</p>
+            <p className="font-jakarta font-700 text-amber-800 dark:text-amber-400 text-sm">Wellness Alert: Cohort avg mood below threshold</p>
             <p className="text-xs text-amber-700 dark:text-amber-500 font-jakarta mt-0.5">
               Average mood score: <strong>{wellnessAlert.avg}/5</strong> across {wellnessAlert.count} check-ins. Consider scheduling a wellness event or reaching out to counseling services.
             </p>

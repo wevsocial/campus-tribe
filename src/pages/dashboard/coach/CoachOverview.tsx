@@ -23,6 +23,13 @@ export default function CoachOverview() {
     });
   }, [institutionId]);
 
+  const [rankings, setRankings] = React.useState<Array<{user_id: string; sport: string; wins: number; losses: number; points: number}>>([]);
+
+  React.useEffect(() => {
+    if (!institutionId) return;
+    supabase.from('ct_sport_rankings').select('user_id,sport,wins,losses,points').eq('institution_id', institutionId).order('points', { ascending: false }).limit(10).then(({ data }) => setRankings(data || []));
+  }, [institutionId]);
+
   if (loading) return <div className="space-y-6"><h1 className="font-lexend text-2xl font-extrabold text-on-surface">Coach Overview</h1><StatSkeleton /></div>;
 
   return (
@@ -38,7 +45,7 @@ export default function CoachOverview() {
         {[
           { label: 'Manage Leagues', href: '/dashboard/coach/leagues', Icon: Trophy },
           { label: 'Manage Teams', href: '/dashboard/coach/teams', Icon: Users },
-          { label: 'Schedule & Scores', href: '/dashboard/coach/schedule', Icon: Calendar },
+          { label: 'Schedule and Scores', href: '/dashboard/coach/schedule', Icon: Calendar },
           { label: 'Athletes', href: '/dashboard/coach/athletes', Icon: Dumbbell },
         ].map(l => (
           <a key={l.href} href={l.href} className="bg-surface-lowest rounded-xl p-4 flex items-center gap-3 hover:bg-primary-container transition-colors group">
@@ -47,6 +54,25 @@ export default function CoachOverview() {
           </a>
         ))}
       </div>
+      {rankings.length > 0 && (
+        <div className="bg-surface-lowest rounded-2xl p-5 shadow-float border border-outline-variant/30">
+          <h2 className="font-lexend font-700 text-lg text-on-surface mb-3 flex items-center gap-2"><Trophy size={16} className="text-secondary" /> Campus Sport Rankings</h2>
+          <div className="space-y-2">
+            {rankings.map((r, i) => (
+              <div key={r.user_id + r.sport} className="flex items-center justify-between py-2 border-b border-outline-variant/20 last:border-0">
+                <div className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-full bg-secondary-container text-secondary text-xs font-lexend font-700 flex items-center justify-center">#{i+1}</span>
+                  <span className="text-sm font-jakarta text-on-surface">{r.sport}</span>
+                </div>
+                <div className="flex items-center gap-4 text-xs font-jakarta text-on-surface-variant">
+                  <span>{r.wins}W - {r.losses}L</span>
+                  <span className="font-lexend font-700 text-secondary">{r.points} pts</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

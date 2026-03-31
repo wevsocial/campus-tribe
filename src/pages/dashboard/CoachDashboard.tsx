@@ -341,7 +341,7 @@ React.useEffect(() => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Team (optional — leave blank for free agent)</label>
+                <label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Team (optional; leave blank for free agent)</label>
                 <select value={athleteTeamId} onChange={(e) => setAthleteTeamId(e.target.value)} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm">
                   <option value="">Free agent</option>
                   {data.teams.filter((t) => !athleteLeagueId || t.league_id === athleteLeagueId).map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -470,7 +470,7 @@ React.useEffect(() => {
                     </p>
                     {game.status === 'completed' ? (
                       <p className="font-lexend text-2xl font-900 text-center text-on-surface">
-                        {game.home_score} — {game.away_score}
+                        {game.home_score} - {game.away_score}
                       </p>
                     ) : (
                       <div className="flex items-center gap-2 mt-2">
@@ -481,7 +481,7 @@ React.useEffect(() => {
                           placeholder="Home"
                           className="w-20 rounded-lg border border-outline-variant bg-surface-lowest px-3 py-2 text-sm text-center"
                         />
-                        <span className="text-on-surface-variant">—</span>
+                        <span className="text-on-surface-variant">-</span>
                         <input
                           type="number" min="0"
                           value={edit.away}
