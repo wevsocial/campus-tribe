@@ -240,12 +240,12 @@ function EventsSection({ institutionId, canCreate }: { institutionId: string | n
 
   const loadRsvps = async (eventIds: string[]) => {
     if (!eventIds.length || !user) return;
-    const { data } = await supabase.from('ct_event_rsvps').select('event_id,user_id').in('event_id', eventIds);
+    const { data } = await supabase.from('ct_event_rsvps').select('event_id,user_id,student_id').in('event_id', eventIds);
     const map: Record<string, { count: number; mine: boolean }> = {};
     for (const r of (data || [])) {
       if (!map[r.event_id]) map[r.event_id] = { count: 0, mine: false };
       map[r.event_id].count++;
-      if (r.user_id === user.id) map[r.event_id].mine = true;
+      if (r.student_id === user.id || r.user_id === user.id) map[r.event_id].mine = true;
     }
     setRsvps(map);
   };
@@ -258,10 +258,10 @@ function EventsSection({ institutionId, canCreate }: { institutionId: string | n
     setRsvpLoading(eventId);
     const current = rsvps[eventId];
     if (current?.mine) {
-      await supabase.from('ct_event_rsvps').delete().eq('event_id', eventId).eq('user_id', user.id);
+      await supabase.from('ct_event_rsvps').delete().eq('event_id', eventId).eq('student_id', user.id);
       setRsvps(r => ({ ...r, [eventId]: { count: (r[eventId]?.count || 1) - 1, mine: false } }));
     } else {
-      await supabase.from('ct_event_rsvps').upsert({ event_id: eventId, user_id: user.id, status: 'attending' }, { onConflict: 'event_id,user_id' });
+      await supabase.from('ct_event_rsvps').upsert({ event_id: eventId, user_id: user.id, student_id: user.id, status: 'attending' }, { onConflict: 'event_id,student_id' });
       setRsvps(r => ({ ...r, [eventId]: { count: (r[eventId]?.count || 0) + 1, mine: true } }));
     }
     setRsvpLoading(null);
@@ -366,7 +366,11 @@ function ClubsSection({ institutionId, isLeader, userId }: { institutionId: stri
   const join = async (clubId: string) => {
     if (!userId || joining) return;
     setJoining(clubId);
-    await supabase.from('ct_club_members').upsert({ club_id: clubId, user_id: userId, role: 'member', status: 'active' }, { onConflict: 'club_id,user_id' });
+    // Check if already a member first
+    const { data: existing } = await supabase.from('ct_club_members').select('id').eq('club_id', clubId).eq('user_id', userId).maybeSingle();
+    if (!existing) {
+      await supabase.from('ct_club_members').insert({ club_id: clubId, user_id: userId, role: 'member', status: 'active' });
+    }
     setJoinedClubs(prev => new Set([...prev, clubId]));
     setJoining(null);
   };
