@@ -140,7 +140,7 @@ export default function StudentPlatform() {
           {activeSection === 'venues' && <VenueSection institutionId={institutionId} />}
           {activeSection === 'announcements' && <AnnouncementsSection institutionId={institutionId} canCreate={isRep} />}
           {activeSection === 'budget' && <BudgetSection institutionId={institutionId} />}
-          {activeSection === 'sports' && <SportsSection institutionId={institutionId} />}
+          {activeSection === 'sports' && <SportsSection institutionId={institutionId} userId={user?.id} />}
           {activeSection === 'wellness' && <WellnessSection userId={user?.id} institutionId={institutionId} />}
           {activeSection === 'surveys' && <SurveysSection institutionId={institutionId} userId={user?.id} />}
           {activeSection === 'grades' && <GradesSection userId={user?.id} />}
@@ -630,32 +630,229 @@ function BudgetSection({ institutionId }: { institutionId: string | null }) {
 }
 
 // ─── Sports Section ───────────────────────────────────────────────────────────
-function SportsSection({ institutionId }: { institutionId: string | null }) {
-  const [leagues, setLeagues] = useState<Array<{ id: string; name: string; sport: string; status: string }>>([]);
+interface Challenge {
+  id: string;
+  title: string | null;
+  description: string | null;
+  sport: string;
+  status: string;
+  is_open: boolean;
+  scheduled_at: string | null;
+  challenger_score: number | null;
+  challenged_score: number | null;
+  institution_id: string | null;
+}
+interface SportRanking { user_id: string; sport: string; wins: number; losses: number; points: number; }
 
-  useEffect(() => {
+function SportsSection({ institutionId, userId }: { institutionId: string | null; userId?: string }) {
+  const [leagues, setLeagues] = useState<Array<{ id: string; name: string; sport: string; status: string }>>([]);
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [rankings, setRankings] = useState<SportRanking[]>([]);
+  const [showCreate, setShowCreate] = useState(false);
+  const [challengeForm, setChallengeForm] = useState({ title: '', description: '', sport: 'Basketball', scheduled_at: '' });
+  const [postScore, setPostScore] = useState<{ id: string; myScore: string; oppScore: string } | null>(null);
+  const [freeAgent, setFreeAgent] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const load = () => {
     if (!institutionId) return;
     supabase.from('ct_sports_leagues').select('id,name,sport,status').eq('institution_id', institutionId).limit(20).then(({ data }) => setLeagues(data || []));
-  }, [institutionId]);
+    supabase.from('ct_sports_challenges').select('*').eq('institution_id', institutionId).eq('is_open', true).order('scheduled_at').limit(30).then(({ data }) => setChallenges((data || []) as Challenge[]));
+    supabase.from('ct_sport_rankings').select('*').eq('institution_id', institutionId).order('points', { ascending: false }).limit(20).then(({ data }) => setRankings((data || []) as SportRanking[]));
+    if (userId) supabase.from('ct_users').select('free_agent').eq('id', userId).maybeSingle().then(({ data }) => setFreeAgent(data?.free_agent || false));
+  };
+
+  useEffect(() => { load(); }, [institutionId, userId]);
+
+  const createChallenge = async () => {
+    if (!userId || !institutionId || !challengeForm.title) return;
+    setSaving(true);
+    // Need ct_students.id for challenger_id FK
+    const { data: student } = await supabase.from('ct_students').select('id').eq('email', (await supabase.from('ct_users').select('email').eq('id', userId).maybeSingle()).data?.email || '').maybeSingle();
+    await supabase.from('ct_sports_challenges').insert({
+      title: challengeForm.title,
+      description: challengeForm.description,
+      sport: challengeForm.sport,
+      scheduled_at: challengeForm.scheduled_at || null,
+      status: 'open',
+      is_open: true,
+      institution_id: institutionId,
+      challenger_id: student?.id || null,
+    });
+    setChallengeForm({ title: '', description: '', sport: 'Basketball', scheduled_at: '' });
+    setShowCreate(false);
+    setSaving(false);
+    load();
+  };
+
+  const acceptChallenge = async (challengeId: string) => {
+    if (!userId) return;
+    await supabase.from('ct_challenge_participants').upsert({ challenge_id: challengeId, user_id: userId }, { onConflict: 'challenge_id,user_id' });
+    await supabase.from('ct_notifications').insert({ user_id: userId, type: 'challenge_accepted', title: 'Challenge Accepted', message: 'You have accepted a sports challenge. See you on the field!' });
+    load();
+  };
+
+  const postResult = async () => {
+    if (!postScore || !userId) return;
+    const myS = parseInt(postScore.myScore);
+    const oppS = parseInt(postScore.oppScore);
+    await supabase.from('ct_sports_challenges').update({
+      challenger_score: myS,
+      challenged_score: oppS,
+      status: 'completed',
+      result_posted_at: new Date().toISOString(),
+      result_posted_by: userId,
+    }).eq('id', postScore.id);
+    // Update rankings
+    const { data: c } = await supabase.from('ct_sports_challenges').select('sport,institution_id').eq('id', postScore.id).maybeSingle();
+    if (c && userId) {
+      const won = myS > oppS;
+      await supabase.from('ct_sport_rankings').upsert({
+        user_id: userId,
+        institution_id: c.institution_id,
+        sport: c.sport,
+        wins: won ? 1 : 0,
+        losses: won ? 0 : 1,
+        points: won ? 30 : 10,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id,institution_id,sport' });
+    }
+    setPostScore(null);
+    load();
+  };
+
+  const toggleFreeAgent = async () => {
+    if (!userId) return;
+    const newVal = !freeAgent;
+    await supabase.from('ct_users').update({ free_agent: newVal }).eq('id', userId);
+    setFreeAgent(newVal);
+  };
+
+  const SPORTS = ['Basketball', 'Soccer', 'Tennis', 'Volleyball', 'Swimming', 'Track', 'Badminton', 'Table Tennis'];
 
   return (
-    <div className="space-y-5">
-      <h1 className="font-lexend font-900 text-2xl text-on-surface">Sports</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {leagues.map(l => (
-          <div key={l.id} className="bg-surface-lowest rounded-2xl p-4 shadow-float border border-outline-variant/30">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center"><Trophy size={18} className="text-secondary" /></div>
-              <div>
-                <p className="font-lexend font-700 text-on-surface">{l.name}</p>
-                <p className="text-xs text-on-surface-variant">{l.sport} · {l.status}</p>
-              </div>
-            </div>
-            <button className="mt-3 w-full py-2 rounded-xl bg-secondary text-white text-sm font-jakarta font-700 hover:bg-secondary/90 transition-colors">Join as Free Agent</button>
-          </div>
-        ))}
-        {leagues.length === 0 && <p className="text-on-surface-variant font-jakarta col-span-2 text-center py-12">No active leagues</p>}
+    <div className="space-y-6">
+      <div className="rounded-2xl p-6 text-white" style={{ background: 'linear-gradient(135deg, #FF7F50, #ff6030)' }}>
+        <h1 className="font-lexend font-900 text-2xl mb-1">Sports Hub</h1>
+        <p className="font-jakarta text-white/80 text-sm">Leagues, open challenges, and campus rankings</p>
       </div>
+
+      {/* Free Agent toggle */}
+      <div className="bg-surface-lowest rounded-2xl p-4 shadow-float border border-outline-variant/30 flex items-center justify-between">
+        <div>
+          <p className="font-lexend font-700 text-on-surface">Free Agent Status</p>
+          <p className="text-xs text-on-surface-variant font-jakarta">Make yourself available for teams looking for players</p>
+        </div>
+        <button onClick={toggleFreeAgent} className={`w-12 h-6 rounded-full transition-colors ${freeAgent ? 'bg-secondary' : 'bg-outline-variant'}`}>
+          <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform mx-0.5 ${freeAgent ? 'translate-x-6' : 'translate-x-0'}`} />
+        </button>
+      </div>
+
+      {/* Leagues */}
+      {leagues.length > 0 && (
+        <div>
+          <h2 className="font-lexend font-700 text-lg text-on-surface mb-3">Active Leagues</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {leagues.map(l => (
+              <div key={l.id} className="bg-surface-lowest rounded-2xl p-4 shadow-float border border-outline-variant/30">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center"><Trophy size={18} className="text-secondary" /></div>
+                  <div>
+                    <p className="font-lexend font-700 text-on-surface">{l.name}</p>
+                    <p className="text-xs text-on-surface-variant">{l.sport} · {l.status}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Open Challenges */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-lexend font-700 text-lg text-on-surface">Open Challenges</h2>
+          <button onClick={() => setShowCreate(!showCreate)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-white text-sm font-jakarta font-700 hover:bg-secondary/90 transition-colors">
+            <Plus size={14} /> Post Challenge
+          </button>
+        </div>
+
+        {showCreate && (
+          <div className="bg-surface-lowest rounded-2xl p-5 shadow-float border border-outline-variant/30 mb-4 space-y-3">
+            <input value={challengeForm.title} onChange={e => setChallengeForm(f => ({ ...f, title: e.target.value }))} placeholder="Challenge title (e.g. 3v3 Basketball)" className="w-full px-3 py-2 rounded-xl border border-outline-variant bg-surface text-sm font-jakarta" />
+            <textarea value={challengeForm.description} onChange={e => setChallengeForm(f => ({ ...f, description: e.target.value }))} placeholder="Details, location, rules..." rows={2} className="w-full px-3 py-2 rounded-xl border border-outline-variant bg-surface text-sm font-jakarta resize-none" />
+            <div className="grid grid-cols-2 gap-3">
+              <select value={challengeForm.sport} onChange={e => setChallengeForm(f => ({ ...f, sport: e.target.value }))} className="px-3 py-2 rounded-xl border border-outline-variant bg-surface text-sm font-jakarta">
+                {SPORTS.map(s => <option key={s}>{s}</option>)}
+              </select>
+              <input type="datetime-local" value={challengeForm.scheduled_at} onChange={e => setChallengeForm(f => ({ ...f, scheduled_at: e.target.value }))} className="px-3 py-2 rounded-xl border border-outline-variant bg-surface text-sm font-jakarta" />
+            </div>
+            <button onClick={createChallenge} disabled={saving || !challengeForm.title} className="w-full py-2 rounded-xl bg-secondary text-white text-sm font-jakarta font-700 disabled:opacity-50">
+              {saving ? 'Posting...' : 'Post Open Challenge'}
+            </button>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {challenges.map(c => (
+            <div key={c.id} className="bg-surface-lowest rounded-2xl p-4 shadow-float border border-outline-variant/30">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <p className="font-lexend font-700 text-on-surface">{c.title || c.sport + ' Challenge'}</p>
+                  {c.description && <p className="text-sm text-on-surface-variant font-jakarta mt-0.5">{c.description}</p>}
+                  <p className="text-xs text-on-surface-variant font-jakarta mt-1">{c.sport} {c.scheduled_at ? '· ' + new Date(c.scheduled_at).toLocaleDateString() : ''}</p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {c.status === 'open' && (
+                    <button onClick={() => acceptChallenge(c.id)} className="px-3 py-1.5 rounded-xl bg-tertiary text-white text-xs font-jakarta font-700 hover:bg-tertiary/90 transition-colors whitespace-nowrap">
+                      Accept
+                    </button>
+                  )}
+                  {c.status === 'open' && (
+                    <button onClick={() => setPostScore({ id: c.id, myScore: '', oppScore: '' })} className="px-3 py-1.5 rounded-xl bg-secondary-container text-secondary text-xs font-jakarta font-700 hover:bg-secondary/10 transition-colors whitespace-nowrap">
+                      Post Score
+                    </button>
+                  )}
+                  {c.status === 'completed' && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-tertiary-container text-tertiary font-jakarta font-700">
+                      {c.challenger_score} - {c.challenged_score}
+                    </span>
+                  )}
+                </div>
+              </div>
+              {postScore?.id === c.id && (
+                <div className="mt-3 flex items-center gap-2">
+                  <input type="number" placeholder="Your score" value={postScore.myScore} onChange={e => setPostScore(s => s ? { ...s, myScore: e.target.value } : null)} className="flex-1 px-3 py-1.5 rounded-lg border border-outline-variant bg-surface text-sm font-jakarta" />
+                  <span className="text-on-surface-variant">vs</span>
+                  <input type="number" placeholder="Opponent score" value={postScore.oppScore} onChange={e => setPostScore(s => s ? { ...s, oppScore: e.target.value } : null)} className="flex-1 px-3 py-1.5 rounded-lg border border-outline-variant bg-surface text-sm font-jakarta" />
+                  <button onClick={postResult} className="px-3 py-1.5 rounded-lg bg-primary text-white text-xs font-jakarta font-700">Save</button>
+                </div>
+              )}
+            </div>
+          ))}
+          {challenges.length === 0 && <p className="text-on-surface-variant font-jakarta text-center py-8">No open challenges yet. Be the first to post one!</p>}
+        </div>
+      </div>
+
+      {/* Campus Rankings */}
+      {rankings.length > 0 && (
+        <div>
+          <h2 className="font-lexend font-700 text-lg text-on-surface mb-3">Campus Rankings</h2>
+          <div className="bg-surface-lowest rounded-2xl shadow-float border border-outline-variant/30 overflow-hidden">
+            <div className="grid grid-cols-4 gap-2 px-4 py-2 bg-surface-container text-xs font-jakarta font-700 text-on-surface-variant uppercase tracking-widest">
+              <span>Player</span><span className="text-center">Sport</span><span className="text-center">W-L</span><span className="text-center">Points</span>
+            </div>
+            {rankings.map((r, i) => (
+              <div key={r.user_id + r.sport} className="grid grid-cols-4 gap-2 px-4 py-3 border-t border-outline-variant/20 items-center">
+                <span className="font-jakarta font-700 text-on-surface text-sm">#{i + 1}</span>
+                <span className="text-xs font-jakarta text-on-surface-variant text-center">{r.sport}</span>
+                <span className="text-xs font-jakarta text-on-surface text-center">{r.wins}-{r.losses}</span>
+                <span className="text-sm font-lexend font-700 text-secondary text-center">{r.points}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -672,8 +869,8 @@ function WellnessSection({ userId, institutionId }: { userId?: string; instituti
   useEffect(() => {
     if (!userId) return;
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    supabase.from('ct_wellbeing_checks').select('checked_at,happiness_score,stress_score').eq('user_id', userId).gte('checked_at', sevenDaysAgo).order('checked_at').then(({ data }) => {
-      setTrend((data || []).map(d => ({ date: d.checked_at, happiness_score: d.happiness_score, stress_score: d.stress_score })));
+    supabase.from('ct_wellbeing_checks').select('date,happiness_score,stress_score').eq('user_id', userId).gte('date', sevenDaysAgo).order('date').then(({ data }) => {
+      setTrend((data || []).map(d => ({ date: d.date, happiness_score: d.happiness_score, stress_score: d.stress_score })));
     });
   }, [userId]);
 
@@ -685,7 +882,7 @@ function WellnessSection({ userId, institutionId }: { userId?: string; instituti
       happiness_score: happinessScore,
       stress_score: stressScore,
       notes,
-      checked_at: new Date().toISOString(),
+      date: new Date().toISOString().split('T')[0],
     });
     setSaving(false);
     setSaved(true);

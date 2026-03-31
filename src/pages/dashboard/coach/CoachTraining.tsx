@@ -7,9 +7,9 @@ interface TrainingSession {
   id: string;
   scheduled_at: string;
   duration_minutes: number | null;
-  location: string | null;
+  title: string | null;
   focus_area: string | null;
-  status: string | null;
+  notes: string | null;
   team_id: string | null;
   team?: { name: string };
 }
@@ -27,7 +27,7 @@ export default function CoachTraining() {
     team_id: '',
     scheduled_at: '',
     duration_minutes: '60',
-    location: '',
+    title: '',
     focus_area: '',
   });
 
@@ -37,7 +37,7 @@ export default function CoachTraining() {
     const [{ data: sessData }, { data: teamData }] = await Promise.all([
       supabase
         .from('ct_training_sessions')
-        .select('id,scheduled_at,duration_minutes,location,focus_area,status,team_id')
+        .select('id,scheduled_at,duration_minutes,focus_area,notes,team_id,title')
         .eq('institution_id', institutionId)
         .order('scheduled_at', { ascending: false })
         .limit(50),
@@ -64,21 +64,17 @@ export default function CoachTraining() {
       team_id: form.team_id || null,
       scheduled_at: form.scheduled_at,
       duration_minutes: parseInt(form.duration_minutes) || 60,
-      location: form.location || null,
+      title: form.title || 'Training Session',
       focus_area: form.focus_area || null,
-      status: 'scheduled',
       institution_id: institutionId,
     });
-    setForm({ team_id: '', scheduled_at: '', duration_minutes: '60', location: '', focus_area: '' });
+    setForm({ team_id: '', scheduled_at: '', duration_minutes: '60', title: '', focus_area: '' });
     setShowCreate(false);
     setSaving(false);
     load();
   };
 
-  const markComplete = async (id: string) => {
-    await supabase.from('ct_training_sessions').update({ status: 'completed' }).eq('id', id);
-    setSessions(s => s.map(sess => sess.id === id ? { ...sess, status: 'completed' } : sess));
-  };
+
 
   return (
     <div className="space-y-6 p-6">
@@ -130,12 +126,12 @@ export default function CoachTraining() {
               />
             </div>
             <div>
-              <label className="block text-xs font-jakarta font-700 text-on-surface-variant mb-1">Location</label>
+              <label className="block text-xs font-jakarta font-700 text-on-surface-variant mb-1">Title</label>
               <input
                 className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface dark:bg-slate-800"
-                placeholder="e.g. Main Gym"
-                value={form.location}
-                onChange={e => setForm(f => ({ ...f, location: e.target.value }))}
+                placeholder="e.g. Pre-Season Training"
+                value={form.title}
+                onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               />
             </div>
             <div className="md:col-span-2">
@@ -173,12 +169,12 @@ export default function CoachTraining() {
           {sessions.map(s => (
             <div
               key={s.id}
-              className={`bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-float border ${s.status === 'completed' ? 'border-tertiary/40' : 'border-outline-variant/30'}`}
+              className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-float border border-outline-variant/30"
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${s.status === 'completed' ? 'bg-tertiary-container' : 'bg-secondary-container'}`}>
-                    <Dumbbell size={18} className={s.status === 'completed' ? 'text-tertiary' : 'text-secondary'} />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary-container">
+                    <Dumbbell size={18} className="text-secondary" />
                   </div>
                   <div>
                     <p className="font-lexend font-700 text-on-surface">
@@ -187,8 +183,8 @@ export default function CoachTraining() {
                     <p className="text-xs text-on-surface-variant mt-0.5">
                       {new Date(s.scheduled_at).toLocaleString()}
                     </p>
-                    {s.location && (
-                      <p className="text-xs text-on-surface-variant">{s.location}</p>
+                    {s.title && (
+                      <p className="text-xs text-on-surface-variant">{s.title}</p>
                     )}
                     {s.focus_area && (
                       <p className="text-xs text-secondary mt-1">{s.focus_area}</p>
@@ -199,18 +195,9 @@ export default function CoachTraining() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  {s.status === 'completed' ? (
-                    <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-tertiary-container text-tertiary font-jakarta font-700">
-                      <CheckCircle size={12} /> Done
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => markComplete(s.id)}
-                      className="text-xs px-3 py-1.5 rounded-xl bg-tertiary text-white font-jakarta font-700 hover:bg-tertiary/90 transition-colors"
-                    >
-                      Mark Complete
-                    </button>
-                  )}
+                  <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-secondary-container text-secondary font-jakarta font-700">
+                    <CheckCircle size={12} /> Scheduled
+                  </span>
                 </div>
               </div>
             </div>
