@@ -42,7 +42,7 @@ export default function CoachTraining() {
         .order('scheduled_at', { ascending: false })
         .limit(50),
       supabase
-        .from('ct_sports_teams')
+        .from('ct_teams')
         .select('id,name')
         .eq('institution_id', institutionId),
     ]);

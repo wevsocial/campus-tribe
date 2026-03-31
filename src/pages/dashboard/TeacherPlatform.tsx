@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { sendEmailNotification, gradeNotificationHtml } from '../../lib/emailNotify';
 import NotificationCenter from '../../components/ui/NotificationCenter';
 import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
 import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
@@ -340,8 +341,16 @@ function AssignmentsSection({ institutionId, userId }: { institutionId: string |
       user_id: sub.student_id,
       type: 'grade_published',
       title: 'Grade Published',
-      message: `Your submission for "${assignment?.title}" has been graded: ${g.grade}/${assignment?.max_points || 100}`,
+      body: `Your submission for "${assignment?.title}" has been graded: ${g.grade}/${assignment?.max_points || 100}`,
     });
+    // Send email notification
+    if (sub.student?.email) {
+      sendEmailNotification(
+        sub.student.email,
+        `Grade Published: ${assignment?.title || 'Assignment'}`,
+        gradeNotificationHtml(sub.student.full_name || 'Student', assignment?.title || 'Assignment', parseFloat(g.grade), assignment?.max_points || 100, g.feedback)
+      );
+    }
     loadSubmissions(assignmentId);
   };
 

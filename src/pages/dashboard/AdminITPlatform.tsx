@@ -109,7 +109,7 @@ export default function AdminITPlatform() {
           {activeSection === 'reports' && <ReportsSection institutionId={institutionId} />}
           {activeSection === 'api-keys' && <ApiKeysSection institutionId={institutionId} />}
           {activeSection === 'audit' && <AuditSection institutionId={institutionId} />}
-          {activeSection === 'integrations' && <IntegrationsSection />}
+          {activeSection === 'integrations' && <IntegrationsSection institutionId={institutionId} />}
           {activeSection === 'settings' && <SettingsSection institutionId={institutionId} />}
           {activeSection === 'profile' && <ProfileSection profile={profile as Record<string, unknown> | null} userId={user?.id} institutionId={institutionId} />}
         </div>
@@ -640,9 +640,43 @@ function AuditSection({ institutionId }: { institutionId: string | null }) {
   );
 }
 
-function IntegrationsSection() {
+function IntegrationsSection({ institutionId }: { institutionId: string | null }) {
+  const [canvasDomain, setCanvasDomain] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!institutionId) return;
+    supabase.from('ct_platform_settings')
+      .select('config')
+      .eq('institution_id', institutionId)
+      .eq('category', 'lms')
+      .eq('provider', 'canvas')
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.config && typeof data.config === 'object') {
+          const cfg = data.config as { domain?: string };
+          if (cfg.domain) setCanvasDomain(cfg.domain);
+        }
+      });
+  }, [institutionId]);
+
+  const saveCanvas = async () => {
+    if (!institutionId) return;
+    setSaving(true);
+    await supabase.from('ct_platform_settings').upsert({
+      institution_id: institutionId,
+      category: 'lms',
+      provider: 'canvas',
+      status: canvasDomain ? 'connected' : 'not_connected',
+      config: { domain: canvasDomain },
+    }, { onConflict: 'institution_id,category,provider' });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
   const integrations = [
-    { name: 'Canvas LMS', desc: 'Sync courses and grades with Canvas LMS', status: 'Not Connected' },
     { name: 'Helcim Payments', desc: 'Accept payments for events and activities', status: 'Not Connected' },
     { name: 'Webhooks', desc: 'Send real-time events to external systems', status: 'Not Connected' },
     { name: 'Google Workspace', desc: 'SSO and calendar integration', status: 'Connected' },
@@ -651,6 +685,26 @@ function IntegrationsSection() {
   return (
     <div className="space-y-5">
       <h1 className="font-lexend font-900 text-2xl text-on-surface">Integrations</h1>
+      {/* Canvas LMS */}
+      <div className="bg-surface-lowest rounded-2xl p-5 shadow-float border border-outline-variant/30">
+        <div className="flex items-center justify-between mb-2">
+          <p className="font-lexend font-700 text-on-surface">Canvas LMS</p>
+          <span className={`px-2 py-0.5 rounded-full text-xs font-jakarta font-700 ${canvasDomain ? 'bg-tertiary-container text-tertiary' : 'bg-surface-low text-on-surface-variant'}`}>{canvasDomain ? 'Configured' : 'Not Connected'}</span>
+        </div>
+        <p className="text-sm text-on-surface-variant mb-3">Sync courses and grades with Canvas LMS</p>
+        <div>
+          <label className="text-xs font-jakarta font-700 text-on-surface-variant mb-1 block">Canvas Domain</label>
+          <input
+            className="w-full border border-outline-variant rounded-xl px-4 py-2 font-jakarta text-sm bg-surface mb-3"
+            placeholder="e.g. yourschool.instructure.com"
+            value={canvasDomain}
+            onChange={e => setCanvasDomain(e.target.value)}
+          />
+          <button onClick={saveCanvas} disabled={saving} className={`px-4 py-2 rounded-xl text-sm font-jakarta font-700 text-white transition-colors ${saved ? 'bg-tertiary' : 'bg-primary hover:bg-primary/90'}`}>
+            {saving ? 'Saving...' : saved ? 'Saved!' : 'Save'}
+          </button>
+        </div>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {integrations.map(i => (
           <div key={i.name} className="bg-surface-lowest rounded-2xl p-5 shadow-float border border-outline-variant/30">
