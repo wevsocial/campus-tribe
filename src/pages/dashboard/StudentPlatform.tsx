@@ -258,10 +258,10 @@ function EventsSection({ institutionId, canCreate }: { institutionId: string | n
     setRsvpLoading(eventId);
     const current = rsvps[eventId];
     if (current?.mine) {
-      await supabase.from('ct_event_rsvps').delete().eq('event_id', eventId).eq('student_id', user.id);
+      await supabase.from('ct_event_rsvps').delete().eq('event_id', eventId).eq('user_id', user.id);
       setRsvps(r => ({ ...r, [eventId]: { count: (r[eventId]?.count || 1) - 1, mine: false } }));
     } else {
-      await supabase.from('ct_event_rsvps').upsert({ event_id: eventId, user_id: user.id, student_id: user.id, status: 'attending' }, { onConflict: 'event_id,student_id' });
+      await supabase.from('ct_event_rsvps').upsert({ event_id: eventId, user_id: user.id, status: 'attending' }, { onConflict: 'event_id,user_id' });
       setRsvps(r => ({ ...r, [eventId]: { count: (r[eventId]?.count || 0) + 1, mine: true } }));
     }
     setRsvpLoading(null);
