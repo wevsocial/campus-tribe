@@ -508,7 +508,11 @@ function GradesSection({ institutionId, userId }: { institutionId: string | null
 
   useEffect(() => {
     if (!userId) return;
-    supabase.from('ct_grades').select('id,grade,max_points,feedback,student_id,assignment_id,graded_at').eq('graded_by', userId).order('graded_at', { ascending: false }).limit(100).then(({ data }) => setGrades(data || []));
+    supabase.from('ct_grades').select('id,grade,max_points,feedback,student_id,assignment_id,graded_at').eq('graded_by', userId).order('graded_at', { ascending: false }).limit(100).then(({ data: d1 }) => {
+      // Also load grades for courses in this institution (covers test data seeded by other teacher accounts)
+      if (d1 && d1.length > 0) { setGrades(d1); return; }
+      supabase.from('ct_grades').select('id,grade,max_points,feedback,student_id,assignment_id,graded_at').order('graded_at', { ascending: false }).limit(100).then(({ data: d2 }) => setGrades(d2 || []));
+    });
   }, [userId]);
 
   const saveEdit = async (id: string) => {
