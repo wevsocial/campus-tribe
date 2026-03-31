@@ -48,11 +48,11 @@ export default function UniversityPage() {
             <div className="relative z-10 grid grid-cols-2 gap-4">
               <div className="space-y-4 pt-12">
                 <div className="aspect-[3/4] rounded-xl overflow-hidden shadow-2xl rotate-[-3deg] border-4 border-white dark:border-slate-700">
-                  <img
+                  <picture><source type="image/webp" srcSet="/assets/campus-university.webp" /><img
                     alt="Student Library"
                     className="w-full h-full object-cover"
                     src="/assets/campus-university.jpg"
-                  />
+                  /></picture>
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-xl flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center">
@@ -66,11 +66,11 @@ export default function UniversityPage() {
               </div>
               <div className="space-y-4">
                 <div className="aspect-[3/4] rounded-xl overflow-hidden shadow-2xl rotate-[3deg] border-4 border-white dark:border-slate-700">
-                  <img
+                  <picture><source type="image/webp" srcSet="/assets/campus-matching.webp" /><img
                     alt="Students Group"
                     className="w-full h-full object-cover"
-                    src="/assets/campus-hero.jpg"
-                  />
+                    src="/assets/campus-matching.jpg"
+                  /></picture>
                 </div>
                 <div className="bg-secondary p-4 rounded-xl shadow-xl flex items-center gap-4 text-white">
                   <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
@@ -106,11 +106,11 @@ export default function UniversityPage() {
                 <span className="material-symbols-outlined text-4xl text-secondary/20 group-hover:text-secondary transition-colors">psychology</span>
               </div>
               <div className="mt-8 rounded-xl overflow-hidden h-48">
-                <img
+                <picture><source type="image/webp" srcSet="/assets/campus-students.webp" /><img
                   alt="Smart Matching"
                   className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                   src="/assets/campus-students.jpg"
-                />
+                /></picture>
               </div>
             </div>
             {/* Event Hub */}
@@ -120,11 +120,11 @@ export default function UniversityPage() {
                 <p className="text-primary-container text-sm leading-relaxed">Create, discover and RSVP to campus events with one tap integration.</p>
               </div>
               <div className="mt-6 overflow-hidden rounded-xl">
-                <img
+                <picture><source type="image/webp" srcSet="/assets/campus-aerial.webp" /><img
                   alt="Events"
                   className="rounded-xl shadow-lg w-full h-40 object-cover"
                   src="/assets/campus-aerial.jpg"
-                />
+                /></picture>
               </div>
             </div>
             {/* Sports Finder */}
@@ -134,11 +134,11 @@ export default function UniversityPage() {
                 <p className="text-white/80 text-sm mt-2">Challenge peers and track athletic life across campus intramurals.</p>
               </div>
               <div className="relative h-40 mt-4 overflow-hidden rounded-xl">
-                <img
+                <picture><source type="image/webp" srcSet="/assets/campus-sports.webp" /><img
                   alt="Sports"
                   className="w-full h-full object-cover"
                   src="/assets/campus-sports.jpg"
-                />
+                /></picture>
               </div>
             </div>
             {/* Venue and Wellbeing */}
@@ -149,11 +149,11 @@ export default function UniversityPage() {
                   <h4 className="font-headline text-xl font-bold dark:text-slate-100">Venue Booking</h4>
                   <p className="text-sm text-on-surface-variant dark:text-slate-400 mt-2">Reserve spaces instantly for clubs or private study.</p>
                 </div>
-                <img
+                <picture><source type="image/webp" srcSet="/assets/campus-library.webp" /><img
                   alt="Venue"
                   className="mt-4 rounded-lg h-32 w-full object-cover"
                   src="/assets/campus-library.jpg"
-                />
+                /></picture>
               </div>
               <div className="bg-surface-container-lowest dark:bg-slate-800 rounded-xl p-6 flex flex-col justify-between">
                 <div>
@@ -161,11 +161,11 @@ export default function UniversityPage() {
                   <h4 className="font-headline text-xl font-bold dark:text-slate-100">Wellbeing</h4>
                   <p className="text-sm text-on-surface-variant dark:text-slate-400 mt-2">Daily mood tracking with real-time analytics.</p>
                 </div>
-                <img
+                <picture><source type="image/webp" srcSet="/assets/campus-events.webp" /><img
                   alt="Wellbeing"
                   className="mt-4 rounded-lg h-32 w-full object-cover"
                   src="/assets/campus-events.jpg"
-                />
+                /></picture>
               </div>
             </div>
           </div>
@@ -294,7 +294,7 @@ export default function UniversityPage() {
       {/* Brand Strip */}
       <section className="py-12 bg-white dark:bg-slate-900 overflow-hidden">
         <div className="flex items-center gap-24 px-8 opacity-30 dark:opacity-20">
-          {['Stanford University', 'MIT', 'Oxford', 'Yale', 'UCLA', 'Harvard'].map(name => (
+          {['Your University', 'Your College', 'Could Be Here', 'Join Campus Tribe', 'Any Institution', 'Any Campus'].map(name => (
             <span key={name} className="font-headline text-3xl font-black tracking-tighter uppercase whitespace-nowrap">{name}</span>
           ))}
         </div>

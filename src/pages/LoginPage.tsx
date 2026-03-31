@@ -89,7 +89,7 @@ const LoginPage: React.FC = () => {
   const [email, setEmail] = useState(searchParams.get('email') || '');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
-  const [error, setError] = useState(searchParams.get('email') ? 'Account already exists — please sign in here.' : '');
+  const [error, setError] = useState(searchParams.get('email') ? 'Account already exists. Please sign in here.' : '');
   const [submitting, setSubmitting] = useState(false);
   const [roleSelectRoles, setRoleSelectRoles] = useState<string[] | null>(null);
   const googleButtonRef = useRef<HTMLDivElement | null>(null);

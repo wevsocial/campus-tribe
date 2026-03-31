@@ -29,19 +29,19 @@ export default function SchoolPage() {
                 <Link to="/register?platform=school" className="bg-surface text-primary px-8 py-4 rounded-full font-headline font-bold text-lg hover:bg-primary-container transition-all border border-primary/20">
                   Get Started Free
                 </Link>
-                <button className="bg-surface-container-highest text-on-surface px-8 py-4 rounded-full font-headline font-bold text-lg hover:opacity-80 transition-all">
+                <Link to="/resources/features" className="bg-surface-container-highest text-on-surface px-8 py-4 rounded-full font-headline font-bold text-lg hover:opacity-80 transition-all">
                   Explore Features
-                </button>
+                </Link>
               </div>
             </div>
             <div className="lg:w-1/2 relative">
               <div className="absolute -top-12 -right-12 w-64 h-64 bg-secondary-container/30 rounded-full blur-3xl"></div>
               <div className="relative z-10 overflow-hidden shadow-2xl rounded-3xl transform -rotate-1">
-                <img
+                <picture><source type="image/webp" srcSet="/assets/campus-school.webp" /><img
                   alt="School students engaged in activities"
                   className="w-full h-[500px] object-cover"
                   src="/assets/campus-school.jpg"
-                />
+                /></picture>
               </div>
               <div className="absolute -bottom-8 -left-8 z-20 bg-surface-container-lowest p-6 rounded-xl shadow-xl flex items-center gap-4 border border-outline-variant/15">
                 <div className="w-12 h-12 bg-secondary-container rounded-full flex items-center justify-center">
@@ -69,7 +69,7 @@ export default function SchoolPage() {
                 <h3 className="font-headline text-2xl font-bold mb-4">Secure Attendance Tracking</h3>
                 <p className="font-body text-on-surface-variant max-w-md">Real-time attendance with biometric-ready check-in. Automate absence notifications to parents instantly.</p>
                 <div className="mt-8 rounded-lg overflow-hidden border border-outline-variant/10">
-                  <img alt="School sports" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="/assets/campus-students.jpg" />
+                  <picture><source type="image/webp" srcSet="/assets/campus-students.webp" /><img alt="School sports" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="/assets/campus-students.jpg" /></picture>
                 </div>
               </div>
               <div className="md:col-span-4 bg-secondary text-white rounded-xl p-8 flex flex-col justify-center text-center">
@@ -79,8 +79,8 @@ export default function SchoolPage() {
               </div>
               <div className="md:col-span-4 bg-tertiary-container text-on-tertiary-container rounded-xl p-8 flex flex-col justify-center text-center">
                 <span className="material-symbols-outlined text-5xl mb-6">family_restroom</span>
-                <h3 className="font-headline text-2xl font-bold mb-2">Parent Portals</h3>
-                <p className="opacity-80 text-sm">Give parents a real-time window into their child's school life.</p>
+                <h3 className="font-headline text-2xl font-bold mb-2 dark:text-slate-100">Parent Portals</h3>
+                <p className="opacity-80 text-sm dark:text-slate-300">Give parents a real-time window into their child's school life.</p>
               </div>
               <div className="md:col-span-8 bg-surface-container-lowest rounded-xl p-8 flex flex-col md:flex-row items-center gap-8 border border-outline-variant/10 shadow-sm">
                 <div className="flex-1">
@@ -117,11 +117,11 @@ export default function SchoolPage() {
                   "Campus Tribe transformed how our students connect. Engagement is up 40% and parents actually feel part of the school community."
                 </blockquote>
                 <div className="flex items-center gap-4">
-                  <img
+                  <picture><source type="image/webp" srcSet="/assets/campus-school.webp" /><img
                     src="/assets/campus-school.jpg"
                     alt="Principal testimonial"
                     className="w-14 h-14 rounded-full object-cover"
-                  />
+                  /></picture>
                   <div>
                     <p className="font-headline font-bold text-sm">Dr. Sarah Mitchell</p>
                     <p className="font-label text-xs text-on-surface-variant">Principal, Westfield Academy</p>

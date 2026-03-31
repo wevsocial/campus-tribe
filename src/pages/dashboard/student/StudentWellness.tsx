@@ -164,7 +164,7 @@ export default function StudentWellness() {
         <div className="space-y-2">
           {[
             { label: 'Counseling Services', desc: 'Book a session with a campus counselor', link: '#' },
-            { label: 'Crisis Line', desc: '24/7 mental health support — call anytime', link: '#' },
+            { label: 'Crisis Line', desc: '24/7 mental health support: call anytime', link: '#' },
             { label: 'Peer Support Program', desc: 'Connect with trained student peer mentors', link: '#' },
             { label: 'Mindfulness & Meditation', desc: 'Guided sessions and workshops on campus', link: '#' },
           ].map(r => (

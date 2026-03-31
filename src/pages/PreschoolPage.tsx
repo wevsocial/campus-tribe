@@ -37,11 +37,11 @@ export default function PreschoolPage() {
             <div className="lg:w-1/2 relative">
               <div className="absolute -top-12 -right-12 w-64 h-64 bg-tertiary-container/30 rounded-full blur-3xl"></div>
               <div className="relative z-10 overflow-hidden shadow-2xl rounded-[4rem_1.5rem_6rem_2rem] transform rotate-2">
-                <img
+                <picture><source type="image/webp" srcSet="/assets/campus-preschool.webp" /><img
                   alt="Preschool children playing together"
                   className="w-full h-[500px] object-cover"
                   src="/assets/campus-preschool.jpg"
-                />
+                /></picture>
               </div>
               <div className="absolute -bottom-8 -left-8 z-20 bg-surface-container-lowest p-6 rounded-xl shadow-xl flex items-center gap-4 border border-outline-variant/15">
                 <div className="w-12 h-12 bg-primary-container rounded-full flex items-center justify-center">
@@ -72,7 +72,7 @@ export default function PreschoolPage() {
                     <p className="font-body text-on-surface-variant max-w-md">Real-time updates, community threads, and secure event scheduling in one centralized hub.</p>
                   </div>
                   <div className="mt-8 rounded-lg overflow-hidden border border-outline-variant/10">
-                    <img alt="Parent engagement interface" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="/assets/campus-parent.jpg" />
+                    <picture><source type="image/webp" srcSet="/assets/campus-parent.webp" /><img alt="Parent engagement interface" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="/assets/campus-parent.jpg" /></picture>
                   </div>
                 </div>
               </div>
@@ -171,16 +171,16 @@ export default function PreschoolPage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="aspect-square bg-surface-container-highest rounded-xl overflow-hidden shadow-lg">
-                <img alt="Child painting" className="w-full h-full object-cover" src="/assets/campus-preschool.jpg" />
+                <picture><source type="image/webp" srcSet="/assets/campus-preschool.webp" /><img alt="Child painting" className="w-full h-full object-cover" src="/assets/campus-preschool.jpg" /></picture>
               </div>
               <div className="aspect-[3/4] bg-surface-container-highest rounded-xl overflow-hidden shadow-lg md:mt-12">
-                <img alt="Reading time" className="w-full h-full object-cover" src="/assets/campus-parent.jpg" />
+                <picture><source type="image/webp" srcSet="/assets/campus-library.webp" /><img alt="Reading time" className="w-full h-full object-cover" src="/assets/campus-library.jpg" /></picture>
               </div>
               <div className="aspect-square bg-surface-container-highest rounded-xl overflow-hidden shadow-lg">
-                <img alt="Teacher guided activity" className="w-full h-full object-cover" src="/assets/campus-teachers.jpg" />
+                <picture><source type="image/webp" srcSet="/assets/campus-preschool.webp" /><img alt="Teacher guided activity" className="w-full h-full object-cover" src="/assets/campus-preschool.jpg" /></picture>
               </div>
               <div className="aspect-[3/4] bg-surface-container-highest rounded-xl overflow-hidden shadow-lg md:-mt-12">
-                <img alt="Outdoor play area" className="w-full h-full object-cover" src="/assets/campus-events.jpg" />
+                <picture><source type="image/webp" srcSet="/assets/campus-preschool.webp" /><img alt="Outdoor play area" className="w-full h-full object-cover" src="/assets/campus-preschool.jpg" /></picture>
               </div>
             </div>
           </div>

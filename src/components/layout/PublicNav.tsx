@@ -25,7 +25,6 @@ export default function PublicNav() {
                 <Link to="/resources/features" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Features Guide</Link>
                 <Link to="/resources/api-documentation" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">API Documentation</Link>
                 <Link to="/resources/wellbeing" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Wellbeing Whitepaper</Link>
-                <Link to="/resources/support" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Contact Support</Link>
               </div>
             </div>
           </div>
@@ -39,6 +38,7 @@ export default function PublicNav() {
                 <Link to="/careers" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Careers</Link>
                 <Link to="/blog" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Blog</Link>
                 <Link to="/newsletter" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Newsletter</Link>
+                <Link to="/resources/support" className="block px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 rounded-lg text-sm transition-colors dark:text-slate-200">Contact Support</Link>
               </div>
             </div>
           </div>

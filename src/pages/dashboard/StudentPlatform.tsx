@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Home, Calendar, Users, MapPin, Megaphone, Wallet, Trophy, Heart,
-  ClipboardList, User, LogOut, Menu, X, Plus, ChevronRight, Loader2
+  ClipboardList, User, LogOut, Menu, X, Plus, ChevronRight, Loader2,
+  Bell, CheckCircle, BookOpen, Settings, Download, Upload
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import NotificationCenter from '../../components/ui/NotificationCenter';
+import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
+import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Event { id: string; title: string; event_date: string; location: string | null; description: string | null; }
@@ -37,8 +40,10 @@ export default function StudentPlatform() {
     { id: 'sports', label: 'Sports', icon: <Trophy size={18} /> },
     { id: 'wellness', label: 'Wellness', icon: <Heart size={18} /> },
     { id: 'surveys', label: 'Surveys', icon: <ClipboardList size={18} /> },
+    { id: 'courses', label: 'My Courses', icon: <BookOpen size={18} /> },
     { id: 'grades', label: 'My Grades', icon: <ClipboardList size={18} /> },
-    { id: 'profile', label: 'Profile', icon: <User size={18} /> },
+    ...(isLeader ? [{ id: 'myclubs', label: 'My Clubs', icon: <Users size={18} /> }] : []),
+    { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
   ];
 
   const userName = profile?.full_name || user?.email?.split('@')[0] || 'User';
@@ -136,10 +141,12 @@ export default function StudentPlatform() {
           {activeSection === 'announcements' && <AnnouncementsSection institutionId={institutionId} canCreate={isRep} />}
           {activeSection === 'budget' && <BudgetSection institutionId={institutionId} />}
           {activeSection === 'sports' && <SportsSection institutionId={institutionId} />}
-          {activeSection === 'wellness' && <WellnessSection />}
+          {activeSection === 'wellness' && <WellnessSection userId={user?.id} institutionId={institutionId} />}
           {activeSection === 'surveys' && <SurveysSection institutionId={institutionId} userId={user?.id} />}
           {activeSection === 'grades' && <GradesSection userId={user?.id} />}
-          {activeSection === 'profile' && <ProfileSection profile={profile} userId={user?.id} />}
+          {activeSection === 'courses' && <CoursesSection userId={user?.id} />}
+          {activeSection === 'myclubs' && isLeader && <MyClubsSection institutionId={institutionId} userId={user?.id} />}
+          {activeSection === 'settings' && <SettingsSection profile={profile as unknown as Record<string, unknown> | null} userId={user?.id} institutionId={institutionId} role={isLeader ? 'club_leader' : 'student'} />}
         </div>
       </main>
     </div>
@@ -219,6 +226,9 @@ function EventsSection({ institutionId, canCreate }: { institutionId: string | n
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ title: '', event_date: '', location: '', description: '' });
   const [saving, setSaving] = useState(false);
+  const [rsvps, setRsvps] = useState<Record<string, { count: number; mine: boolean }>>({});
+  const [rsvpLoading, setRsvpLoading] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const load = async () => {
     if (!institutionId) return;
@@ -228,7 +238,34 @@ function EventsSection({ institutionId, canCreate }: { institutionId: string | n
     setLoading(false);
   };
 
+  const loadRsvps = async (eventIds: string[]) => {
+    if (!eventIds.length || !user) return;
+    const { data } = await supabase.from('ct_event_rsvps').select('event_id,user_id').in('event_id', eventIds);
+    const map: Record<string, { count: number; mine: boolean }> = {};
+    for (const r of (data || [])) {
+      if (!map[r.event_id]) map[r.event_id] = { count: 0, mine: false };
+      map[r.event_id].count++;
+      if (r.user_id === user.id) map[r.event_id].mine = true;
+    }
+    setRsvps(map);
+  };
+
   useEffect(() => { load(); }, [institutionId]);
+  useEffect(() => { if (events.length) loadRsvps(events.map(e => e.id)); }, [events, user?.id]);
+
+  const toggleRsvp = async (eventId: string) => {
+    if (!user) return;
+    setRsvpLoading(eventId);
+    const current = rsvps[eventId];
+    if (current?.mine) {
+      await supabase.from('ct_event_rsvps').delete().eq('event_id', eventId).eq('user_id', user.id);
+      setRsvps(r => ({ ...r, [eventId]: { count: (r[eventId]?.count || 1) - 1, mine: false } }));
+    } else {
+      await supabase.from('ct_event_rsvps').upsert({ event_id: eventId, user_id: user.id, status: 'attending' }, { onConflict: 'event_id,user_id' });
+      setRsvps(r => ({ ...r, [eventId]: { count: (r[eventId]?.count || 0) + 1, mine: true } }));
+    }
+    setRsvpLoading(null);
+  };
 
   const save = async () => {
     if (!form.title || !form.event_date || !institutionId) return;
@@ -262,7 +299,7 @@ function EventsSection({ institutionId, canCreate }: { institutionId: string | n
           </div>
           <div className="flex gap-3 mt-4">
             <button onClick={save} disabled={saving} className="px-5 py-2 rounded-xl bg-secondary text-white font-jakarta font-700 text-sm hover:bg-secondary/90 transition-colors disabled:opacity-50">
-              {saving ? 'Saving…' : 'Save Event'}
+              {saving ? 'Saving...' : 'Save Event'}
             </button>
             <button onClick={() => setShowCreate(false)} className="px-5 py-2 rounded-xl bg-surface-low text-on-surface-variant font-jakarta font-700 text-sm hover:bg-outline/20 transition-colors">Cancel</button>
           </div>
@@ -271,22 +308,32 @@ function EventsSection({ institutionId, canCreate }: { institutionId: string | n
 
       {loading ? <div className="flex justify-center py-12"><Loader2 className="animate-spin text-primary" size={32} /></div> : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {events.map(e => (
-            <div key={e.id} className="bg-surface-lowest rounded-2xl p-4 shadow-float border border-outline-variant/30">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center flex-shrink-0">
-                  <Calendar size={18} className="text-primary" />
+          {events.map(e => {
+            const r = rsvps[e.id];
+            return (
+              <div key={e.id} className="bg-surface-lowest rounded-2xl p-4 shadow-float border border-outline-variant/30">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center flex-shrink-0">
+                    <Calendar size={18} className="text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-jakarta font-700 text-on-surface">{e.title}</p>
+                    <p className="text-xs text-on-surface-variant mt-0.5">{new Date(e.event_date).toLocaleString()}</p>
+                    {e.location && <p className="text-xs text-on-surface-variant">{e.location}</p>}
+                    {e.description && <p className="text-sm text-on-surface-variant mt-2 line-clamp-2">{e.description}</p>}
+                    {r?.count ? <p className="text-xs text-tertiary mt-1">{r.count} attending</p> : null}
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="font-jakarta font-700 text-on-surface">{e.title}</p>
-                  <p className="text-xs text-on-surface-variant mt-0.5">{new Date(e.event_date).toLocaleString()}</p>
-                  {e.location && <p className="text-xs text-on-surface-variant">📍 {e.location}</p>}
-                  {e.description && <p className="text-sm text-on-surface-variant mt-2 line-clamp-2">{e.description}</p>}
-                </div>
+                <button
+                  onClick={() => toggleRsvp(e.id)}
+                  disabled={rsvpLoading === e.id}
+                  className={`mt-3 w-full py-2 rounded-xl text-sm font-jakarta font-700 transition-colors flex items-center justify-center gap-2 ${r?.mine ? 'bg-tertiary text-white hover:bg-tertiary/90' : 'bg-secondary text-white hover:bg-secondary/90'} disabled:opacity-50`}
+                >
+                  {rsvpLoading === e.id ? <Loader2 size={14} className="animate-spin" /> : r?.mine ? <><CheckCircle size={14} /> Attending</> : 'RSVP'}
+                </button>
               </div>
-              <button className="mt-3 w-full py-2 rounded-xl bg-secondary text-white text-sm font-jakarta font-700 hover:bg-secondary/90 transition-colors">RSVP</button>
-            </div>
-          ))}
+            );
+          })}
           {events.length === 0 && <p className="text-on-surface-variant font-jakarta col-span-2 text-center py-12">No events found</p>}
         </div>
       )}
@@ -393,7 +440,7 @@ function VenueSection({ institutionId }: { institutionId: string | null }) {
                   </div>
                   <input className="w-full border border-outline-variant rounded-xl px-3 py-2 font-jakarta text-sm bg-surface" placeholder="Purpose" value={form.purpose} onChange={e => setForm(f => ({ ...f, purpose: e.target.value }))} />
                   <div className="flex gap-2">
-                    <button onClick={() => submit(v.id)} disabled={saving} className="flex-1 py-2 rounded-xl bg-secondary text-white text-sm font-jakarta font-700 hover:bg-secondary/90 transition-colors disabled:opacity-50">{saving ? 'Submitting…' : 'Submit Request'}</button>
+                    <button onClick={() => submit(v.id)} disabled={saving} className="flex-1 py-2 rounded-xl bg-secondary text-white text-sm font-jakarta font-700 hover:bg-secondary/90 transition-colors disabled:opacity-50">{saving ? 'Submitting...' : 'Submit Request'}</button>
                     <button onClick={() => setBooking(null)} className="px-4 py-2 rounded-xl bg-surface-low text-on-surface-variant text-sm font-jakarta">Cancel</button>
                   </div>
                 </div>
@@ -450,7 +497,7 @@ function AnnouncementsSection({ institutionId, canCreate }: { institutionId: str
           <input className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface mb-3 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Title" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
           <textarea className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-primary" rows={4} placeholder="Announcement body" value={form.body} onChange={e => setForm(f => ({ ...f, body: e.target.value }))} />
           <div className="flex gap-3 mt-3">
-            <button onClick={save} disabled={saving} className="px-5 py-2 rounded-xl bg-secondary text-white font-jakarta font-700 text-sm hover:bg-secondary/90 transition-colors disabled:opacity-50">{saving ? 'Posting…' : 'Post'}</button>
+            <button onClick={save} disabled={saving} className="px-5 py-2 rounded-xl bg-secondary text-white font-jakarta font-700 text-sm hover:bg-secondary/90 transition-colors disabled:opacity-50">{saving ? 'Posting...' : 'Post'}</button>
             <button onClick={() => setShowCreate(false)} className="px-5 py-2 rounded-xl bg-surface-low text-on-surface-variant font-jakarta font-700 text-sm">Cancel</button>
           </div>
         </div>
@@ -534,7 +581,7 @@ function BudgetSection({ institutionId }: { institutionId: string | null }) {
             <option value="income">Income</option>
           </select>
         </div>
-        <button onClick={save} disabled={saving} className="mt-3 px-5 py-2 rounded-xl bg-secondary text-white font-jakarta font-700 text-sm hover:bg-secondary/90 disabled:opacity-50">{saving ? 'Saving…' : 'Add Transaction'}</button>
+        <button onClick={save} disabled={saving} className="mt-3 px-5 py-2 rounded-xl bg-secondary text-white font-jakarta font-700 text-sm hover:bg-secondary/90 disabled:opacity-50">{saving ? 'Saving...' : 'Add Transaction'}</button>
       </div>
       <div className="space-y-2">
         {transactions.map(t => (
@@ -585,7 +632,38 @@ function SportsSection({ institutionId }: { institutionId: string | null }) {
 }
 
 // ─── Wellness Section ─────────────────────────────────────────────────────────
-function WellnessSection() {
+function WellnessSection({ userId, institutionId }: { userId?: string; institutionId: string | null }) {
+  const [happinessScore, setHappinessScore] = useState(5);
+  const [stressScore, setStressScore] = useState(5);
+  const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [trend, setTrend] = useState<{ date: string; happiness_score: number | null; stress_score: number | null }[]>([]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    supabase.from('ct_wellbeing_checks').select('checked_at,happiness_score,stress_score').eq('user_id', userId).gte('checked_at', sevenDaysAgo).order('checked_at').then(({ data }) => {
+      setTrend((data || []).map(d => ({ date: d.checked_at, happiness_score: d.happiness_score, stress_score: d.stress_score })));
+    });
+  }, [userId]);
+
+  const save = async () => {
+    if (!userId) return;
+    setSaving(true);
+    await supabase.from('ct_wellbeing_checks').insert({
+      user_id: userId,
+      happiness_score: happinessScore,
+      stress_score: stressScore,
+      notes,
+      checked_at: new Date().toISOString(),
+    });
+    setSaving(false);
+    setSaved(true);
+    setNotes('');
+    setTimeout(() => setSaved(false), 2000);
+  };
+
   const resources = [
     { title: 'Campus Counseling', desc: 'Book a free counseling session', color: 'bg-tertiary-container', text: 'text-tertiary' },
     { title: 'Mental Health Hotline', desc: '24/7 support: 1-800-273-8255', color: 'bg-primary-container', text: 'text-primary' },
@@ -596,9 +674,60 @@ function WellnessSection() {
   return (
     <div className="space-y-5">
       <div className="rounded-2xl p-6 text-white" style={{ background: 'linear-gradient(135deg, #00A86B, #00c77e)' }}>
-        <h1 className="font-lexend font-900 text-2xl mb-1">Your Wellness Hub 💚</h1>
+        <h1 className="font-lexend font-900 text-2xl mb-1">Your Wellness Hub</h1>
         <p className="font-jakarta text-white/80 text-sm">Mental health, physical wellness, and support resources</p>
       </div>
+
+      <div className="bg-surface-lowest rounded-2xl p-5 shadow-float border border-outline-variant/30">
+        <h3 className="font-lexend font-700 text-on-surface mb-4">Daily Check-In</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-jakarta font-700 text-on-surface-variant mb-2">Happiness: {happinessScore}/10</label>
+            <input type="range" min={1} max={10} value={happinessScore} onChange={e => setHappinessScore(parseInt(e.target.value))} className="w-full accent-tertiary" />
+          </div>
+          <div>
+            <label className="block text-sm font-jakarta font-700 text-on-surface-variant mb-2">Stress Level: {stressScore}/10</label>
+            <input type="range" min={1} max={10} value={stressScore} onChange={e => setStressScore(parseInt(e.target.value))} className="w-full accent-secondary" />
+          </div>
+          <div>
+            <label className="block text-sm font-jakarta font-700 text-on-surface-variant mb-1">Notes (optional)</label>
+            <textarea className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface" rows={2} placeholder="How are you feeling today?" value={notes} onChange={e => setNotes(e.target.value)} />
+          </div>
+          <button onClick={save} disabled={saving} className={`px-6 py-2.5 rounded-xl font-jakarta font-700 text-sm text-white transition-colors ${saved ? 'bg-tertiary' : 'bg-primary hover:bg-primary/90'} disabled:opacity-50`}>
+            {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Check-In'}
+          </button>
+        </div>
+      </div>
+
+      {trend.length > 0 && (
+        <div className="bg-surface-lowest rounded-2xl p-5 shadow-float border border-outline-variant/30">
+          <h3 className="font-lexend font-700 text-on-surface mb-3">7-Day Trend</h3>
+          <div className="space-y-2">
+            {trend.map((t, i) => (
+              <div key={i} className="flex items-center gap-3 text-xs font-jakarta">
+                <span className="text-on-surface-variant w-20 flex-shrink-0">{new Date(t.date).toLocaleDateString('en', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                <div className="flex-1 flex gap-2">
+                  <div className="flex items-center gap-1">
+                    <span className="text-tertiary">H:</span>
+                    <div className="w-16 h-2 bg-surface-low rounded-full overflow-hidden">
+                      <div className="h-full bg-tertiary rounded-full" style={{ width: `${((t.happiness_score || 0) / 10) * 100}%` }} />
+                    </div>
+                    <span>{t.happiness_score ?? '-'}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-secondary">S:</span>
+                    <div className="w-16 h-2 bg-surface-low rounded-full overflow-hidden">
+                      <div className="h-full bg-secondary rounded-full" style={{ width: `${((t.stress_score || 0) / 10) * 100}%` }} />
+                    </div>
+                    <span>{t.stress_score ?? '-'}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {resources.map((r, i) => (
           <div key={i} className={`${r.color} rounded-2xl p-5 shadow-float border border-outline-variant/30`}>
@@ -647,40 +776,28 @@ function GradesSection({ userId }: { userId?: string }) {
 
   useEffect(() => {
     if (!userId) return;
-    supabase.from('ct_grades').select('id,score,letter_grade,gpa_points,notes,assignment_id,created_at').eq('student_id', userId).order('created_at', { ascending: false }).limit(50).then(({ data }) => {
-      setGrades((data || []) as Grade[]);
+    supabase.from('ct_grades').select('id,grade,max_points,feedback,assignment_id,graded_at').eq('student_id', userId).order('graded_at', { ascending: false }).limit(50).then(({ data }) => {
+      setGrades((data as unknown as Grade[]) || []);
       setLoading(false);
     });
   }, [userId]);
 
-  const avgGpa = grades.length ? grades.reduce((a, g) => a + ((g as any).gpa_points || 0), 0) / grades.length : 0;
-
   return (
     <div className="space-y-5">
       <h1 className="font-lexend font-900 text-2xl text-on-surface">My Grades</h1>
-      {grades.length > 0 && (
-        <div className="bg-primary-container rounded-2xl p-4 flex items-center gap-4">
-          <div>
-            <p className="text-xs font-jakarta text-primary">Average GPA</p>
-            <p className="font-lexend font-900 text-3xl text-primary">{avgGpa.toFixed(2)}</p>
-          </div>
-          <div>
-            <p className="text-xs font-jakarta text-primary">{grades.length} graded assignments</p>
-          </div>
-        </div>
-      )}
       {loading ? <div className="flex justify-center py-12"><Loader2 className="animate-spin text-primary" size={32} /></div> : (
         <div className="space-y-3">
           {grades.map(g => (
             <div key={g.id} className="bg-surface-lowest rounded-2xl p-4 shadow-float border border-outline-variant/30 flex items-center justify-between">
               <div>
                 <p className="font-jakarta font-700 text-on-surface text-sm">Assignment</p>
-                {g.notes && <p className="text-xs text-on-surface-variant mt-0.5">{g.notes}</p>}
-                <p className="text-xs text-on-surface-variant">{new Date(g.created_at).toLocaleDateString()}</p>
+                {(g as unknown as { feedback?: string }).feedback && <p className="text-xs text-on-surface-variant mt-0.5">{(g as unknown as { feedback: string }).feedback}</p>}
+                <p className="text-xs text-on-surface-variant">{new Date((g as unknown as { graded_at?: string }).graded_at || g.created_at).toLocaleDateString()}</p>
               </div>
               <div className="text-right">
-                <p className="font-lexend font-900 text-2xl text-primary">{g.letter_grade || `${g.score}%`}</p>
-                {(g as any).gpa_points && <p className="text-xs text-on-surface-variant">{(g as any).gpa_points} GPA</p>}
+                <p className="font-lexend font-900 text-2xl text-primary">
+                  {(g as unknown as { grade?: number }).grade ?? g.score ?? g.letter_grade ?? '-'}/{(g as unknown as { max_points?: number }).max_points || 100}
+                </p>
               </div>
             </div>
           ))}
@@ -691,59 +808,321 @@ function GradesSection({ userId }: { userId?: string }) {
   );
 }
 
-// ─── Profile Section ──────────────────────────────────────────────────────────
-function ProfileSection({ profile, userId }: { profile: any; userId?: string }) {
+// ─── Courses Section (Student) ────────────────────────────────────────────────
+function CoursesSection({ userId }: { userId?: string }) {
+  const [enrollments, setEnrollments] = useState<{
+    id: string;
+    course: { id: string; name: string; code: string };
+    assignments: { id: string; title: string; due_date: string | null; max_points: number | null; docs: { id: string; name: string; url: string }[] }[];
+  }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState<string | null>(null);
+  const submitInputRef = React.useRef<HTMLInputElement>(null);
+
+  const load = async () => {
+    if (!userId) return;
+    const { data: enr } = await supabase.from('ct_course_enrollments').select('id,course_id').eq('student_id', userId);
+    const courseIds = (enr || []).map(e => e.course_id);
+    if (!courseIds.length) { setLoading(false); return; }
+
+    const { data: courses } = await supabase.from('ct_courses').select('id,name,code').in('id', courseIds);
+    const { data: assignments } = await supabase.from('ct_assignments').select('id,title,due_date,max_points,course_id').in('course_id', courseIds);
+    const assignmentIds = (assignments || []).map(a => a.id);
+    const { data: docs } = assignmentIds.length ? await supabase.from('ct_assignment_documents').select('id,name,url,assignment_id').in('assignment_id', assignmentIds) : { data: [] };
+
+    const result = (courses || []).map(c => ({
+      id: (enr || []).find(e => e.course_id === c.id)?.id || c.id,
+      course: c,
+      assignments: (assignments || []).filter(a => a.course_id === c.id).map(a => ({
+        ...a,
+        docs: (docs || []).filter(d => d.assignment_id === a.id),
+      })),
+    }));
+    setEnrollments(result);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, [userId]);
+
+  const submitAssignment = async (file: File, assignmentId: string) => {
+    if (!userId || !file) return;
+    setSubmitting(assignmentId);
+    // Upsert submission
+    const { data: sub } = await supabase.from('ct_assignment_submissions')
+      .upsert({ assignment_id: assignmentId, student_id: userId }, { onConflict: 'assignment_id,student_id' })
+      .select('id').single();
+    if (sub?.id) {
+      const path = `${assignmentId}/${userId}/${Date.now()}-${file.name}`;
+      const { error } = await supabase.storage.from('ct-submissions').upload(path, file);
+      if (!error) {
+        const { data: urlData } = supabase.storage.from('ct-submissions').getPublicUrl(path);
+        await supabase.from('ct_submission_files').insert({ submission_id: sub.id, name: file.name, url: urlData.publicUrl, mime_type: file.type, size_bytes: file.size });
+      }
+    }
+    setSubmitting(null);
+  };
+
+  if (loading) return <div className="flex justify-center py-12"><Loader2 className="animate-spin text-primary" size={32} /></div>;
+
+  return (
+    <div className="space-y-5">
+      <h1 className="font-lexend font-900 text-2xl text-on-surface">My Courses</h1>
+      {enrollments.length === 0 ? (
+        <p className="text-on-surface-variant font-jakarta text-center py-12">Not enrolled in any courses yet</p>
+      ) : enrollments.map(e => (
+        <div key={e.id} className="bg-surface-lowest rounded-2xl p-5 shadow-float border border-outline-variant/30">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center">
+              <BookOpen size={18} className="text-primary" />
+            </div>
+            <div>
+              <p className="font-lexend font-700 text-on-surface">{e.course.name}</p>
+              <p className="text-xs text-on-surface-variant">{e.course.code}</p>
+            </div>
+          </div>
+          {e.assignments.length === 0 ? (
+            <p className="text-sm text-on-surface-variant font-jakarta">No assignments for this course</p>
+          ) : (
+            <div className="space-y-3">
+              {e.assignments.map(a => (
+                <div key={a.id} className="bg-surface rounded-xl p-3 border border-outline-variant/20">
+                  <p className="font-jakarta font-700 text-sm text-on-surface">{a.title}</p>
+                  {a.due_date && <p className="text-xs text-on-surface-variant">Due: {new Date(a.due_date).toLocaleDateString()}</p>}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {a.docs.map(d => (
+                      <a key={d.id} href={d.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-primary font-jakarta hover:underline">
+                        <Download size={11} /> {d.name}
+                      </a>
+                    ))}
+                    <button
+                      onClick={() => { (submitInputRef.current as HTMLInputElement & { _assignmentId?: string })?. _assignmentId && null; (submitInputRef.current as HTMLInputElement & { _assignmentId?: string })._assignmentId = a.id; submitInputRef.current?.click(); }}
+                      disabled={submitting === a.id}
+                      className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-secondary-container text-secondary font-jakarta font-700"
+                    >
+                      <Upload size={11} /> {submitting === a.id ? 'Uploading...' : 'Submit'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+      <input
+        ref={submitInputRef}
+        type="file"
+        className="hidden"
+        onChange={e => {
+          const f = e.target.files?.[0];
+          const aId = (submitInputRef.current as HTMLInputElement & { _assignmentId?: string })?._assignmentId;
+          if (f && aId) submitAssignment(f, aId);
+          if (submitInputRef.current) submitInputRef.current.value = '';
+        }}
+      />
+    </div>
+  );
+}
+
+// ─── My Clubs Section (Club Leader) ──────────────────────────────────────────
+function MyClubsSection({ institutionId, userId }: { institutionId: string | null; userId?: string }) {
+  const [clubs, setClubs] = useState<{ id: string; name: string; description: string | null }[]>([]);
+  const [showCreate, setShowCreate] = useState(false);
+  const [form, setForm] = useState({ name: '', description: '' });
+  const [saving, setSaving] = useState(false);
+  const [selectedClub, setSelectedClub] = useState<string | null>(null);
+  const [members, setMembers] = useState<{ id: string; user_id: string; user?: { full_name: string | null; email: string } }[]>([]);
+  const [notifMsg, setNotifMsg] = useState('');
+  const [sendingNotif, setSendingNotif] = useState(false);
+
+  const load = async () => {
+    if (!institutionId) return;
+    // Get clubs where this user is a leader
+    const { data: memberData } = await supabase.from('ct_club_members').select('club_id').eq('user_id', userId || '').eq('role', 'leader');
+    const clubIds = (memberData || []).map(m => m.club_id);
+    if (!clubIds.length) { setClubs([]); return; }
+    const { data } = await supabase.from('ct_clubs').select('id,name,description').in('id', clubIds);
+    setClubs(data || []);
+  };
+
+  useEffect(() => { load(); }, [institutionId, userId]);
+
+  const createClub = async () => {
+    if (!form.name || !institutionId || !userId) return;
+    setSaving(true);
+    const { data } = await supabase.from('ct_clubs').insert({ name: form.name, description: form.description, institution_id: institutionId }).select('id').single();
+    if (data?.id) {
+      await supabase.from('ct_club_members').insert({ club_id: data.id, user_id: userId, role: 'leader' });
+    }
+    setForm({ name: '', description: '' });
+    setShowCreate(false);
+    setSaving(false);
+    load();
+  };
+
+  const loadMembers = async (clubId: string) => {
+    setSelectedClub(clubId);
+    const { data } = await supabase.from('ct_club_members').select('id,user_id').eq('club_id', clubId);
+    const enriched = [];
+    for (const m of (data || [])) {
+      const { data: u } = await supabase.from('ct_users').select('full_name,email').eq('id', m.user_id).maybeSingle();
+      enriched.push({ ...m, user: u || undefined });
+    }
+    setMembers(enriched);
+  };
+
+  const sendNotification = async (clubId: string) => {
+    if (!notifMsg) return;
+    setSendingNotif(true);
+    const club = clubs.find(c => c.id === clubId);
+    const rows = members.map(m => ({
+      user_id: m.user_id,
+      type: 'club_announcement',
+      title: `${club?.name}: New Announcement`,
+      message: notifMsg,
+    }));
+    if (rows.length) await supabase.from('ct_notifications').insert(rows);
+    setNotifMsg('');
+    setSendingNotif(false);
+    alert('Notification sent to all members!');
+  };
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <h1 className="font-lexend font-900 text-2xl text-on-surface">My Clubs</h1>
+        <button onClick={() => setShowCreate(!showCreate)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary text-white font-jakarta font-700 text-sm hover:bg-secondary/90 transition-colors">
+          <Plus size={16} /> Create Club
+        </button>
+      </div>
+
+      {showCreate && (
+        <div className="bg-surface-lowest rounded-2xl p-5 shadow-float border border-outline-variant/30">
+          <input className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface mb-3" placeholder="Club Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+          <input className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface" placeholder="Description" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+          <div className="flex gap-3 mt-4">
+            <button onClick={createClub} disabled={saving} className="px-5 py-2 rounded-xl bg-secondary text-white font-jakarta font-700 text-sm disabled:opacity-50">{saving ? 'Creating...' : 'Create'}</button>
+            <button onClick={() => setShowCreate(false)} className="px-5 py-2 rounded-xl bg-surface-low text-on-surface-variant font-jakarta font-700 text-sm">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {clubs.length === 0 && !showCreate && (
+        <p className="text-on-surface-variant font-jakarta text-center py-12">No clubs managed yet. Create one above.</p>
+      )}
+
+      {clubs.map(c => (
+        <div key={c.id} className="bg-surface-lowest rounded-2xl p-5 shadow-float border border-outline-variant/30">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="font-lexend font-700 text-on-surface">{c.name}</p>
+              {c.description && <p className="text-sm text-on-surface-variant">{c.description}</p>}
+            </div>
+            <button onClick={() => selectedClub === c.id ? setSelectedClub(null) : loadMembers(c.id)} className="text-xs px-3 py-1.5 rounded-lg bg-primary-container text-primary font-jakarta font-700">
+              {selectedClub === c.id ? 'Hide Members' : 'Manage'}
+            </button>
+          </div>
+
+          {selectedClub === c.id && (
+            <div className="space-y-3 mt-4">
+              <h4 className="font-jakarta font-700 text-sm text-on-surface">Members ({members.length})</h4>
+              <div className="space-y-1 max-h-48 overflow-y-auto">
+                {members.map(m => (
+                  <div key={m.id} className="flex items-center gap-2 py-1">
+                    <div className="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center">
+                      <span className="text-primary text-xs">{m.user?.full_name?.charAt(0) || '?'}</span>
+                    </div>
+                    <span className="text-sm font-jakarta text-on-surface">{m.user?.full_name || m.user?.email || m.user_id.slice(-8)}</span>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <h4 className="font-jakarta font-700 text-sm text-on-surface mb-2">Send Notification to All Members</h4>
+                <div className="flex gap-2">
+                  <input
+                    className="flex-1 border border-outline-variant rounded-xl px-3 py-2 font-jakarta text-sm bg-surface"
+                    placeholder="Message..."
+                    value={notifMsg}
+                    onChange={e => setNotifMsg(e.target.value)}
+                  />
+                  <button onClick={() => sendNotification(c.id)} disabled={sendingNotif || !notifMsg} className="px-4 py-2 rounded-xl bg-secondary text-white font-jakarta font-700 text-sm disabled:opacity-50">
+                    <Bell size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Settings Section ─────────────────────────────────────────────────────────
+function SettingsSection({ profile, userId, institutionId, role }: { profile: Record<string, unknown> | null; userId?: string; institutionId: string | null; role: string }) {
   const { refreshProfile } = useAuth();
   const [form, setForm] = useState({
-    full_name: profile?.full_name || '',
-    bio: profile?.bio || '',
-    department: profile?.department || '',
-    year_of_study: profile?.year_of_study || '',
-    student_id_number: profile?.student_id_number || '',
-    phone: profile?.phone || '',
-    avatar_url: profile?.avatar_url || '',
+    full_name: (profile?.full_name as string) || '',
+    bio: (profile?.bio as string) || '',
+    department: (profile?.department as string) || '',
+    year_of_study: (profile?.year_of_study as string) || '',
+    phone: (profile?.phone as string) || '',
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwMsg, setPwMsg] = useState('');
 
   const save = async () => {
     if (!userId) return;
     setSaving(true);
-    await supabase.from('ct_users').update({ ...form, year_of_study: form.year_of_study ? parseInt(String(form.year_of_study)) : null }).eq('id', userId);
+    await supabase.from('ct_users').update({ ...form, year_of_study: form.year_of_study ? parseInt(form.year_of_study) : null }).eq('id', userId);
     await refreshProfile(userId);
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const changePassword = async () => {
+    if (!newPassword || newPassword.length < 6) { setPwMsg('Password must be at least 6 characters'); return; }
+    setPwSaving(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setPwSaving(false);
+    setPwMsg(error ? 'Error: ' + error.message : 'Password updated successfully');
+    setNewPassword('');
+    setTimeout(() => setPwMsg(''), 3000);
+  };
+
   return (
-    <div className="space-y-5">
-      <h1 className="font-lexend font-900 text-2xl text-on-surface">My Profile</h1>
+    <div className="space-y-6">
+      <h1 className="font-lexend font-900 text-2xl text-on-surface">Settings</h1>
+
       <div className="bg-surface-lowest rounded-2xl p-6 shadow-float border border-outline-variant/30">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center">
-            {form.avatar_url ? <img src={form.avatar_url} alt="avatar" className="w-16 h-16 rounded-full object-cover" /> : <span className="text-white font-lexend font-900 text-xl">{form.full_name.charAt(0).toUpperCase()}</span>}
-          </div>
-          <div>
-            <p className="font-lexend font-700 text-on-surface">{form.full_name}</p>
-            <p className="text-sm text-on-surface-variant">{profile?.role}</p>
-          </div>
-        </div>
+        <h3 className="font-lexend font-700 text-on-surface mb-4">Profile Photo</h3>
+        {userId && (
+          <ProfilePhotoUpload
+            userId={userId}
+            currentUrl={profile?.avatar_url as string | null}
+            displayName={form.full_name}
+          />
+        )}
+      </div>
+
+      <div className="bg-surface-lowest rounded-2xl p-6 shadow-float border border-outline-variant/30">
+        <h3 className="font-lexend font-700 text-on-surface mb-4">Profile Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
             { label: 'Full Name', key: 'full_name', type: 'text' },
             { label: 'Phone', key: 'phone', type: 'tel' },
             { label: 'Department', key: 'department', type: 'text' },
             { label: 'Year of Study', key: 'year_of_study', type: 'number' },
-            { label: 'Student ID', key: 'student_id_number', type: 'text' },
-            { label: 'Avatar URL', key: 'avatar_url', type: 'url' },
           ].map(field => (
             <div key={field.key}>
               <label className="block text-xs font-jakarta font-700 text-on-surface-variant mb-1">{field.label}</label>
               <input
                 type={field.type}
                 className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-primary"
-                value={(form as any)[field.key]}
+                value={(form as Record<string, string>)[field.key]}
                 onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
               />
             </div>
@@ -754,8 +1133,32 @@ function ProfileSection({ profile, userId }: { profile: any; userId?: string }) 
           </div>
         </div>
         <button onClick={save} disabled={saving} className={`mt-5 px-6 py-2.5 rounded-xl font-jakarta font-700 text-sm text-white transition-colors disabled:opacity-50 ${saved ? 'bg-tertiary' : 'bg-secondary hover:bg-secondary/90'}`}>
-          {saving ? 'Saving…' : saved ? '✓ Saved!' : 'Save Profile'}
+          {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Profile'}
         </button>
+      </div>
+
+      <div className="bg-surface-lowest rounded-2xl p-6 shadow-float border border-outline-variant/30">
+        {userId && <NotificationPrefsPanel userId={userId} institutionId={institutionId} role={role} />}
+      </div>
+
+      <div className="bg-surface-lowest rounded-2xl p-6 shadow-float border border-outline-variant/30">
+        <h3 className="font-lexend font-700 text-on-surface mb-4">Change Password</h3>
+        <div className="flex gap-3 items-end">
+          <div className="flex-1">
+            <label className="block text-xs font-jakarta font-700 text-on-surface-variant mb-1">New Password</label>
+            <input
+              type="password"
+              className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-primary"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              placeholder="Min. 6 characters"
+            />
+          </div>
+          <button onClick={changePassword} disabled={pwSaving} className="px-5 py-2.5 rounded-xl bg-primary text-white font-jakarta font-700 text-sm disabled:opacity-50">
+            {pwSaving ? 'Updating...' : 'Update'}
+          </button>
+        </div>
+        {pwMsg && <p className={`text-xs font-jakarta mt-2 ${pwMsg.startsWith('Error') ? 'text-red-500' : 'text-tertiary'}`}>{pwMsg}</p>}
       </div>
     </div>
   );

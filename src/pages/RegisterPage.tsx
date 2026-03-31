@@ -11,9 +11,9 @@ import { AnimatedIcon } from '../components/ui/AnimatedIcon';
 
 /* ── Platform / Role config ── */
 const PLATFORMS = [
-  { id: 'university', Icon: GraduationCap, label: 'University / College', desc: 'Higher education — students, faculty, clubs, sports' },
-  { id: 'school',     Icon: School,        label: 'School (K-12)',         desc: 'Primary & secondary — students, teachers, parents' },
-  { id: 'preschool',  Icon: Baby,          label: 'Preschool',             desc: 'Early childhood — parents, teachers, staff' },
+  { id: 'university', Icon: GraduationCap, label: 'University / College', desc: 'Higher education: students, faculty, clubs, sports' },
+  { id: 'school',     Icon: School,        label: 'School (K-12)',         desc: 'Primary & secondary: students, teachers, parents' },
+  { id: 'preschool',  Icon: Baby,          label: 'Preschool',             desc: 'Early childhood: parents, teachers, staff' },
 ];
 
 const ROLES: Record<string, { id: string; label: string; desc: string }[]> = {
@@ -142,7 +142,7 @@ const RegisterPage: React.FC = () => {
       });
       if (signUpError) {
         if (/already registered|already exists/i.test(signUpError.message)) {
-          setError('Email already registered — sign in instead.');
+          setError('Email already registered. Sign in instead.');
           setTimeout(() => navigate(`/login?email=${encodeURIComponent(email)}`), 2000);
           return;
         }
@@ -209,7 +209,7 @@ const RegisterPage: React.FC = () => {
 
           <div className="mb-6">
             <h1 className="font-lexend font-black text-3xl text-gray-900 dark:text-white">Create your account</h1>
-            <p className="text-gray-500 dark:text-slate-400 text-sm mt-1 font-jakarta">Select platform, role, and fill in your details — all in one page.</p>
+            <p className="text-gray-500 dark:text-slate-400 text-sm mt-1 font-jakarta">Select platform, role, and fill in your details. All in one page.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -273,7 +273,7 @@ const RegisterPage: React.FC = () => {
             <div className="space-y-4">
               <div className="relative flex items-center gap-4">
                 <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700" />
-                <span className="text-xs font-jakarta font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">— Quick signup —</span>
+                <span className="text-xs font-jakarta font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">Quick signup</span>
                 <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700" />
               </div>
 
@@ -297,7 +297,7 @@ const RegisterPage: React.FC = () => {
 
               <div className="relative flex items-center gap-4">
                 <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700" />
-                <span className="text-xs font-jakarta font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">— or fill in details below —</span>
+                <span className="text-xs font-jakarta font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">or fill in details below</span>
                 <div className="flex-1 h-px bg-gray-200 dark:bg-slate-700" />
               </div>
             </div>

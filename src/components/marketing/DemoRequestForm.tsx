@@ -69,7 +69,7 @@ export function DemoRequestForm() {
             Book a personalized demo
           </h2>
           <p className="text-gray-500 dark:text-slate-400 mt-3 font-jakarta text-lg">
-            See Campus Tribe in action — tailored to your institution.
+            See Campus Tribe in action, tailored to your institution.
           </p>
         </div>
 

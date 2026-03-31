@@ -14,11 +14,34 @@ const faqs = [
 export default function SupportPage() {
   const [form, setForm] = useState({ name: '', email: '', institution: '', subject: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (form.name && form.email && form.message) setSubmitted(true);
+    if (!form.name || !form.email || !form.message) return;
+    setSubmitting(true);
+    setError('');
+    try {
+      const res = await fetch('https://ncftkuuxfllyohixiusb.supabase.co/functions/v1/send-demo-request-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          institution: form.institution,
+          subject: form.subject || 'Support Request',
+          message: form.message,
+        }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setSubmitted(true);
+    } catch {
+      setError('Failed to send message. Please try again or email us directly.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -75,8 +98,13 @@ export default function SupportPage() {
                       className="w-full px-4 py-3 rounded-lg border border-outline-variant dark:border-slate-600 bg-background dark:bg-slate-900 text-on-surface dark:text-slate-100 focus:outline-none focus:border-primary resize-none"
                     />
                   </div>
-                  <button type="submit" className="w-full bg-primary text-on-primary font-headline font-bold py-4 rounded-full hover:bg-primary-dim transition-colors">
-                    Send Message
+                  {error && <p className="text-red-500 text-sm font-jakarta">{error}</p>}
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full bg-primary text-on-primary font-headline font-bold py-4 rounded-full hover:bg-primary-dim transition-colors disabled:opacity-50"
+                  >
+                    {submitting ? 'Sending...' : 'Send Message'}
                   </button>
                 </form>
               )}
@@ -104,15 +132,6 @@ export default function SupportPage() {
                     )}
                   </div>
                 ))}
-              </div>
-
-              <div className="mt-8 bg-primary/5 dark:bg-primary/10 p-6 rounded-xl border border-primary/10">
-                <h3 className="font-headline font-bold text-lg text-on-surface dark:text-slate-100 mb-2">Need urgent help?</h3>
-                <p className="text-sm text-on-surface-variant dark:text-slate-400 mb-4">Enterprise customers have access to 24/7 priority support.</p>
-                <div className="flex items-center gap-3 text-primary font-label font-bold text-sm">
-                  <span className="material-symbols-outlined text-base">mail</span>
-                  support@campustribe.io
-                </div>
               </div>
             </div>
           </div>

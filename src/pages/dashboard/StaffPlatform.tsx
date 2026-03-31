@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Bell, Calendar, MapPin, Megaphone, User, LogOut, Menu, Plus, Loader2 } from 'lucide-react';
+import { LayoutDashboard, FileText, Bell, Calendar, MapPin, Megaphone, User, LogOut, Menu, Plus, Loader2, Settings } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import NotificationCenter from '../../components/ui/NotificationCenter';
+import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
+import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 
 export default function StaffPlatform() {
   const { profile, user, institutionId, signOut } = useAuth();
@@ -18,6 +20,7 @@ export default function StaffPlatform() {
     { id: 'venues', label: 'Venues', icon: <MapPin size={18} /> },
     { id: 'announcements', label: 'Announcements', icon: <Megaphone size={18} /> },
     { id: 'profile', label: 'Profile', icon: <User size={18} /> },
+    { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
   ];
 
   const userName = profile?.full_name || user?.email?.split('@')[0] || 'Staff';
@@ -85,7 +88,8 @@ export default function StaffPlatform() {
           {activeSection === 'events' && <EventsSection institutionId={institutionId} />}
           {activeSection === 'venues' && <VenueQueueSection institutionId={institutionId} />}
           {activeSection === 'announcements' && <AnnouncementsSection institutionId={institutionId} userId={user?.id} />}
-          {activeSection === 'profile' && <ProfileSection profile={profile} userId={user?.id} />}
+          {activeSection === 'profile' && <ProfileSection profile={profile as Record<string, unknown> | null} userId={user?.id} institutionId={institutionId} />}
+          {activeSection === 'settings' && <ProfileSection profile={profile as Record<string, unknown> | null} userId={user?.id} institutionId={institutionId} />}
         </div>
       </main>
     </div>
@@ -280,11 +284,18 @@ function AnnouncementsSection({ institutionId, userId }: { institutionId: string
   );
 }
 
-function ProfileSection({ profile, userId }: { profile: any; userId?: string }) {
+function ProfileSection({ profile, userId, institutionId }: { profile: Record<string, unknown> | null; userId?: string; institutionId: string | null }) {
   const { refreshProfile } = useAuth();
-  const [form, setForm] = useState({ full_name: profile?.full_name || '', bio: profile?.bio || '', phone: profile?.phone || '' });
+  const [form, setForm] = useState({
+    full_name: (profile?.full_name as string) || '',
+    bio: (profile?.bio as string) || '',
+    phone: (profile?.phone as string) || '',
+  });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwMsg, setPwMsg] = useState('');
 
   const save = async () => {
     if (!userId) return;
@@ -296,15 +307,31 @@ function ProfileSection({ profile, userId }: { profile: any; userId?: string }) 
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const changePassword = async () => {
+    if (!newPassword || newPassword.length < 6) { setPwMsg('Password must be at least 6 characters'); return; }
+    setPwSaving(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setPwSaving(false);
+    setPwMsg(error ? 'Error: ' + error.message : 'Password updated successfully');
+    setNewPassword('');
+    setTimeout(() => setPwMsg(''), 3000);
+  };
+
   return (
-    <div className="space-y-5">
-      <h1 className="font-lexend font-900 text-2xl text-on-surface">My Profile</h1>
+    <div className="space-y-6">
+      <h1 className="font-lexend font-900 text-2xl text-on-surface">My Profile & Settings</h1>
+
+      <div className="bg-surface-lowest rounded-2xl p-6 shadow-float border border-outline-variant/30">
+        <h3 className="font-lexend font-700 text-on-surface mb-4">Profile Photo</h3>
+        {userId && <ProfilePhotoUpload userId={userId} currentUrl={profile?.avatar_url as string | null} displayName={form.full_name} />}
+      </div>
+
       <div className="bg-surface-lowest rounded-2xl p-6 shadow-float border border-outline-variant/30">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[{ label: 'Full Name', key: 'full_name' }, { label: 'Phone', key: 'phone' }].map(field => (
             <div key={field.key}>
               <label className="block text-xs font-jakarta font-700 text-on-surface-variant mb-1">{field.label}</label>
-              <input className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface" value={(form as any)[field.key]} onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))} />
+              <input className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface" value={(form as Record<string, string>)[field.key]} onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))} />
             </div>
           ))}
           <div className="md:col-span-2">
@@ -313,8 +340,26 @@ function ProfileSection({ profile, userId }: { profile: any; userId?: string }) 
           </div>
         </div>
         <button onClick={save} disabled={saving} className={`mt-5 px-6 py-2.5 rounded-xl font-jakarta font-700 text-sm text-white transition-colors ${saved ? 'bg-tertiary' : 'bg-secondary hover:bg-secondary/90'}`}>
-          {saving ? 'Saving…' : saved ? '✓ Saved!' : 'Save Profile'}
+          {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Profile'}
         </button>
+      </div>
+
+      <div className="bg-surface-lowest rounded-2xl p-6 shadow-float border border-outline-variant/30">
+        {userId && <NotificationPrefsPanel userId={userId} institutionId={institutionId} role="staff" />}
+      </div>
+
+      <div className="bg-surface-lowest rounded-2xl p-6 shadow-float border border-outline-variant/30">
+        <h3 className="font-lexend font-700 text-on-surface mb-4">Change Password</h3>
+        <div className="flex gap-3 items-end">
+          <div className="flex-1">
+            <label className="block text-xs font-jakarta font-700 text-on-surface-variant mb-1">New Password</label>
+            <input type="password" className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Min. 6 characters" />
+          </div>
+          <button onClick={changePassword} disabled={pwSaving} className="px-5 py-2.5 rounded-xl bg-primary text-white font-jakarta font-700 text-sm disabled:opacity-50">
+            {pwSaving ? 'Updating...' : 'Update'}
+          </button>
+        </div>
+        {pwMsg && <p className={`text-xs font-jakarta mt-2 ${pwMsg.startsWith('Error') ? 'text-red-500' : 'text-tertiary'}`}>{pwMsg}</p>}
       </div>
     </div>
   );

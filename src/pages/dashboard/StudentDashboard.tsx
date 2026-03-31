@@ -203,7 +203,7 @@ export default function StudentDashboard() {
       .select('*').single();
     if (checkin) {
       setData((current: any) => ({ ...current, wellbeing: [checkin, ...current.wellbeing] }));
-      setFlash('Check-in saved! Keep it up — consistency builds insights.');
+      setFlash('Check-in saved! Keep it up. Consistency builds insights.');
       setTimeout(() => setFlash(''), 3000);
     }
   };
