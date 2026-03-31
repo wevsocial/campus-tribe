@@ -1,5 +1,5 @@
 const EDGE_FN_URL = 'https://ncftkuuxfllyohixiusb.supabase.co/functions/v1/send-notification-email';
-const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jZnRrdXV4ZmxseW9oaXhpdXNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA2MDA4NzgsImV4cCI6MjA1NjE3Njg3OH0.qMXAzX_5R7Tsu32PLgZqz5C4oSQ9tMLmsbFp8k87ao17_S-M6ik';
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jZnRrdXV4ZmxseW9oaXhpdXNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MjI1MTAsImV4cCI6MjA4MzI5ODUxMH0.R7Tsu32PLgZqz5C4oSQ9tMLmsbFp8k87ao17_S-M6ik';
 
 export async function sendEmailNotification(to: string, subject: string, html: string): Promise<void> {
   try {
