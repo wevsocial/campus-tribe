@@ -1002,7 +1002,7 @@ function GradesSection({ userId }: { userId?: string }) {
 
   useEffect(() => {
     if (!userId) return;
-    supabase.from('ct_grades').select('id,grade,max_points,feedback,assignment_id,graded_at').eq('student_id', userId).order('graded_at', { ascending: false }).limit(50).then(({ data }) => {
+    supabase.from('ct_grades').select('id,grade,max_points,feedback,assignment_id,graded_at,assignment:ct_assignments(title)').eq('student_id', userId).order('graded_at', { ascending: false }).limit(50).then(({ data }) => {
       setGrades((data as unknown as Grade[]) || []);
       setLoading(false);
     });
@@ -1016,7 +1016,7 @@ function GradesSection({ userId }: { userId?: string }) {
           {grades.map(g => (
             <div key={g.id} className="bg-surface-lowest rounded-2xl p-4 shadow-float border border-outline-variant/30 flex items-center justify-between">
               <div>
-                <p className="font-jakarta font-700 text-on-surface text-sm">Assignment</p>
+                <p className="font-jakarta font-700 text-on-surface text-sm">{(g as unknown as { assignment?: { title?: string } }).assignment?.title || 'Assignment'}</p>
                 {(g as unknown as { feedback?: string }).feedback && <p className="text-xs text-on-surface-variant mt-0.5">{(g as unknown as { feedback: string }).feedback}</p>}
                 <p className="text-xs text-on-surface-variant">{new Date((g as unknown as { graded_at?: string }).graded_at || g.created_at).toLocaleDateString()}</p>
               </div>
