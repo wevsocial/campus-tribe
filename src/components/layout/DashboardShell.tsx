@@ -126,7 +126,7 @@ export default function DashboardShell({ role }: DashboardShellProps) {
 
   return (
     <div className="min-h-screen bg-surface-low flex">
-      {/* Sidebar — desktop */}
+      {/* Sidebar - desktop */}
       <aside className="hidden lg:flex flex-col w-64 bg-surface-lowest fixed top-0 left-0 h-full z-30 shadow-float">
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-outline-variant/30">

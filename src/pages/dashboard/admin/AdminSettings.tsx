@@ -133,7 +133,7 @@ export default function AdminSettings() {
         </div>
       </Card>
 
-      {/* LMS — Canvas LTI 1.3 */}
+      {/* LMS - Canvas LTI 1.3 */}
       <Card>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-lexend font-bold text-on-surface">LMS Integration: Canvas LTI 1.3</h2>

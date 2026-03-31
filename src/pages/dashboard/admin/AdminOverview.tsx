@@ -104,7 +104,7 @@ export default function AdminOverview() {
         <StatCard value={stats!.venues} label="Venues" color="neutral" />
       </div>
 
-      {/* At-Risk Students — Module 13 */}
+      {/* At-Risk Students - Module 13 */}
       <Card>
         <div className="flex items-center gap-2 mb-4">
           <AlertTriangle size={18} className="text-amber-500" />

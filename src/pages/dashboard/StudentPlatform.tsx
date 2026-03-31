@@ -657,7 +657,7 @@ function SportsSection({ institutionId, userId }: { institutionId: string | null
   const load = () => {
     if (!institutionId) return;
     supabase.from('ct_sports_leagues').select('id,name,sport,status').eq('institution_id', institutionId).limit(20).then(({ data }) => setLeagues(data || []));
-    supabase.from('ct_sports_challenges').select('*').eq('institution_id', institutionId).eq('is_open', true).order('scheduled_at').limit(30).then(({ data }) => setChallenges((data || []) as Challenge[]));
+    supabase.from('ct_sport_challenges').select('*').eq('institution_id', institutionId).eq('status', 'open').order('challenge_date').limit(30).then(({ data }) => setChallenges((data || []) as Challenge[]));
     supabase.from('ct_sport_rankings').select('*').eq('institution_id', institutionId).order('points', { ascending: false }).limit(20).then(({ data }) => setRankings((data || []) as SportRanking[]));
     if (userId) supabase.from('ct_users').select('free_agent').eq('id', userId).maybeSingle().then(({ data }) => setFreeAgent(data?.free_agent || false));
   };
@@ -667,17 +667,14 @@ function SportsSection({ institutionId, userId }: { institutionId: string | null
   const createChallenge = async () => {
     if (!userId || !institutionId || !challengeForm.title) return;
     setSaving(true);
-    // Need ct_students.id for challenger_id FK
-    const { data: student } = await supabase.from('ct_students').select('id').eq('email', (await supabase.from('ct_users').select('email').eq('id', userId).maybeSingle()).data?.email || '').maybeSingle();
-    await supabase.from('ct_sports_challenges').insert({
+    await supabase.from('ct_sport_challenges').insert({
       title: challengeForm.title,
       description: challengeForm.description,
       sport: challengeForm.sport,
-      scheduled_at: challengeForm.scheduled_at || null,
+      challenge_date: challengeForm.scheduled_at || null,
       status: 'open',
-      is_open: true,
       institution_id: institutionId,
-      challenger_id: student?.id || null,
+      created_by: userId,
     });
     setChallengeForm({ title: '', description: '', sport: 'Basketball', scheduled_at: '' });
     setShowCreate(false);
@@ -687,7 +684,7 @@ function SportsSection({ institutionId, userId }: { institutionId: string | null
 
   const acceptChallenge = async (challengeId: string) => {
     if (!userId) return;
-    await supabase.from('ct_challenge_participants').upsert({ challenge_id: challengeId, user_id: userId }, { onConflict: 'challenge_id,user_id' });
+    await supabase.from('ct_sport_challenge_participants').upsert({ challenge_id: challengeId, user_id: userId }, { onConflict: 'challenge_id,user_id' });
     await supabase.from('ct_notifications').insert({ user_id: userId, type: 'challenge_accepted', title: 'Challenge Accepted', message: 'You have accepted a sports challenge. See you on the field!' });
     load();
   };
@@ -696,15 +693,13 @@ function SportsSection({ institutionId, userId }: { institutionId: string | null
     if (!postScore || !userId) return;
     const myS = parseInt(postScore.myScore);
     const oppS = parseInt(postScore.oppScore);
-    await supabase.from('ct_sports_challenges').update({
-      challenger_score: myS,
-      challenged_score: oppS,
+    await supabase.from('ct_sport_challenges').update({
       status: 'completed',
-      result_posted_at: new Date().toISOString(),
-      result_posted_by: userId,
     }).eq('id', postScore.id);
+    // Post score to ct_challenge_scores
+    await supabase.from('ct_challenge_scores').insert({ challenge_id: postScore.id, user_id: userId, score: parseInt(postScore.myScore), posted_by: userId });
     // Update rankings
-    const { data: c } = await supabase.from('ct_sports_challenges').select('sport,institution_id').eq('id', postScore.id).maybeSingle();
+    const { data: c } = await supabase.from('ct_sport_challenges').select('sport,institution_id').eq('id', postScore.id).maybeSingle();
     if (c && userId) {
       const won = myS > oppS;
       await supabase.from('ct_sport_rankings').upsert({
@@ -800,7 +795,7 @@ function SportsSection({ institutionId, userId }: { institutionId: string | null
                 <div className="flex-1">
                   <p className="font-lexend font-700 text-on-surface">{c.title || c.sport + ' Challenge'}</p>
                   {c.description && <p className="text-sm text-on-surface-variant font-jakarta mt-0.5">{c.description}</p>}
-                  <p className="text-xs text-on-surface-variant font-jakarta mt-1">{c.sport} {c.scheduled_at ? '· ' + new Date(c.scheduled_at).toLocaleDateString() : ''}</p>
+                  <p className="text-xs text-on-surface-variant font-jakarta mt-1">{c.sport} {(c as any).challenge_date ? '· ' + new Date((c as any).challenge_date).toLocaleDateString() : ''}</p>
                 </div>
                 <div className="flex flex-col gap-2">
                   {c.status === 'open' && (

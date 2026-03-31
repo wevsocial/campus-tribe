@@ -66,6 +66,51 @@ export default function ITDashboard() {
   const [search, setSearch] = useState('');
   const [apiName, setApiName] = useState('');
   const [integrationMessage, setIntegrationMessage] = useState<Record<string, string>>({});
+  const [lmsConfigs, setLmsConfigs] = useState<Record<string, { apiKey: string; baseUrl: string; lastSync: string | null; courseCount: number }>>({
+    canvas: { apiKey: '', baseUrl: 'https://canvas.instructure.com', lastSync: null, courseCount: 0 },
+    moodle: { apiKey: '', baseUrl: 'https://moodlecloud.com', lastSync: null, courseCount: 0 },
+  });
+  const [testingLms, setTestingLms] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<Record<string, { ok: boolean; msg: string }>>({});
+
+  const testLmsConnection = async (lms: string) => {
+    setTestingLms(lms);
+    const cfg = lmsConfigs[lms];
+    try {
+      if (lms === 'canvas') {
+        const res = await fetch(`${cfg.baseUrl}/api/v1/courses?per_page=1`, {
+          headers: { Authorization: `Bearer ${cfg.apiKey}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setTestResult(r => ({ ...r, [lms]: { ok: true, msg: `Connected! ${data.length} course(s) returned.` } }));
+        } else {
+          setTestResult(r => ({ ...r, [lms]: { ok: false, msg: `HTTP ${res.status}` } }));
+        }
+      } else if (lms === 'moodle') {
+        const res = await fetch(`${cfg.baseUrl}/webservice/rest/server.php?wstoken=${cfg.apiKey}&wsfunction=core_webservice_get_site_info&moodlewsrestformat=json`);
+        const body = await res.json();
+        if (body.sitename) {
+          setTestResult(r => ({ ...r, [lms]: { ok: true, msg: `Connected to: ${body.sitename}` } }));
+        } else {
+          setTestResult(r => ({ ...r, [lms]: { ok: false, msg: body.message || 'Auth failed' } }));
+        }
+      }
+    } catch (e: any) {
+      setTestResult(r => ({ ...r, [lms]: { ok: false, msg: e.message } }));
+    }
+    setTestingLms(null);
+  };
+
+  const saveLmsConfig = async (lms: string) => {
+    if (!institutionId) return;
+    await supabase.from('ct_institution_settings').upsert(
+      { institution_id: institutionId, key: `lms_${lms}_config`, value: JSON.stringify(lmsConfigs[lms]) },
+      { onConflict: 'institution_id,key' }
+    );
+    setIntegrationMessage(m => ({ ...m, [lms]: 'Config saved.' }));
+    setTimeout(() => setIntegrationMessage(m => ({ ...m, [lms]: '' })), 2000);
+  };
 
   const { data, setData } = useDashboardData(async ({ institutionId }) => {
     const [usersRes, apiKeysRes, auditRes, announcementsRes] = await Promise.all([
@@ -252,15 +297,77 @@ export default function ITDashboard() {
         )}
 
         {activeTab === 'Integrations' && (
-          <div id="integrations" className="grid md:grid-cols-2 xl:grid-cols-3 gap-6 scroll-mt-24">
-            {integrationTemplates.map((template) => (
-              <Card key={template.key}>
-                <p className="font-lexend text-lg font-800 text-on-surface">{template.name}</p>
-                <p className="mt-2 text-sm leading-6 text-on-surface-variant">{template.description}</p>
-                <Button onClick={() => logIntegrationReview(template.key, template.name)} className="mt-4 w-full rounded-full">Queue integration review</Button>
-                {integrationMessage[template.key] && <p className="mt-3 text-xs text-tertiary">{integrationMessage[template.key]}</p>}
-              </Card>
-            ))}
+          <div id="integrations" className="space-y-6 scroll-mt-24">
+            {/* Canvas LMS */}
+            <Card>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="font-lexend text-lg font-800 text-on-surface">Canvas LMS</p>
+                  <p className="text-sm text-on-surface-variant">Roster, course, and engagement sync via Canvas REST API</p>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-xs font-jakarta font-700 ${testResult.canvas?.ok ? 'bg-tertiary-container text-tertiary' : 'bg-surface-low text-on-surface-variant'}`}>
+                  {testResult.canvas?.ok ? 'Connected' : 'Not configured'}
+                </span>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <Input label="Canvas API Token" type="password" value={lmsConfigs.canvas.apiKey} onChange={e => setLmsConfigs(c => ({ ...c, canvas: { ...c.canvas, apiKey: e.target.value } }))} placeholder="Your Canvas API token" />
+                <Input label="Canvas Base URL" value={lmsConfigs.canvas.baseUrl} onChange={e => setLmsConfigs(c => ({ ...c, canvas: { ...c.canvas, baseUrl: e.target.value } }))} placeholder="https://canvas.instructure.com" />
+              </div>
+              {testResult.canvas && <p className={`text-sm mb-3 ${testResult.canvas.ok ? 'text-tertiary' : 'text-red-500'}`}>{testResult.canvas.msg}</p>}
+              {integrationMessage.canvas && <p className="text-xs text-tertiary mb-2">{integrationMessage.canvas}</p>}
+              <div className="flex gap-3">
+                <Button onClick={() => testLmsConnection('canvas')} disabled={testingLms === 'canvas'} variant="outline" className="rounded-full">{testingLms === 'canvas' ? 'Testing...' : 'Test Connection'}</Button>
+                <Button onClick={() => saveLmsConfig('canvas')} className="rounded-full">Save Config</Button>
+              </div>
+            </Card>
+
+            {/* Moodle */}
+            <Card>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="font-lexend text-lg font-800 text-on-surface">Moodle LMS</p>
+                  <p className="text-sm text-on-surface-variant">Course, enrollment, and grade sync via Moodle Web Services</p>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-xs font-jakarta font-700 ${testResult.moodle?.ok ? 'bg-tertiary-container text-tertiary' : 'bg-surface-low text-on-surface-variant'}`}>
+                  {testResult.moodle?.ok ? 'Connected' : 'Not configured'}
+                </span>
+              </div>
+              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                <Input label="Moodle Web Services Token" type="password" value={lmsConfigs.moodle.apiKey} onChange={e => setLmsConfigs(c => ({ ...c, moodle: { ...c.moodle, apiKey: e.target.value } }))} placeholder="Your Moodle token" />
+                <Input label="Moodle Base URL" value={lmsConfigs.moodle.baseUrl} onChange={e => setLmsConfigs(c => ({ ...c, moodle: { ...c.moodle, baseUrl: e.target.value } }))} placeholder="https://yoursite.moodlecloud.com" />
+              </div>
+              {testResult.moodle && <p className={`text-sm mb-3 ${testResult.moodle.ok ? 'text-tertiary' : 'text-red-500'}`}>{testResult.moodle.msg}</p>}
+              {integrationMessage.moodle && <p className="text-xs text-tertiary mb-2">{integrationMessage.moodle}</p>}
+              <div className="flex gap-3">
+                <Button onClick={() => testLmsConnection('moodle')} disabled={testingLms === 'moodle'} variant="outline" className="rounded-full">{testingLms === 'moodle' ? 'Testing...' : 'Test Connection'}</Button>
+                <Button onClick={() => saveLmsConfig('moodle')} className="rounded-full">Save Config</Button>
+              </div>
+            </Card>
+
+            {/* Minerva */}
+            <Card>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="font-lexend text-lg font-800 text-on-surface">Minerva</p>
+                  <p className="text-sm text-on-surface-variant">Enterprise-grade SIS integration with Minerva</p>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-secondary-container text-secondary text-xs font-jakarta font-700">Enterprise</span>
+              </div>
+              <p className="text-sm text-on-surface-variant mb-4">Minerva integration is available on Enterprise plans. Contact our team to set up a custom sync pipeline.</p>
+              <Button variant="outline" className="rounded-full" onClick={() => window.open('mailto:enterprise@wevsocial.com?subject=Minerva Integration')}>Contact for Enterprise Access</Button>
+            </Card>
+
+            {/* Other integrations */}
+            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {integrationTemplates.filter(t => !['canvas','moodle'].includes(t.key)).map((template) => (
+                <Card key={template.key}>
+                  <p className="font-lexend text-lg font-800 text-on-surface">{template.name}</p>
+                  <p className="mt-2 text-sm leading-6 text-on-surface-variant">{template.description}</p>
+                  <Button onClick={() => logIntegrationReview(template.key, template.name)} className="mt-4 w-full rounded-full">Queue integration review</Button>
+                  {integrationMessage[template.key] && <p className="mt-3 text-xs text-tertiary">{integrationMessage[template.key]}</p>}
+                </Card>
+              ))}
+            </div>
           </div>
         )}
 

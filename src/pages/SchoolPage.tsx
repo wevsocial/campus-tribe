@@ -80,7 +80,7 @@ export default function SchoolPage() {
               <div className="md:col-span-4 bg-tertiary-container dark:bg-slate-800 text-on-tertiary-container rounded-xl p-8 flex flex-col justify-center text-center">
                 <span className="material-symbols-outlined text-5xl mb-6">family_restroom</span>
                 <h3 className="font-headline text-2xl font-bold mb-2 dark:text-slate-100">Parent Portals</h3>
-                <p className="opacity-80 text-sm dark:text-slate-300">Give parents a real-time window into their child's school life.</p>
+                <p className="text-sm text-on-tertiary-container dark:text-slate-200">Give parents a real-time window into their child's school life.</p>
               </div>
               <div className="md:col-span-8 bg-surface-container-lowest rounded-xl p-8 flex flex-col md:flex-row items-center gap-8 border border-outline-variant/10 shadow-sm">
                 <div className="flex-1">

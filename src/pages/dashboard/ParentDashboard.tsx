@@ -7,13 +7,15 @@ import { Badge } from '../../components/ui/Badge';
 import { useAuth } from '../../context/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
+import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
+import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 
 type Child = { id: string; full_name: string; room: string | null; teacher_id: string | null; parent_id: string | null; allergies?: string | null };
 type Survey = { id: string; title: string; description: string | null; target_roles?: string[] | null; status?: string | null; is_active?: boolean | null };
 type SurveyQuestion = { id: string; survey_id: string; prompt: string; question_type: string; options: string[] | null };
 
 export default function ParentDashboard() {
-  const { user, institutionId } = useAuth();
+  const { user, institutionId, profile } = useAuth();
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
     const [childrenRes, announcementsRes, unlinkedChildrenRes, surveysRes] = await Promise.all([
       supabase.from('ct_children').select('*').eq('parent_id', userId).eq('institution_id', institutionId),
@@ -174,6 +176,16 @@ React.useEffect(() => {
           <Card>
             <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Survey submit</h2>
             {!selectedSurvey ? <p className="text-sm text-on-surface-variant">Select a survey on the left.</p> : <div className="space-y-4"><div><p className="font-jakarta font-700 text-on-surface">{selectedSurvey.title}</p><p className="text-sm text-on-surface-variant">{selectedSurvey.description || 'No description'}</p></div>{selectedSurveyQuestions.map((question: SurveyQuestion) => <div key={question.id} className="rounded-[1rem] bg-surface p-4"><p className="font-jakarta font-700 text-on-surface">{question.prompt}</p><div className="mt-3">{renderQuestionInput(question)}</div></div>)}<Button onClick={submitSurveyResponse} className="rounded-full">Submit survey</Button></div>}
+          </Card>
+        </div>
+        {/* Settings: Profile Photo + Notification Prefs */}
+        <div id="settings" className="grid lg:grid-cols-2 gap-6 mt-6">
+          <Card>
+            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Profile Photo</h2>
+            {user?.id && <ProfilePhotoUpload userId={user.id} currentUrl={profile?.avatar_url as string | null} displayName={profile?.full_name || user.email} />}
+          </Card>
+          <Card>
+            {user?.id && <NotificationPrefsPanel userId={user.id} institutionId={institutionId} role="parent" />}
           </Card>
         </div>
       </div>

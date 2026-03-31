@@ -49,7 +49,7 @@ export default function AboutPage() {
 
         <section className="max-w-7xl mx-auto px-8 py-20">
           <div className="bg-primary text-white rounded-3xl p-12 text-center">
-            <h2 className="font-headline font-bold text-3xl mb-4">Powered by WevSocial</h2>
+            <h2 className="font-headline font-bold text-3xl mb-4 flex items-center justify-center gap-2"><svg viewBox="0 0 24 24" className="w-7 h-7 animate-[spin_3s_linear_infinite] text-white/80" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>Powered by WevSocial</h2>
             <p className="text-primary-container max-w-2xl mx-auto leading-relaxed">
               WevSocial is the parent company behind Campus Tribe. The product is being shaped as a real operational system for university, school, and preschool communities, not just a front-end shell. That means real data, real workflows, real onboarding, and a roadmap aligned to measurable student connection and institutional ROI.
             </p>

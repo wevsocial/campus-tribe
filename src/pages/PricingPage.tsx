@@ -109,7 +109,7 @@ export default function PricingPage() {
             </Link>
           </div>
 
-          {/* Growth — Most Popular */}
+          {/* Growth - Most Popular */}
           <div className="relative bg-gradient-to-br from-primary to-primary/80 rounded-[1.5rem] p-8 flex flex-col shadow-2xl shadow-primary/30 hover:-translate-y-2 transition-all">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
               <span className="bg-secondary text-white px-4 py-1 rounded-full text-xs font-jakarta font-700 uppercase tracking-widest shadow-md">
@@ -122,13 +122,13 @@ export default function PricingPage() {
               </span>
               <div className="flex items-baseline gap-1 mt-4">
                 <span className="font-lexend text-5xl font-900 text-white">$15</span>
-                <span className="text-white/70 font-jakarta text-sm uppercase tracking-widest ml-1">/ student / year</span>
+                <span className="text-white/90 font-jakarta text-sm uppercase tracking-widest ml-1">/ student / year</span>
               </div>
-              <p className="text-white/70 text-sm mt-2">3,000–20,000 students · $75K–$300K ARR</p>
+              <p className="text-white/90 text-sm mt-2">3,000–20,000 students · $75K–$300K ARR</p>
             </div>
             <ul className="space-y-3 mb-10 flex-grow">
               {GROWTH_FEATURES.map(f => (
-                <li key={f} className="flex items-start gap-3 text-sm text-white/90">
+                <li key={f} className="flex items-start gap-3 text-sm text-white">
                   <Check white />
                   {f}
                 </li>

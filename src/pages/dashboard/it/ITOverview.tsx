@@ -48,7 +48,7 @@ export default function ITOverview() {
         </div>
       </div>
 
-      {/* SOC 2 Status — Module 15 */}
+      {/* SOC 2 Status - Module 15 */}
       <Card>
         <div className="flex items-center gap-3">
           <ShieldCheck size={20} className="text-amber-500" />

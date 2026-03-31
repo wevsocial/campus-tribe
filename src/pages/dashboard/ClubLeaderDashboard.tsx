@@ -8,6 +8,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
 import { findVenueConflicts, normalizeRelation } from '../../lib/dashboardData';
+import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
+import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 
 type Venue = { id: string; name: string; building: string | null; capacity: number | null; institution_id?: string | null };
 type Booking = {
@@ -25,7 +27,7 @@ type Budget = { id: string; club_id: string | null; total_allocated: number | nu
 type FundingRequest = { id: string; club_id: string | null; amount: number | null; purpose: string | null; status: string; created_at: string };
 
 export default function ClubLeaderDashboard() {
-  const { user, institutionId } = useAuth();
+  const { user, institutionId, profile } = useAuth();
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
     const [clubsRes, membersRes, eventsRes, bookingsRes, venuesRes] = await Promise.all([
       supabase.from('ct_clubs').select('*').eq('leader_id', userId).eq('institution_id', institutionId),
@@ -326,6 +328,16 @@ React.useEffect(() => {
             )}
           </Card>
         </div>
+      </div>
+      {/* Settings: Profile Photo + Notification Prefs */}
+      <div id="settings" className="grid lg:grid-cols-2 gap-6 mt-6">
+        <Card>
+          <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Profile Photo</h2>
+          {user?.id && <ProfilePhotoUpload userId={user.id} currentUrl={profile?.avatar_url as string | null} displayName={profile?.full_name || user.email} />}
+        </Card>
+        <Card>
+          {user?.id && <NotificationPrefsPanel userId={user.id} institutionId={institutionId} role="club_leader" />}
+        </Card>
       </div>
     </DashboardLayout>
   );

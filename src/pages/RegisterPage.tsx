@@ -119,7 +119,7 @@ const RegisterPage: React.FC = () => {
       setSubmitting(false);
       setError(error.message);
     }
-    // If no error, browser redirects — no need to setSubmitting(false)
+    // If no error, browser redirects - no need to setSubmitting(false)
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

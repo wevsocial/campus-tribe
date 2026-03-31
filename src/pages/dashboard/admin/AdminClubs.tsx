@@ -41,7 +41,7 @@ export default function AdminClubs() {
     const scores: Record<string, ComplianceScore> = {};
     for (const club of clubData) {
       scores[club.id] = {
-        hasRecentEvents: hasEventsGlobal, // simplified — in real app filter by club
+        hasRecentEvents: hasEventsGlobal, // simplified - in real app filter by club
         hasActiveMembers: (club.member_count || 0) > 0,
         hasLeader: !!club.leader_id,
       };

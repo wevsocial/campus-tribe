@@ -67,7 +67,7 @@ export default function ClubLeaderBudget() {
         ))}
       </div>
 
-      {/* Club dues payment toggle — Module 16 */}
+      {/* Club dues payment toggle - Module 16 */}
       <Card>
         <div className="flex items-center gap-2 mb-4">
           <CreditCard size={18} className="text-primary" />

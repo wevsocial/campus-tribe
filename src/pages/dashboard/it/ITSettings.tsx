@@ -41,7 +41,7 @@ export default function ITSettings() {
         </div>
       </Card>
 
-      {/* FERPA Compliance — Module 15 */}
+      {/* FERPA Compliance - Module 15 */}
       <Card>
         <div className="flex items-center gap-2 mb-4">
           <Shield size={18} className="text-primary" />
@@ -65,7 +65,7 @@ export default function ITSettings() {
         </Link>
       </Card>
 
-      {/* Data Retention Policy — Module 15 */}
+      {/* Data Retention Policy - Module 15 */}
       <Card>
         <div className="flex items-center gap-2 mb-4">
           <Database size={18} className="text-primary" />

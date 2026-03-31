@@ -25,7 +25,7 @@ export default function AuthCallback() {
         // ignore
       }
 
-      // Wait for ct_users row — AuthContext bootstraps it on auth state change
+      // Wait for ct_users row - AuthContext bootstraps it on auth state change
       // Give it up to 8s
       let profile: { role: string; roles: string[] | null } | null = null;
       for (let i = 0; i < 16; i++) {
@@ -42,7 +42,7 @@ export default function AuthCallback() {
       try { localStorage.removeItem(PENDING_SIGNUP_KEY); } catch { /* ignore */ }
 
       if (!profile) {
-        // Bootstrap failed — create a minimal ct_users row ourselves
+        // Bootstrap failed - create a minimal ct_users row ourselves
         const role = (pending?.role as string) || 'student';
         setStatus('Creating your account...');
         
