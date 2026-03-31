@@ -328,6 +328,7 @@ function AssignmentsSection({ institutionId, userId }: { institutionId: string |
     await supabase.from('ct_grades').upsert({
       assignment_id: assignmentId,
       student_id: sub.student_id,
+      score: parseFloat(g.grade),
       grade: parseFloat(g.grade),
       max_points: assignment?.max_points || 100,
       feedback: g.feedback,

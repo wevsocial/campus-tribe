@@ -33,6 +33,8 @@ import CoachLeagues from './pages/dashboard/coach/CoachLeagues';
 import CoachTeams from './pages/dashboard/coach/CoachTeams';
 import CoachSchedule from './pages/dashboard/coach/CoachSchedule';
 import CoachAthletes from './pages/dashboard/coach/CoachAthletes';
+import CoachTraining from './pages/dashboard/coach/CoachTraining';
+import CoachSettings from './pages/dashboard/coach/CoachSettings';
 
 // Parent (existing)
 import ParentOverview from './pages/dashboard/parent/ParentOverview';
@@ -94,6 +96,8 @@ export default function App() {
           <Route path="teams" element={<CoachTeams />} />
           <Route path="schedule" element={<CoachSchedule />} />
           <Route path="athletes" element={<CoachAthletes />} />
+          <Route path="training" element={<CoachTraining />} />
+          <Route path="settings" element={<CoachSettings />} />
         </Route>
 
         {/* Parent */}

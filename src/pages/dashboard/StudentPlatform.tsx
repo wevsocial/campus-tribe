@@ -396,7 +396,8 @@ function VenueSection({ institutionId }: { institutionId: string | null }) {
 
   useEffect(() => {
     if (!institutionId) return;
-    supabase.from('ct_venues').select('id,name,capacity,location').eq('institution_id', institutionId).limit(20).then(({ data }) => {
+    // Query venues without institution filter (venues may not have institution_id set)
+    supabase.from('ct_venues').select('id,name,capacity,location').limit(20).then(({ data }) => {
       setVenues((data || []) as Venue[]);
       setLoading(false);
     });
@@ -409,7 +410,8 @@ function VenueSection({ institutionId }: { institutionId: string | null }) {
       venue_id: venueId,
       booked_by: user.id, start_time: form.date + 'T' + form.start_time,
       end_time: form.date + 'T' + form.end_time,
-      purpose: form.purpose, status: 'pending'
+      purpose: form.purpose, status: 'pending',
+      org_id: institutionId,
     });
     setBooking(null);
     setSaving(false);

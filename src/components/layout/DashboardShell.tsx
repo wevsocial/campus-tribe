@@ -57,6 +57,8 @@ const navConfig: Record<Role, NavItem[]> = {
     { label: 'Teams', path: '/dashboard/coach/teams', icon: <Users size={18} /> },
     { label: 'Schedule', path: '/dashboard/coach/schedule', icon: <CalendarDays size={18} /> },
     { label: 'Athletes', path: '/dashboard/coach/athletes', icon: <User size={18} /> },
+    { label: 'Training', path: '/dashboard/coach/training', icon: <LayoutDashboard size={18} /> },
+    { label: 'Settings', path: '/dashboard/coach/settings', icon: <Settings size={18} /> },
   ],
   teacher: [
     { label: 'Overview', path: '/dashboard/teacher/overview', icon: <LayoutDashboard size={18} /> },
