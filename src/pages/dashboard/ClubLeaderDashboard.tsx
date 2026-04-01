@@ -30,9 +30,9 @@ export default function ClubLeaderDashboard() {
   const { user, institutionId, profile } = useAuth();
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
     const [clubsRes, membersRes, eventsRes, bookingsRes, venuesRes] = await Promise.all([
-      supabase.from('ct_clubs').select('*').eq('leader_id', userId).eq('institution_id', institutionId),
+      supabase.from('ct_clubs').select('*').eq('institution_id', institutionId).or(`leader_id.eq.${userId},created_by.eq.${userId}`),
       supabase.from('ct_club_members').select('id, club_id, user_id, role, status').eq('institution_id', institutionId),
-      supabase.from('ct_events').select('id, club_id, title, status, start_time').eq('created_by', userId).order('created_at', { ascending: false }),
+      supabase.from('ct_events').select('id, title, status, start_time, institution_id').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(20),
       supabase.from('ct_venue_bookings').select('id, purpose, status, start_time, end_time, venue_id, notes, approved_by, ct_venues(name, building, institution_id)').eq('booked_by', userId).order('created_at', { ascending: false }),
       supabase.from('ct_venues').select('id, name, building, capacity, institution_id').eq('institution_id', institutionId).eq('is_bookable', true).order('name'),
     ]);
@@ -91,9 +91,19 @@ export default function ClubLeaderDashboard() {
 
   const createEvent = async () => {
     if (!user?.id || !institutionId || !firstClub?.id || !eventTitle.trim()) return;
-    const payload = { institution_id: institutionId, club_id: firstClub.id, title: eventTitle.trim(), status: 'upcoming', created_by: user.id, start_time: eventDate || null };
-    const { data: event } = await supabase.from('ct_events').insert(payload).select('*').single();
-    if (event) setData((current: any) => ({ ...current, events: [event, ...current.events] }));
+    // ct_events has no club_id; create event then link via ct_club_events join table
+    const { data: event } = await supabase.from('ct_events').insert({
+      institution_id: institutionId,
+      title: eventTitle.trim(),
+      status: 'upcoming',
+      created_by: user.id,
+      start_time: eventDate || null,
+      event_date: eventDate || new Date().toISOString(),
+    }).select('*').single();
+    if (event) {
+      await supabase.from('ct_club_events').insert({ club_id: firstClub.id, event_id: event.id });
+      setData((current: any) => ({ ...current, events: [event, ...current.events] }));
+    }
     setEventTitle(''); setEventDate('');
   };
 
@@ -145,6 +155,26 @@ export default function ClubLeaderDashboard() {
   };
 
   const budget = data.budgets.find((b: Budget) => b.club_id === firstClub?.id);
+
+  const [notifMsg, setNotifMsg] = useState('');
+  const [notifClubId, setNotifClubId] = useState('');
+  const sendClubNotification = async (clubId: string, memberUserIds: string[]) => {
+    if (!user?.id || memberUserIds.length === 0) { setMessage('No members to notify.'); return; }
+    const club = data.clubs.find((c: any) => c.id === clubId);
+    const notifTitle = `Message from ${club?.name || 'Club Leader'}`;
+    const notifBody = notifMsg.trim() || `New update from ${club?.name || 'your club'}.`;
+    const rows = memberUserIds.map((uid: string) => ({
+      user_id: uid,
+      type: 'club_notification',
+      title: notifTitle,
+      body: notifBody,
+      institution_id: institutionId,
+    }));
+    await supabase.from('ct_notifications').insert(rows);
+    setMessage(`Notification sent to ${memberUserIds.length} member(s).`);
+    setNotifMsg('');
+    setNotifClubId('');
+  };
 
   
 // Hash-based scroll navigation (driven by DashboardLayout sidebar)
@@ -299,15 +329,43 @@ React.useEffect(() => {
         <div className="grid lg:grid-cols-2 gap-6">
           <Card>
             <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">My Clubs</h2>
-            {data.clubs.length === 0 ? <p className="text-sm text-on-surface-variant">No clubs yet. Create your first club profile to start onboarding members.</p> : data.clubs.map((club: any) => (
-              <div key={club.id} className="mb-3 rounded-[1rem] bg-surface p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="font-jakarta font-700 text-on-surface">{club.name}</p>
-                  <Badge label={club.is_approved ? 'approved' : 'pending approval'} variant={club.is_approved ? 'tertiary' : 'secondary'} />
+            {data.clubs.length === 0 ? <p className="text-sm text-on-surface-variant">No clubs yet. Create your first club profile to start onboarding members.</p> : data.clubs.map((club: any) => {
+              const clubMembers = data.members.filter((member: any) => member.club_id === club.id);
+              return (
+                <div key={club.id} className="mb-4 rounded-[1rem] bg-surface p-4 border border-outline-variant/30">
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <p className="font-jakarta font-700 text-on-surface">{club.name}</p>
+                    <Badge label={club.is_approved ? 'approved' : 'pending'} variant={club.is_approved ? 'tertiary' : 'secondary'} />
+                  </div>
+                  {club.description && <p className="text-xs text-on-surface-variant mb-2">{club.description}</p>}
+                  <p className="text-xs text-on-surface-variant mb-3">{clubMembers.length} member{clubMembers.length !== 1 ? 's' : ''}</p>
+                  {clubMembers.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {clubMembers.slice(0, 5).map((m: any) => (
+                        <span key={m.id} className="px-2 py-0.5 rounded-full bg-primary-container text-primary text-xs font-jakarta">{m.user_id?.substring(0, 8)}...</span>
+                      ))}
+                      {clubMembers.length > 5 && <span className="text-xs text-on-surface-variant">+{clubMembers.length - 5} more</span>}
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    <textarea
+                      className="w-full border border-outline-variant rounded-xl px-3 py-2 font-jakarta text-xs bg-surface text-on-surface"
+                      rows={2}
+                      placeholder="Message to send to members (optional)"
+                      value={notifClubId === club.id ? notifMsg : ''}
+                      onChange={e => { setNotifClubId(club.id); setNotifMsg(e.target.value); }}
+                    />
+                    <button
+                      onClick={() => sendClubNotification(club.id, clubMembers.map((m: any) => m.user_id))}
+                      className="w-full px-3 py-1.5 rounded-xl bg-secondary-container text-secondary text-xs font-jakarta font-700 hover:bg-secondary/20 transition-colors"
+                      disabled={clubMembers.length === 0}
+                    >
+                      Notify All Members ({clubMembers.length})
+                    </button>
+                  </div>
                 </div>
-                <p className="mt-1 text-sm text-on-surface-variant">Members: {club.id === firstClub?.id ? memberCount : data.members.filter((member: any) => member.club_id === club.id).length}</p>
-              </div>
-            ))}
+              );
+            })}
           </Card>
 
           <Card>

@@ -642,7 +642,7 @@ interface Challenge {
   challenged_score: number | null;
   institution_id: string | null;
 }
-interface SportRanking { user_id: string; sport: string; wins: number; losses: number; points: number; }
+interface SportRanking { id?: string; user_id: string; institution_id?: string; sport: string; wins: number | null; losses: number | null; points: number | null; updated_at?: string; }
 
 function SportsSection({ institutionId, userId }: { institutionId: string | null; userId?: string }) {
   const [leagues, setLeagues] = useState<Array<{ id: string; name: string; sport: string; status: string }>>([]);
@@ -702,13 +702,16 @@ function SportsSection({ institutionId, userId }: { institutionId: string | null
     const { data: c } = await supabase.from('ct_sport_challenges').select('sport,institution_id').eq('id', postScore.id).maybeSingle();
     if (c && userId) {
       const won = myS > oppS;
+      // Upsert: increment wins/losses and points
+      const { data: existingRank } = await supabase.from('ct_sport_rankings')
+        .select('wins,losses,points').eq('user_id', userId).eq('institution_id', c.institution_id).eq('sport', c.sport).maybeSingle();
       await supabase.from('ct_sport_rankings').upsert({
         user_id: userId,
         institution_id: c.institution_id,
         sport: c.sport,
-        wins: won ? 1 : 0,
-        losses: won ? 0 : 1,
-        points: won ? 30 : 10,
+        wins: (existingRank?.wins || 0) + (won ? 1 : 0),
+        losses: (existingRank?.losses || 0) + (won ? 0 : 1),
+        points: (existingRank?.points || 0) + (won ? 30 : 10),
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id,institution_id,sport' });
     }
@@ -838,11 +841,13 @@ function SportsSection({ institutionId, userId }: { institutionId: string | null
               <span>Player</span><span className="text-center">Sport</span><span className="text-center">W-L</span><span className="text-center">Points</span>
             </div>
             {rankings.map((r, i) => (
-              <div key={r.user_id + r.sport} className="grid grid-cols-4 gap-2 px-4 py-3 border-t border-outline-variant/20 items-center">
-                <span className="font-jakarta font-700 text-on-surface text-sm">#{i + 1}</span>
+              <div key={(r.user_id || '') + r.sport} className="grid grid-cols-4 gap-2 px-4 py-3 border-t border-outline-variant/20 items-center">
+                <span className="font-jakarta font-700 text-on-surface text-sm flex items-center gap-1">
+                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`}
+                </span>
                 <span className="text-xs font-jakarta text-on-surface-variant text-center">{r.sport}</span>
-                <span className="text-xs font-jakarta text-on-surface text-center">{r.wins}-{r.losses}</span>
-                <span className="text-sm font-lexend font-700 text-secondary text-center">{r.points}</span>
+                <span className="text-xs font-jakarta text-on-surface text-center">{r.wins ?? 0}-{r.losses ?? 0}</span>
+                <span className="text-sm font-lexend font-700 text-secondary text-center">{r.points ?? 0} pts</span>
               </div>
             ))}
           </div>
@@ -1034,7 +1039,7 @@ function CoursesSection({ userId }: { userId?: string }) {
   const [enrollments, setEnrollments] = useState<{
     id: string;
     course: { id: string; name: string; code: string };
-    assignments: { id: string; title: string; due_date: string | null; max_points: number | null; docs: { id: string; name: string; url: string }[] }[];
+    assignments: { id: string; title: string; due_date: string | null; max_points: number | null; is_published?: boolean; submitted?: boolean; submittedAt?: string | null; docs: { id: string; name: string; url: string }[] }[];
   }[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState<string | null>(null);
@@ -1042,21 +1047,40 @@ function CoursesSection({ userId }: { userId?: string }) {
 
   const load = async () => {
     if (!userId) return;
-    const { data: enr } = await supabase.from('ct_course_enrollments').select('id,course_id').eq('student_id', userId);
-    const courseIds = (enr || []).map(e => e.course_id);
+    // ct_enrollments uses class_id (references ct_classes); student_id references ct_users
+    const { data: enr } = await supabase.from('ct_enrollments').select('id,class_id').eq('student_id', userId);
+    const classIds = (enr || []).map((e: any) => e.class_id).filter(Boolean);
+    if (!classIds.length) { setLoading(false); return; }
+
+    // Resolve class -> course
+    const { data: classes } = await supabase.from('ct_classes').select('id,course_id').in('id', classIds);
+    const courseIds = [...new Set((classes || []).map((cl: any) => cl.course_id).filter(Boolean))] as string[];
     if (!courseIds.length) { setLoading(false); return; }
 
     const { data: courses } = await supabase.from('ct_courses').select('id,name,code').in('id', courseIds);
-    const { data: assignments } = await supabase.from('ct_assignments').select('id,title,due_date,max_points,course_id').in('course_id', courseIds);
-    const assignmentIds = (assignments || []).map(a => a.id);
-    const { data: docs } = assignmentIds.length ? await supabase.from('ct_assignment_documents').select('id,name,url,assignment_id').in('assignment_id', assignmentIds) : { data: [] };
+    const { data: assignments } = await supabase.from('ct_assignments')
+      .select('id,title,due_date,max_points,course_id,is_published')
+      .in('course_id', courseIds)
+      .eq('is_published', true);
+    const assignmentIds = (assignments || []).map((a: any) => a.id);
+    const { data: docs } = assignmentIds.length
+      ? await supabase.from('ct_assignment_documents').select('id,name,url,assignment_id').in('assignment_id', assignmentIds)
+      : { data: [] };
+    const { data: mySubs } = assignmentIds.length
+      ? await supabase.from('ct_assignment_submissions').select('id,assignment_id,submitted_at').eq('student_id', userId).in('assignment_id', assignmentIds)
+      : { data: [] };
 
-    const result = (courses || []).map(c => ({
-      id: (enr || []).find(e => e.course_id === c.id)?.id || c.id,
+    const result = (courses || []).map((c: any) => ({
+      id: (enr || []).find((e: any) => {
+        const cl = (classes || []).find((cl: any) => cl.id === e.class_id);
+        return cl?.course_id === c.id;
+      })?.id || c.id,
       course: c,
-      assignments: (assignments || []).filter(a => a.course_id === c.id).map(a => ({
+      assignments: (assignments || []).filter((a: any) => a.course_id === c.id).map((a: any) => ({
         ...a,
-        docs: (docs || []).filter(d => d.assignment_id === a.id),
+        docs: (docs || []).filter((d: any) => d.assignment_id === a.id),
+        submitted: !!(mySubs || []).find((s: any) => s.assignment_id === a.id),
+        submittedAt: ((mySubs || []).find((s: any) => s.assignment_id === a.id) as any)?.submitted_at || null,
       })),
     }));
     setEnrollments(result);
@@ -1115,13 +1139,19 @@ function CoursesSection({ userId }: { userId?: string }) {
                         <Download size={11} /> {d.name}
                       </a>
                     ))}
-                    <button
-                      onClick={() => { (submitInputRef.current as HTMLInputElement & { _assignmentId?: string })?. _assignmentId && null; (submitInputRef.current as HTMLInputElement & { _assignmentId?: string })._assignmentId = a.id; submitInputRef.current?.click(); }}
-                      disabled={submitting === a.id}
-                      className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-secondary-container text-secondary font-jakarta font-700"
-                    >
-                      <Upload size={11} /> {submitting === a.id ? 'Uploading...' : 'Submit'}
-                    </button>
+                    {a.submitted ? (
+                      <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-tertiary-container text-tertiary font-jakarta font-700">
+                        <CheckCircle size={11} /> Submitted {a.submittedAt ? new Date(a.submittedAt).toLocaleDateString() : ''}
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => { const el = submitInputRef.current as HTMLInputElement & { _assignmentId?: string }; if (el) { el._assignmentId = a.id; el.click(); } }}
+                        disabled={submitting === a.id}
+                        className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-secondary-container text-secondary font-jakarta font-700 hover:bg-secondary/20 transition-colors"
+                      >
+                        <Upload size={11} /> {submitting === a.id ? 'Uploading...' : 'Submit Assignment'}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

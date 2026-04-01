@@ -666,6 +666,30 @@ function IntegrationsSection({ institutionId }: { institutionId: string | null }
 
   useEffect(() => { loadSettings(); }, [institutionId]);
 
+  const [testResult, setTestResult] = useState<Record<string, { ok: boolean; msg: string } | null>>({});
+  const testLmsConnection = async (lmsId: string, cfg: Record<string, string>) => {
+    setTestResult(prev => ({ ...prev, [lmsId]: null }));
+    try {
+      if (lmsId === 'canvas') {
+        const domain = cfg.domain || 'canvas.instructure.com';
+        const token = cfg.token || '';
+        if (!token) { setTestResult(prev => ({ ...prev, [lmsId]: { ok: false, msg: 'No API token entered' } })); return; }
+        const res = await fetch(`https://${domain}/api/v1/courses?per_page=5`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) { const d = await res.json(); setTestResult(prev => ({ ...prev, [lmsId]: { ok: true, msg: `Connected. Found ${d.length} course(s).` } })); }
+        else { setTestResult(prev => ({ ...prev, [lmsId]: { ok: false, msg: `HTTP ${res.status}: Check your API token.` } })); }
+      } else if (lmsId === 'moodle') {
+        const url = cfg.url || ''; const token = cfg.token || '';
+        if (!token || !url) { setTestResult(prev => ({ ...prev, [lmsId]: { ok: false, msg: 'URL and token required' } })); return; }
+        const apiUrl = `${url.replace(/\/+$/, '')}/webservice/rest/server.php?wstoken=${token}&wsfunction=core_webservice_get_site_info&moodlewsrestformat=json`;
+        const res = await fetch(apiUrl); const d = await res.json();
+        if (d.sitename) { setTestResult(prev => ({ ...prev, [lmsId]: { ok: true, msg: `Connected to: ${d.sitename}` } })); }
+        else { setTestResult(prev => ({ ...prev, [lmsId]: { ok: false, msg: d.message || 'Token invalid or site unreachable' } })); }
+      } else {
+        setTestResult(prev => ({ ...prev, [lmsId]: { ok: true, msg: 'Enterprise integration. Contact vendor for connection details.' } }));
+      }
+    } catch { setTestResult(prev => ({ ...prev, [lmsId]: { ok: false, msg: 'Network error or CORS blocked. Use a server-side proxy.' } })); }
+  };
+
   const saveLms = async (provider: string) => {
     if (!institutionId) return;
     setSaving(true);
@@ -740,12 +764,18 @@ function IntegrationsSection({ institutionId }: { institutionId: string | null }
                       />
                     </div>
                   ))}
-                  <div className="flex gap-2 pt-1">
+                  <div className="flex gap-2 pt-1 flex-wrap">
                     <button onClick={() => saveLms(lms.id)} disabled={saving} className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-jakarta font-700 hover:bg-primary/90 transition-colors">
                       {saving ? 'Saving...' : 'Save'}
                     </button>
+                    <button onClick={() => testLmsConnection(lms.id, editConfig as Record<string, string>)} className="px-4 py-2 rounded-xl bg-tertiary-container text-tertiary text-sm font-jakarta font-700 hover:opacity-80 transition-colors">Test Connection</button>
                     <button onClick={() => setEditProvider(null)} className="px-4 py-2 rounded-xl bg-surface-container dark:bg-slate-700 text-on-surface dark:text-slate-200 text-sm font-jakarta font-700">Cancel</button>
                   </div>
+                  {testResult[lms.id] !== undefined && testResult[lms.id] !== null && (
+                    <div className={`text-xs font-jakarta px-3 py-2 rounded-xl ${testResult[lms.id]!.ok ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
+                      {testResult[lms.id]!.ok ? '✓ ' : '✗ '}{testResult[lms.id]!.msg}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex gap-2">

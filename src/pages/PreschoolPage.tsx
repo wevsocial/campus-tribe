@@ -174,7 +174,7 @@ export default function PreschoolPage() {
                 <picture><source type="image/webp" srcSet="/assets/campus-preschool.webp" /><img alt="Child painting" className="w-full h-full object-cover" src="/assets/campus-preschool.jpg" /></picture>
               </div>
               <div className="aspect-[3/4] bg-surface-container-highest rounded-xl overflow-hidden shadow-lg md:mt-12">
-                <picture><source type="image/webp" srcSet="/assets/campus-library.webp" /><img alt="Reading time" className="w-full h-full object-cover" src="/assets/campus-library.jpg" /></picture>
+                <picture><source type="image/webp" srcSet="/assets/campus-wellbeing.webp" /><img alt="Children at play" className="w-full h-full object-cover" src="/assets/campus-wellbeing.jpg" /></picture>
               </div>
               <div className="aspect-square bg-surface-container-highest rounded-xl overflow-hidden shadow-lg">
                 <picture><source type="image/webp" srcSet="/assets/campus-preschool.webp" /><img alt="Teacher guided activity" className="w-full h-full object-cover" src="/assets/campus-preschool.jpg" /></picture>

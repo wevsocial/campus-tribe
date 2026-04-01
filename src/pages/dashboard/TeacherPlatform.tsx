@@ -240,7 +240,7 @@ function AssignmentsSection({ institutionId, userId }: { institutionId: string |
   const load = async () => {
     if (!institutionId) return;
     const [{ data: aData }, { data: cData }] = await Promise.all([
-      supabase.from('ct_assignments').select('id,title,description,due_date,max_points,is_published,course_id').eq('institution_id', institutionId).order('due_date'),
+      supabase.from('ct_assignments').select('id,title,description,due_date,max_points,is_published,course_id').eq('institution_id', institutionId).order('due_date').order('created_at', { ascending: false }),
       supabase.from('ct_courses').select('id,name,code,description,credits').eq('institution_id', institutionId),
     ]);
     setAssignments((aData || []) as Assignment[]);
@@ -252,15 +252,38 @@ function AssignmentsSection({ institutionId, userId }: { institutionId: string |
   const save = async () => {
     if (!form.title || !institutionId) return;
     setSaving(true);
-    await supabase.from('ct_assignments').insert({
+    const newAssignment: any = {
       title: form.title, description: form.description,
       due_date: form.due_date || null,
       max_points: parseInt(form.max_points),
       institution_id: institutionId,
       created_by: userId,
+      teacher_id: userId,
       course_id: form.course_id || null,
-      is_published: true,
-    });
+      is_published: false,
+    };
+    // Link class_id via course->class mapping
+    if (form.course_id) {
+      const { data: cls } = await supabase.from('ct_classes').select('id').eq('course_id', form.course_id).maybeSingle();
+      if (cls?.id) newAssignment.class_id = cls.id;
+    }
+    const { data: newAssignData } = await supabase.from('ct_assignments').insert(newAssignment).select('id').single();
+    // Notify enrolled students if published immediately
+    if (newAssignData?.id && form.course_id) {
+      const { data: cls } = await supabase.from('ct_classes').select('id').eq('course_id', form.course_id).maybeSingle();
+      if (cls?.id) {
+        const { data: enrolledStudents } = await supabase.from('ct_enrollments').select('student_id').eq('class_id', cls.id);
+        if (enrolledStudents?.length) {
+          await supabase.from('ct_notifications').insert(enrolledStudents.map((s: any) => ({
+            user_id: s.student_id,
+            type: 'new_assignment',
+            title: 'New Assignment Posted',
+            body: `"${form.title}" has been posted in your course. Due: ${form.due_date ? new Date(form.due_date).toLocaleDateString() : 'No deadline'}`,
+            institution_id: institutionId,
+          })));
+        }
+      }
+    }
     setForm({ title: '', description: '', due_date: '', max_points: '100', course_id: '' });
     setShowCreate(false);
     setSaving(false);
@@ -268,7 +291,25 @@ function AssignmentsSection({ institutionId, userId }: { institutionId: string |
   };
 
   const togglePublish = async (a: Assignment) => {
-    await supabase.from('ct_assignments').update({ is_published: !a.is_published }).eq('id', a.id);
+    const newPublished = !a.is_published;
+    await supabase.from('ct_assignments').update({ is_published: newPublished }).eq('id', a.id);
+    // If publishing, notify enrolled students
+    if (newPublished && a.course_id) {
+      const { data: cls } = await supabase.from('ct_classes').select('id').eq('course_id', a.course_id).maybeSingle();
+      if (cls?.id) {
+        const { data: enrolledStudents } = await supabase.from('ct_enrollments').select('student_id').eq('class_id', cls.id);
+        if (enrolledStudents?.length) {
+          const notifRows = enrolledStudents.map((s: any) => ({
+            user_id: s.student_id,
+            type: 'new_assignment',
+            title: 'New Assignment Published',
+            body: `"${a.title}" is now available. Due: ${a.due_date ? new Date(a.due_date).toLocaleDateString() : 'No deadline'}`,
+            institution_id: institutionId,
+          }));
+          await supabase.from('ct_notifications').insert(notifRows);
+        }
+      }
+    }
     load();
   };
 
