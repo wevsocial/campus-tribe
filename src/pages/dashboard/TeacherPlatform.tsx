@@ -384,13 +384,17 @@ function AssignmentsSection({ institutionId, userId }: { institutionId: string |
       title: 'Grade Published',
       body: `Your submission for "${assignment?.title}" has been graded: ${g.grade}/${assignment?.max_points || 100}`,
     });
-    // Send email notification
+    // Send email notification - check prefs first
     if (sub.student?.email) {
-      sendEmailNotification(
-        sub.student.email,
-        `Grade Published: ${assignment?.title || 'Assignment'}`,
-        gradeNotificationHtml(sub.student.full_name || 'Student', assignment?.title || 'Assignment', parseFloat(g.grade), assignment?.max_points || 100, g.feedback)
-      );
+      const { data: prefs } = await supabase.from('ct_notification_preferences').select('email_enabled,grade_published').eq('user_id', sub.student_id).maybeSingle();
+      const emailOk = !prefs || (prefs.email_enabled !== false && prefs.grade_published !== false);
+      if (emailOk) {
+        sendEmailNotification(
+          sub.student.email,
+          `Grade Published: ${assignment?.title || 'Assignment'}`,
+          gradeNotificationHtml(sub.student.full_name || 'Student', assignment?.title || 'Assignment', parseFloat(g.grade), assignment?.max_points || 100, g.feedback)
+        );
+      }
     }
     loadSubmissions(assignmentId);
   };

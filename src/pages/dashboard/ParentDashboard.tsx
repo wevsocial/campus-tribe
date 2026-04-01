@@ -27,10 +27,11 @@ export default function ParentDashboard() {
     const childIds = children.map((child: any) => child.id);
     const surveys = (surveysRes.data ?? []).filter((survey: Survey) => !survey.target_roles || survey.target_roles.includes('parent') || survey.target_roles.includes('all'));
     const surveyIds = surveys.map((survey: Survey) => survey.id);
-    const [reportsRes, parentUpdatesRes, questionsRes] = await Promise.all([
+    const [reportsRes, parentUpdatesRes, questionsRes, eventsRes] = await Promise.all([
       childIds.length ? supabase.from('ct_daily_reports').select('*').in('child_id', childIds).order('report_date', { ascending: false }).limit(20) : Promise.resolve({ data: [] as any[] }),
       childIds.length ? supabase.from('ct_parent_updates').select('*').eq('institution_id', institutionId).in('child_id', childIds).order('created_at', { ascending: false }).limit(20) : Promise.resolve({ data: [] as any[] }),
       surveyIds.length ? supabase.from('ct_survey_questions').select('*').in('survey_id', surveyIds).order('position') : Promise.resolve({ data: [] as any[] }),
+      supabase.from('ct_events').select('id,title,event_date,location').eq('institution_id', institutionId).gte('event_date', new Date().toISOString()).order('event_date').limit(10),
     ]);
     return {
       children,
@@ -40,8 +41,9 @@ export default function ParentDashboard() {
       parentUpdates: parentUpdatesRes.data ?? [],
       surveys,
       questions: questionsRes.data ?? [],
+      events: eventsRes.data ?? [],
     };
-  }, { children: [], reports: [], announcements: [], unlinkedChildren: [], parentUpdates: [], surveys: [], questions: [] } as any, { requireInstitution: true });
+  }, { children: [], reports: [], announcements: [], unlinkedChildren: [], parentUpdates: [], surveys: [], questions: [], events: [] } as any, { requireInstitution: true });
 
   const [childName, setChildName] = useState('');
   const [room, setRoom] = useState('');
@@ -201,6 +203,20 @@ React.useEffect(() => {
             {user?.id && <NotificationPrefsPanel userId={user.id} institutionId={institutionId} role="parent" />}
           </Card>
         </div>
+        {/* Upcoming Events */}
+        <Card className="mt-6">
+          <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Upcoming Campus Events</h2>
+          {(data.events || []).length === 0 ? (
+            <p className="text-sm text-on-surface-variant">No upcoming events at your institution.</p>
+          ) : (data.events as any[]).map((event) => (
+            <div key={event.id} className="mb-3 rounded-[1rem] bg-surface p-4 flex items-center justify-between">
+              <div>
+                <p className="font-jakarta font-700 text-on-surface">{event.title}</p>
+                <p className="text-sm text-on-surface-variant">{event.event_date ? new Date(event.event_date).toLocaleDateString() : 'TBD'}{event.location ? ` · ${event.location}` : ''}</p>
+              </div>
+            </div>
+          ))}
+        </Card>
       </div>
     </DashboardLayout>
   );
