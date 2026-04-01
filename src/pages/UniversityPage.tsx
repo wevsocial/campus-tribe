@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import PublicNav from '../components/layout/PublicNav';
 import PublicFooter from '../components/layout/PublicFooter';
 import { DemoRequestForm } from '../components/marketing/DemoRequestForm';
+import WevSocialLogo from '../components/ui/WevSocialLogo';
 
 export default function UniversityPage() {
   return (
@@ -27,7 +28,7 @@ export default function UniversityPage() {
               TO <span className="text-secondary italic">CONNECTED.</span>
             </h1>
             <p className="text-xl text-on-surface-variant dark:text-slate-400 max-w-xl leading-relaxed">
-              The only student engagement platform built for the kinetic energy of modern campus life. <span className="inline-flex items-center gap-1">Powered by <span className="inline-flex items-center gap-1 font-bold text-primary"><svg viewBox="0 0 24 24" className="w-4 h-4 inline animate-[spin_3s_linear_infinite]" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>WevSocial</span></span>.
+              The only student engagement platform built for the kinetic energy of modern campus life. <span className="inline-flex items-center gap-1.5">Powered by <span className="inline-flex items-center gap-1 font-bold text-primary"><WevSocialLogo className="w-5 h-5 text-primary" /> WevSocial</span></span>.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Link to="/register?platform=university" className="bg-secondary text-white px-10 py-4 rounded-full font-headline text-lg hover:brightness-110 transition-all shadow-lg shadow-secondary/20">

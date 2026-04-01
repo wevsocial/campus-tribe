@@ -33,7 +33,7 @@ export default function ParentOverview() {
   const [children, setChildren] = useState<Child[]>([]);
   const [updates, setUpdates] = useState<ParentUpdate[]>([]);
   const [grades, setGrades] = useState<Record<string, RecentGrade[]>>({});
-  const [events, setEvents] = useState<Array<{ id: string; title: string; start_date: string }>>([]);
+  const [events, setEvents] = useState<Array<{ id: string; title: string; start_time: string }>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -96,10 +96,10 @@ export default function ParentOverview() {
       // Upcoming events
       const { data: ev } = await supabase
         .from('ct_events')
-        .select('id, title, start_date')
+        .select('id, title, start_time')
         .eq('institution_id', institutionId)
-        .gte('start_date', new Date().toISOString())
-        .order('start_date')
+        .gte('start_time', new Date().toISOString())
+        .order('start_time')
         .limit(5);
       setEvents(ev || []);
 
@@ -184,7 +184,7 @@ export default function ParentOverview() {
             {events.map(e => (
               <div key={e.id} className="bg-surface-lowest rounded-xl p-3 border border-outline-variant/30 flex justify-between items-center">
                 <p className="text-sm font-jakarta font-bold text-on-surface">{e.title}</p>
-                <p className="text-xs text-on-surface-variant">{new Date(e.start_date).toLocaleDateString()}</p>
+                <p className="text-xs text-on-surface-variant">{new Date((e as any).start_time).toLocaleDateString()}</p>
               </div>
             ))}
           </div>
