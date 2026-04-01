@@ -73,7 +73,20 @@ export default function ParentDashboard() {
   const addParentUpdate = async () => {
     if (!institutionId || !parentNoteChildId || !parentNote.trim() || !user?.id) return;
     const { data: update } = await supabase.from('ct_parent_updates').insert({ institution_id: institutionId, child_id: parentNoteChildId, author_id: user.id, audience: 'teacher', note_type: parentNoteType, note: parentNote.trim() }).select('*').single();
-    if (update) setData((current: any) => ({ ...current, parentUpdates: [update, ...current.parentUpdates] }));
+    if (update) {
+      setData((current: any) => ({ ...current, parentUpdates: [update, ...current.parentUpdates] }));
+      // Notify the teacher via in-app notification
+      const child = data.children.find((c: any) => c.id === parentNoteChildId);
+      if (child?.teacher_id) {
+        await supabase.from('ct_notifications').insert({
+          user_id: child.teacher_id,
+          type: 'parent_message',
+          title: 'Message from Parent',
+          body: `Parent note about ${child.full_name}: ${parentNote.trim().substring(0, 100)}${parentNote.length > 100 ? '...' : ''}`,
+          institution_id: institutionId,
+        });
+      }
+    }
     setParentNote('');
   };
 
