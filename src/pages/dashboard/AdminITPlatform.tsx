@@ -724,7 +724,7 @@ function IntegrationsSection({ institutionId }: { institutionId: string | null }
   const lmsProviders = [
     { id: 'canvas', name: 'Canvas LMS', desc: 'Sync courses and grades with Canvas LMS. Demo: canvas.instructure.com | Token: demo_canvas_token (replace with real from Account > Settings > New Access Token)', fields: [{ key: 'domain', label: 'Canvas Domain', placeholder: 'yourschool.instructure.com' }, { key: 'token', label: 'API Token', placeholder: 'canvas_token...' }] },
     { id: 'moodle', name: 'Moodle', desc: 'Connect to Moodle for course sync and grade passback. Demo: wevsocial.moodlecloud.com | Token: provided on setup', fields: [{ key: 'url', label: 'Moodle URL', placeholder: 'https://moodle.yourschool.edu' }, { key: 'token', label: 'Web Service Token', placeholder: 'moodle_ws_token...' }] },
-    { id: 'minerva', name: 'Minerva', desc: 'Enterprise Integration — contact sales@wevsocial.com for Minerva SIS configuration.', fields: [], enterprise: true },
+    { id: 'minerva', name: 'Minerva', desc: 'Enterprise Integration  -  contact sales@wevsocial.com for Minerva SIS configuration.', fields: [], enterprise: true },
     { id: 'blackboard', name: 'Blackboard', desc: 'Sync with Blackboard Learn LMS', fields: [{ key: 'url', label: 'Blackboard URL', placeholder: 'https://blackboard.yourschool.edu' }, { key: 'token', label: 'REST API Key', placeholder: 'bb_api_key...' }] },
     { id: 'google_classroom', name: 'Google Classroom', desc: 'Pull Google Classroom assignments and rosters', fields: [{ key: 'token', label: 'OAuth Token', placeholder: 'google_oauth_token...' }] },
   ] as Array<{ id: string; name: string; desc: string; fields: Array<{key: string; label: string; placeholder: string}>; enterprise?: boolean }>;
