@@ -35,7 +35,7 @@ const roles = [
     Icon: Monitor,
     headline: 'Control at your fingertips.',
     desc: 'Manage integrations, SSO, API keys, and platform-wide settings from a clean admin console.',
-    photo: '/assets/campus-library.jpg',
+    photo: '/assets/campus-admin.jpg',
   },
   {
     role: 'Parent',

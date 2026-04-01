@@ -170,7 +170,7 @@ export default function PricingPage() {
             <div className="md:col-span-2 bg-primary rounded-[1.5rem] p-8 text-white">
               <div className="text-white/60 text-xs font-jakarta font-700 uppercase tracking-widest mb-3">Platform Impact</div>
               <h4 className="font-lexend text-2xl font-800 mb-2">Proven ROI at Scale</h4>
-              <p className="text-white/70 text-sm leading-relaxed">
+              <p className="text-white/90 text-sm leading-relaxed">
                 Institutions running Campus Tribe see a 14-point retention advantage: 92% retention for
                 engaged students vs. 78% for non-engaged. At $28,700 average annual tuition, 500 retained
                 students = $14.35M additional tuition revenue.

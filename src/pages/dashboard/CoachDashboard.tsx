@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -8,6 +8,8 @@ import { StatCard } from '../../components/ui/StatCard';
 import { useAuth } from '../../context/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
+import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
+import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 
 type League = { id: string; name: string; sport: string | null; season: string | null; format: string | null; status: string | null; created_by: string | null; institution_id: string | null };
 type Team = { id: string; name: string; league_id: string | null; institution_id: string | null; wins: number; losses: number; draws: number; points: number };
@@ -21,6 +23,18 @@ const FORMATS = ['Round Robin', 'Single Elimination', 'Double Elimination', 'Lea
 
 export default function CoachDashboard() {
   const { user, institutionId } = useAuth();
+  const userId = user?.id;
+  const [profile, setProfile] = useState<{ full_name?: string; avatar_url?: string } | null>(null);
+  const [rankings, setRankings] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (userId) {
+      supabase.from('ct_users').select('full_name,avatar_url').eq('id', userId).maybeSingle().then(({ data }) => setProfile(data));
+    }
+    if (institutionId) {
+      supabase.from('ct_sport_rankings').select('*').eq('institution_id', institutionId).order('points', { ascending: false }).limit(50).then(({ data }) => setRankings(data || []));
+    }
+  }, [userId, institutionId]);
 
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
     const [leaguesRes, teamsRes, gamesRes, participantsRes, trainingRes, usersRes] = await Promise.all([
@@ -522,6 +536,30 @@ React.useEffect(() => {
               })}
             </div>
           )}
+        </Card>
+
+        {/* Rankings */}
+        <Card id="rankings">
+          <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Campus Sport Rankings</h2>
+          {rankings.length === 0 ? (
+            <p className="text-sm text-on-surface-variant">No rankings yet. Post challenge scores to build leaderboard.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-outline-variant">{['Rank','User','Sport','W','L','Points'].map(h => <th key={h} className="py-2 px-3 text-left font-jakarta font-700 text-on-surface-variant">{h}</th>)}</tr></thead>
+                <tbody>{rankings.map((r, i) => <tr key={r.id || i} className="border-b border-outline-variant/40"><td className="py-2 px-3 font-lexend font-700 text-primary">{i+1}</td><td className="py-2 px-3 text-on-surface font-jakarta">{r.user_id?.slice(0,8)}…</td><td className="py-2 px-3 text-on-surface-variant">{r.sport}</td><td className="py-2 px-3 text-green-600 font-700">{r.wins}</td><td className="py-2 px-3 text-red-500 font-700">{r.losses}</td><td className="py-2 px-3 font-lexend font-900 text-on-surface">{r.points}</td></tr>)}</tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+
+        {/* Settings */}
+        <Card id="settings">
+          <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Settings</h2>
+          {userId && <ProfilePhotoUpload userId={userId} currentUrl={profile?.avatar_url as string | null} displayName={profile?.full_name || user?.email} />}
+          <div className="mt-6">
+            {userId && <NotificationPrefsPanel userId={userId} institutionId={institutionId} role="coach" />}
+          </div>
         </Card>
       </div>
     </DashboardLayout>

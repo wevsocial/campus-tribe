@@ -9,6 +9,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
 import { apiReference } from '../../data/apiReference';
+import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
+import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 
 const tabs = [
   { label: 'Users', hash: 'users' },
@@ -373,6 +375,13 @@ export default function ITDashboard() {
 
         {activeTab === 'Settings' && (
           <div id="settings" className="space-y-6">
+            <Card>
+              <h2 className="font-lexend text-lg font-800 text-on-surface mb-4">Profile</h2>
+              {user?.id && <ProfilePhotoUpload userId={user.id} currentUrl={undefined} displayName={user.email} />}
+              <div className="mt-6">
+                {user?.id && <NotificationPrefsPanel userId={user.id} institutionId={institutionId} role="staff" />}
+              </div>
+            </Card>
             <Card>
               <h2 className="font-lexend text-lg font-800 text-on-surface mb-4">Platform Settings</h2>
               <div className="space-y-4">

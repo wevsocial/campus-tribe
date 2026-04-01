@@ -722,12 +722,12 @@ function IntegrationsSection({ institutionId }: { institutionId: string | null }
   };
 
   const lmsProviders = [
-    { id: 'canvas', name: 'Canvas LMS', desc: 'Sync courses and grades with Canvas LMS', fields: [{ key: 'domain', label: 'Canvas Domain', placeholder: 'yourschool.instructure.com' }, { key: 'token', label: 'API Token', placeholder: 'canvas_token...' }] },
-    { id: 'moodle', name: 'Moodle', desc: 'Connect to Moodle for course sync and grade passback', fields: [{ key: 'url', label: 'Moodle URL', placeholder: 'https://moodle.yourschool.edu' }, { key: 'token', label: 'Web Service Token', placeholder: 'moodle_ws_token...' }] },
-    { id: 'minerva', name: 'Minerva (McGill)', desc: 'Integrate with McGill Minerva student information system', fields: [{ key: 'url', label: 'Minerva URL', placeholder: 'https://minerva.mcgill.ca' }] },
+    { id: 'canvas', name: 'Canvas LMS', desc: 'Sync courses and grades with Canvas LMS. Demo: canvas.instructure.com | Token: demo_canvas_token (replace with real from Account > Settings > New Access Token)', fields: [{ key: 'domain', label: 'Canvas Domain', placeholder: 'yourschool.instructure.com' }, { key: 'token', label: 'API Token', placeholder: 'canvas_token...' }] },
+    { id: 'moodle', name: 'Moodle', desc: 'Connect to Moodle for course sync and grade passback. Demo: wevsocial.moodlecloud.com | Token: provided on setup', fields: [{ key: 'url', label: 'Moodle URL', placeholder: 'https://moodle.yourschool.edu' }, { key: 'token', label: 'Web Service Token', placeholder: 'moodle_ws_token...' }] },
+    { id: 'minerva', name: 'Minerva', desc: 'Enterprise Integration — contact sales@wevsocial.com for Minerva SIS configuration.', fields: [], enterprise: true },
     { id: 'blackboard', name: 'Blackboard', desc: 'Sync with Blackboard Learn LMS', fields: [{ key: 'url', label: 'Blackboard URL', placeholder: 'https://blackboard.yourschool.edu' }, { key: 'token', label: 'REST API Key', placeholder: 'bb_api_key...' }] },
     { id: 'google_classroom', name: 'Google Classroom', desc: 'Pull Google Classroom assignments and rosters', fields: [{ key: 'token', label: 'OAuth Token', placeholder: 'google_oauth_token...' }] },
-  ];
+  ] as Array<{ id: string; name: string; desc: string; fields: Array<{key: string; label: string; placeholder: string}>; enterprise?: boolean }>;
 
   return (
     <div className="space-y-5">
@@ -750,8 +750,11 @@ function IntegrationsSection({ institutionId }: { institutionId: string | null }
                 </span>
               </div>
               <p className="text-sm text-on-surface-variant dark:text-slate-400">{lms.desc}</p>
+              {lms.enterprise && (
+                <a href="mailto:sales@wevsocial.com" className="inline-flex items-center gap-1 px-4 py-2 rounded-xl bg-secondary text-white text-sm font-jakarta font-700 hover:bg-secondary/90 transition-colors w-fit">Contact Sales</a>
+              )}
               {isConnected && displayUrl && <p className="text-xs font-mono bg-surface-container dark:bg-slate-900 px-3 py-1.5 rounded-lg text-on-surface-variant dark:text-slate-400 truncate">{displayUrl}</p>}
-              {isEditing ? (
+              {!lms.enterprise && isEditing ? (
                 <div className="space-y-2">
                   {lms.fields.map(f => (
                     <div key={f.key}>
@@ -778,12 +781,18 @@ function IntegrationsSection({ institutionId }: { institutionId: string | null }
                   )}
                 </div>
               ) : (
-                <div className="flex gap-2">
-                  <button onClick={() => { setEditProvider(lms.id); setEditConfig(cfg); }} className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-jakarta font-700 hover:bg-primary/90 transition-colors">
+                <div className="flex gap-2 flex-wrap">
+                  {!lms.enterprise && <button onClick={() => { setEditProvider(lms.id); setEditConfig(cfg); }} className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-jakarta font-700 hover:bg-primary/90 transition-colors">
                     {isConnected ? 'Configure' : 'Connect'}
-                  </button>
-                  {isConnected && <button onClick={() => disconnectLms(lms.id)} className="px-4 py-2 rounded-xl bg-surface-container dark:bg-slate-700 text-on-surface dark:text-slate-200 text-sm font-jakarta font-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Disconnect</button>}
-                  {isConnected && <button className="px-4 py-2 rounded-xl bg-tertiary-container text-tertiary text-sm font-jakarta font-700 hover:opacity-80 transition-colors">Sync Courses</button>}
+                  </button>}
+                  {isConnected && <button onClick={() => testLmsConnection(lms.id, cfg as Record<string, string>)} className="px-4 py-2 rounded-xl bg-tertiary-container text-tertiary text-sm font-jakarta font-700 hover:opacity-80 transition-colors">Test</button>}
+                  {isConnected && !lms.enterprise && <button onClick={() => disconnectLms(lms.id)} className="px-4 py-2 rounded-xl bg-surface-container dark:bg-slate-700 text-on-surface dark:text-slate-200 text-sm font-jakarta font-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">Disconnect</button>}
+                  {isConnected && !lms.enterprise && <button className="px-4 py-2 rounded-xl bg-surface-container dark:bg-slate-700 text-on-surface dark:text-slate-200 text-sm font-jakarta font-700 hover:opacity-80 transition-colors">Sync Courses</button>}
+                  {testResult[lms.id] !== undefined && testResult[lms.id] !== null && (
+                    <div className={`w-full text-xs font-jakarta px-3 py-2 rounded-xl ${testResult[lms.id]!.ok ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
+                      {testResult[lms.id]!.ok ? '✓ ' : '✗ '}{testResult[lms.id]!.msg}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -807,6 +816,26 @@ function IntegrationsSection({ institutionId }: { institutionId: string | null }
             <button className="mt-3 px-4 py-2 rounded-xl bg-primary text-white text-sm font-jakarta font-700 hover:bg-primary/90 transition-colors">{i.status === 'Connected' ? 'Configure' : 'Connect'}</button>
           </div>
         ))}
+      </div>
+
+      {/* Imported Courses */}
+      <h2 className="font-lexend font-700 text-lg text-on-surface dark:text-slate-100 mt-6">Imported Courses (Demo)</h2>
+      <div className="overflow-x-auto rounded-2xl bg-surface-lowest dark:bg-slate-800 border border-outline-variant/30 dark:border-slate-700">
+        <table className="w-full text-sm">
+          <thead><tr className="border-b border-outline-variant dark:border-slate-700">{['Course','Code','LMS','Students','Last Sync'].map(h => <th key={h} className="py-3 px-4 text-left font-jakarta font-700 text-on-surface-variant dark:text-slate-400">{h}</th>)}</tr></thead>
+          <tbody>{[
+            { name: 'Introduction to Computer Science', code: 'CS101', lms: 'Canvas', students: 42, sync: '2026-04-01' },
+            { name: 'Calculus I', code: 'MATH101', lms: 'Canvas', students: 88, sync: '2026-04-01' },
+            { name: 'English Composition', code: 'ENG101', lms: 'Moodle', students: 35, sync: '2026-03-31' },
+            { name: 'Introduction to Psychology', code: 'PSY101', lms: 'Moodle', students: 67, sync: '2026-03-31' },
+          ].map(c => <tr key={c.code} className="border-b border-outline-variant/40 dark:border-slate-700 hover:bg-surface-container dark:hover:bg-slate-700/50">
+            <td className="py-3 px-4 font-jakarta text-on-surface dark:text-slate-200">{c.name}</td>
+            <td className="py-3 px-4 text-on-surface-variant dark:text-slate-400 font-mono">{c.code}</td>
+            <td className="py-3 px-4"><span className="px-2 py-0.5 rounded-full bg-primary-container text-primary text-xs font-jakarta font-700">{c.lms}</span></td>
+            <td className="py-3 px-4 text-on-surface dark:text-slate-200">{c.students}</td>
+            <td className="py-3 px-4 text-on-surface-variant dark:text-slate-400">{c.sync}</td>
+          </tr>)}</tbody>
+        </table>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -9,11 +9,18 @@ import { useAuth } from '../../context/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
 import { normalizeRelation, summarizeVenueConflicts } from '../../lib/dashboardData';
+import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
+import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 
 type Booking = { id: string; purpose: string | null; status: string; start_time: string; end_time: string; venue_id: string | null; notes?: string | null; ct_venues?: { name?: string | null; building?: string | null; institution_id?: string | null } | null };
 
 export default function StudentRepDashboard() {
   const { user, institutionId } = useAuth();
+  const userId = user?.id;
+  const [profile, setProfile] = useState<{ full_name?: string; avatar_url?: string } | null>(null);
+  useEffect(() => {
+    if (userId) supabase.from('ct_users').select('full_name,avatar_url').eq('id', userId).maybeSingle().then(({ data }) => setProfile(data));
+  }, [userId]);
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
     const [venuesRes, clubsRes, eventsRes, announcementsRes] = await Promise.all([
       supabase.from('ct_venues').select('*').eq('institution_id', institutionId).order('name'),
@@ -244,6 +251,15 @@ React.useEffect(() => {
             {data.events.length === 0 ? <p className="text-sm text-on-surface-variant">No events yet. Publish the first student-facing event here.</p> : data.events.map((event: any) => <div key={event.id} className="mb-3 rounded-[1rem] bg-surface p-4 flex items-center justify-between"><div><p className="font-jakarta font-700 text-on-surface">{event.title}</p><p className="text-sm text-on-surface-variant">{event.start_time ? new Date(event.start_time).toLocaleString() : 'TBD'} · {event.location || 'Campus'}</p></div><Badge label={event.status} variant="primary" /></div>)}
           </Card>
         </div>
+
+        {/* Settings */}
+        <Card id="settings">
+          <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Settings</h2>
+          {userId && <ProfilePhotoUpload userId={userId} currentUrl={profile?.avatar_url as string | null} displayName={profile?.full_name || user?.email} />}
+          <div className="mt-6">
+            {userId && <NotificationPrefsPanel userId={userId} institutionId={institutionId} role="student_rep" />}
+          </div>
+        </Card>
       </div>
     </DashboardLayout>
   );
