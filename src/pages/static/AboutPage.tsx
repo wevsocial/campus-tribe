@@ -42,7 +42,7 @@ export default function AboutPage() {
               <img
                 alt="Campus Tribe mission"
                 className="w-full h-full object-cover"
-                src="/assets/campus-preschool.jpg"
+                src="/assets/campus-preschool-v2.jpg"
               />
             </div>
           </div>

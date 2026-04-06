@@ -43,9 +43,9 @@ export default function DemoPage() {
               <div className="mt-12">
                 <div className="flex -space-x-4">
                   {[
-                    '/assets/campus-university.jpg',
-                    '/assets/campus-school.jpg',
-                    '/assets/campus-matching.jpg',
+                    '/assets/campus-university-v2.jpg',
+                    '/assets/campus-school-v2.jpg',
+                    '/assets/campus-matching-v2.jpg',
                   ].map((src, i) => (
                     <div key={i} className="w-12 h-12 rounded-full border-2 border-primary bg-slate-200 overflow-hidden">
                       <img alt="User" src={src} className="w-full h-full object-cover" />

@@ -49,10 +49,10 @@ export default function UniversityPage() {
             <div className="relative z-10 grid grid-cols-2 gap-4">
               <div className="space-y-4 pt-12">
                 <div className="aspect-[3/4] rounded-xl overflow-hidden shadow-2xl rotate-[-3deg] border-4 border-white dark:border-slate-700">
-                  <picture><source type="image/webp" srcSet="/assets/campus-students.webp" /><img
+                  <picture><source type="image/webp" srcSet="/assets/campus-students-v2.webp" /><img
                     alt="Students searching"
                     className="w-full h-full object-cover"
-                    src="/assets/campus-students.jpg"
+                    src="/assets/campus-students-v2.jpg"
                   /></picture>
                 </div>
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-xl flex items-center gap-4">
@@ -67,10 +67,10 @@ export default function UniversityPage() {
               </div>
               <div className="space-y-4">
                 <div className="aspect-[3/4] rounded-xl overflow-hidden shadow-2xl rotate-[3deg] border-4 border-white dark:border-slate-700">
-                  <picture><source type="image/webp" srcSet="/assets/campus-matching.webp" /><img
+                  <picture><source type="image/webp" srcSet="/assets/campus-matching-v2.webp" /><img
                     alt="Students Group"
                     className="w-full h-full object-cover"
-                    src="/assets/campus-matching.jpg"
+                    src="/assets/campus-matching-v2.jpg"
                   /></picture>
                 </div>
                 <div className="bg-secondary p-4 rounded-xl shadow-xl flex items-center gap-4 text-white">
@@ -107,10 +107,10 @@ export default function UniversityPage() {
                 <span className="material-symbols-outlined text-4xl text-secondary/20 group-hover:text-secondary transition-colors">psychology</span>
               </div>
               <div className="mt-8 rounded-xl overflow-hidden h-48">
-                <picture><source type="image/webp" srcSet="/assets/campus-connect.webp" /><img
+                <picture><source type="image/webp" srcSet="/assets/campus-connect-v2.webp" /><img
                   alt="Smart Matching"
                   className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-                  src="/assets/campus-connect.jpg"
+                  src="/assets/campus-connect-v2.jpg"
                 /></picture>
               </div>
             </div>
@@ -121,10 +121,10 @@ export default function UniversityPage() {
                 <p className="text-primary-container text-sm leading-relaxed">Create, discover and RSVP to campus events with one tap integration.</p>
               </div>
               <div className="mt-6 overflow-hidden rounded-xl">
-                <picture><source type="image/webp" srcSet="/assets/campus-aerial.webp" /><img
+                <picture><source type="image/webp" srcSet="/assets/campus-aerial-v2.webp" /><img
                   alt="Events"
                   className="rounded-xl shadow-lg w-full h-40 object-cover"
-                  src="/assets/campus-aerial.jpg"
+                  src="/assets/campus-aerial-v2.jpg"
                 /></picture>
               </div>
             </div>
@@ -135,10 +135,10 @@ export default function UniversityPage() {
                 <p className="text-white/80 text-sm mt-2">Challenge peers and track athletic life across campus intramurals.</p>
               </div>
               <div className="relative h-40 mt-4 overflow-hidden rounded-xl">
-                <picture><source type="image/webp" srcSet="/assets/campus-sports.webp" /><img
+                <picture><source type="image/webp" srcSet="/assets/campus-sports-v2.webp" /><img
                   alt="Sports"
                   className="w-full h-full object-cover"
-                  src="/assets/campus-sports.jpg"
+                  src="/assets/campus-sports-v2.jpg"
                 /></picture>
               </div>
             </div>
@@ -150,10 +150,10 @@ export default function UniversityPage() {
                   <h4 className="font-headline text-xl font-bold dark:text-slate-100">Venue Booking</h4>
                   <p className="text-sm text-on-surface-variant dark:text-slate-400 mt-2">Reserve spaces instantly for clubs or private study.</p>
                 </div>
-                <picture><source type="image/webp" srcSet="/assets/campus-clubs.webp" /><img
+                <picture><source type="image/webp" srcSet="/assets/campus-clubs-v2.webp" /><img
                   alt="Venue"
                   className="mt-4 rounded-lg h-32 w-full object-cover"
-                  src="/assets/campus-clubs.jpg"
+                  src="/assets/campus-clubs-v2.jpg"
                 /></picture>
               </div>
               <div className="bg-surface-container-lowest dark:bg-slate-800 rounded-xl p-6 flex flex-col justify-between">
@@ -162,10 +162,10 @@ export default function UniversityPage() {
                   <h4 className="font-headline text-xl font-bold dark:text-slate-100">Wellbeing</h4>
                   <p className="text-sm text-on-surface-variant dark:text-slate-400 mt-2">Daily mood tracking with real-time analytics.</p>
                 </div>
-                <picture><source type="image/webp" srcSet="/assets/campus-events.webp" /><img
+                <picture><source type="image/webp" srcSet="/assets/campus-events-v2.webp" /><img
                   alt="Wellbeing"
                   className="mt-4 rounded-lg h-32 w-full object-cover"
-                  src="/assets/campus-events.jpg"
+                  src="/assets/campus-events-v2.jpg"
                 /></picture>
               </div>
             </div>
