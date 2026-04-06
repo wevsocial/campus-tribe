@@ -107,10 +107,10 @@ export default function UniversityPage() {
                 <span className="material-symbols-outlined text-4xl text-secondary/20 group-hover:text-secondary transition-colors">psychology</span>
               </div>
               <div className="mt-8 rounded-xl overflow-hidden h-48">
-                <picture><source type="image/webp" srcSet="/assets/campus-students.webp" /><img
+                <picture><source type="image/webp" srcSet="/assets/campus-connect.webp" /><img
                   alt="Smart Matching"
                   className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-                  src="/assets/campus-students.jpg"
+                  src="/assets/campus-connect.jpg"
                 /></picture>
               </div>
             </div>
@@ -150,10 +150,10 @@ export default function UniversityPage() {
                   <h4 className="font-headline text-xl font-bold dark:text-slate-100">Venue Booking</h4>
                   <p className="text-sm text-on-surface-variant dark:text-slate-400 mt-2">Reserve spaces instantly for clubs or private study.</p>
                 </div>
-                <picture><source type="image/webp" srcSet="/assets/campus-library.webp" /><img
+                <picture><source type="image/webp" srcSet="/assets/campus-clubs.webp" /><img
                   alt="Venue"
                   className="mt-4 rounded-lg h-32 w-full object-cover"
-                  src="/assets/campus-library.jpg"
+                  src="/assets/campus-clubs.jpg"
                 /></picture>
               </div>
               <div className="bg-surface-container-lowest dark:bg-slate-800 rounded-xl p-6 flex flex-col justify-between">

@@ -171,16 +171,16 @@ export default function PreschoolPage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="aspect-square bg-surface-container-highest rounded-xl overflow-hidden shadow-lg">
-                <picture><source type="image/webp" srcSet="/assets/campus-preschool.webp" /><img alt="Child painting" className="w-full h-full object-cover" src="/assets/campus-preschool.jpg" /></picture>
+                <picture><source type="image/webp" srcSet="/assets/campus-toddler2.webp" /><img alt="Child painting" className="w-full h-full object-cover" src="/assets/campus-toddler2.jpg" /></picture>
               </div>
               <div className="aspect-[3/4] bg-surface-container-highest rounded-xl overflow-hidden shadow-lg md:mt-12">
-                <picture><source type="image/webp" srcSet="/assets/campus-wellbeing.webp" /><img alt="Children at play" className="w-full h-full object-cover" src="/assets/campus-wellbeing.jpg" /></picture>
+                <picture><source type="image/webp" srcSet="/assets/campus-toddler2.webp" /><img alt="Children at play" className="w-full h-full object-cover" src="/assets/campus-toddler2.jpg" /></picture>
               </div>
               <div className="aspect-square bg-surface-container-highest rounded-xl overflow-hidden shadow-lg">
                 <picture><source type="image/webp" srcSet="/assets/campus-preschool.webp" /><img alt="Teacher guided activity" className="w-full h-full object-cover" src="/assets/campus-preschool.jpg" /></picture>
               </div>
               <div className="aspect-[3/4] bg-surface-container-highest rounded-xl overflow-hidden shadow-lg md:-mt-12">
-                <picture><source type="image/webp" srcSet="/assets/campus-preschool.webp" /><img alt="Outdoor play area" className="w-full h-full object-cover" src="/assets/campus-preschool.jpg" /></picture>
+                <picture><source type="image/webp" srcSet="/assets/campus-wellbeing.webp" /><img alt="Outdoor play area" className="w-full h-full object-cover" src="/assets/campus-wellbeing.jpg" /></picture>
               </div>
             </div>
           </div>

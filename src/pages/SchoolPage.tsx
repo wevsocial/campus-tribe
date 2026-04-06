@@ -69,7 +69,7 @@ export default function SchoolPage() {
                 <h3 className="font-headline text-2xl font-bold mb-4">Secure Attendance Tracking</h3>
                 <p className="font-body text-on-surface-variant max-w-md">Real-time attendance with biometric-ready check-in. Automate absence notifications to parents instantly.</p>
                 <div className="mt-8 rounded-lg overflow-hidden border border-outline-variant/10">
-                  <picture><source type="image/webp" srcSet="/assets/campus-students.webp" /><img alt="School sports" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="/assets/campus-students.jpg" /></picture>
+                  <picture><source type="image/webp" srcSet="/assets/campus-sports.webp" /><img alt="School sports" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="/assets/campus-sports.jpg" /></picture>
                 </div>
               </div>
               <div className="md:col-span-4 bg-secondary text-white rounded-xl p-8 flex flex-col justify-center text-center">
