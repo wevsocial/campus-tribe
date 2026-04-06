@@ -37,10 +37,10 @@ export default function PreschoolPage() {
             <div className="lg:w-1/2 relative">
               <div className="absolute -top-12 -right-12 w-64 h-64 bg-tertiary-container/30 rounded-full blur-3xl"></div>
               <div className="relative z-10 overflow-hidden shadow-2xl rounded-[4rem_1.5rem_6rem_2rem] transform rotate-2">
-                <picture><source type="image/webp" srcSet="/assets/campus-preschool-v2.webp" /><img
+                <picture><source type="image/webp" srcSet="/assets/campus-preschool.webp" /><img
                   alt="Preschool children playing together"
                   className="w-full h-[500px] object-cover"
-                  src="/assets/campus-preschool-v2.jpg"
+                  src="/assets/campus-preschool.jpg"
                 /></picture>
               </div>
               <div className="absolute -bottom-8 -left-8 z-20 bg-surface-container-lowest p-6 rounded-xl shadow-xl flex items-center gap-4 border border-outline-variant/15">
@@ -72,7 +72,7 @@ export default function PreschoolPage() {
                     <p className="font-body text-on-surface-variant max-w-md">Real-time updates, community threads, and secure event scheduling in one centralized hub.</p>
                   </div>
                   <div className="mt-8 rounded-lg overflow-hidden border border-outline-variant/10">
-                    <picture><source type="image/webp" srcSet="/assets/campus-parent-v2.webp" /><img alt="Parent engagement interface" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="/assets/campus-parent-v2.jpg" /></picture>
+                    <picture><source type="image/webp" srcSet="/assets/campus-parent.webp" /><img alt="Parent engagement interface" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="/assets/campus-parent.jpg" /></picture>
                   </div>
                 </div>
               </div>
@@ -171,16 +171,16 @@ export default function PreschoolPage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="aspect-square bg-surface-container-highest rounded-xl overflow-hidden shadow-lg">
-                <picture><source type="image/webp" srcSet="/assets/campus-toddler2-v2.webp" /><img alt="Child painting" className="w-full h-full object-cover" src="/assets/campus-toddler2-v2.jpg" /></picture>
+                <picture><source type="image/webp" srcSet="/assets/campus-toddler2.webp" /><img alt="Child painting" className="w-full h-full object-cover" src="/assets/campus-toddler2.jpg" /></picture>
               </div>
               <div className="aspect-[3/4] bg-surface-container-highest rounded-xl overflow-hidden shadow-lg md:mt-12">
-                <picture><source type="image/webp" srcSet="/assets/campus-toddler2-v2.webp" /><img alt="Children at play" className="w-full h-full object-cover" src="/assets/campus-toddler2-v2.jpg" /></picture>
+                <picture><source type="image/webp" srcSet="/assets/campus-toddler2.webp" /><img alt="Children at play" className="w-full h-full object-cover" src="/assets/campus-toddler2.jpg" /></picture>
               </div>
               <div className="aspect-square bg-surface-container-highest rounded-xl overflow-hidden shadow-lg">
-                <picture><source type="image/webp" srcSet="/assets/campus-preschool-v2.webp" /><img alt="Teacher guided activity" className="w-full h-full object-cover" src="/assets/campus-preschool-v2.jpg" /></picture>
+                <picture><source type="image/webp" srcSet="/assets/campus-preschool.webp" /><img alt="Teacher guided activity" className="w-full h-full object-cover" src="/assets/campus-preschool.jpg" /></picture>
               </div>
               <div className="aspect-[3/4] bg-surface-container-highest rounded-xl overflow-hidden shadow-lg md:-mt-12">
-                <picture><source type="image/webp" srcSet="/assets/campus-wellbeing-v2.webp" /><img alt="Outdoor play area" className="w-full h-full object-cover" src="/assets/campus-wellbeing-v2.jpg" /></picture>
+                <picture><source type="image/webp" srcSet="/assets/campus-wellbeing.webp" /><img alt="Outdoor play area" className="w-full h-full object-cover" src="/assets/campus-wellbeing.jpg" /></picture>
               </div>
             </div>
           </div>

@@ -37,10 +37,10 @@ export default function SchoolPage() {
             <div className="lg:w-1/2 relative">
               <div className="absolute -top-12 -right-12 w-64 h-64 bg-secondary-container/30 rounded-full blur-3xl"></div>
               <div className="relative z-10 overflow-hidden shadow-2xl rounded-3xl transform -rotate-1">
-                <picture><source type="image/webp" srcSet="/assets/campus-school-v2.webp" /><img
+                <picture><source type="image/webp" srcSet="/assets/campus-school.webp" /><img
                   alt="School students engaged in activities"
                   className="w-full h-[500px] object-cover"
-                  src="/assets/campus-school-v2.jpg"
+                  src="/assets/campus-school.jpg"
                 /></picture>
               </div>
               <div className="absolute -bottom-8 -left-8 z-20 bg-surface-container-lowest p-6 rounded-xl shadow-xl flex items-center gap-4 border border-outline-variant/15">
@@ -69,7 +69,7 @@ export default function SchoolPage() {
                 <h3 className="font-headline text-2xl font-bold mb-4">Secure Attendance Tracking</h3>
                 <p className="font-body text-on-surface-variant max-w-md">Real-time attendance with biometric-ready check-in. Automate absence notifications to parents instantly.</p>
                 <div className="mt-8 rounded-lg overflow-hidden border border-outline-variant/10">
-                  <picture><source type="image/webp" srcSet="/assets/campus-sports-v2.webp" /><img alt="School sports" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="/assets/campus-sports-v2.jpg" /></picture>
+                  <picture><source type="image/webp" srcSet="/assets/campus-sports.webp" /><img alt="School sports" className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-700" src="/assets/campus-sports.jpg" /></picture>
                 </div>
               </div>
               <div className="md:col-span-4 bg-secondary text-white rounded-xl p-8 flex flex-col justify-center text-center">
@@ -117,8 +117,8 @@ export default function SchoolPage() {
                   "Campus Tribe transformed how our students connect. Engagement is up 40% and parents actually feel part of the school community."
                 </blockquote>
                 <div className="flex items-center gap-4">
-                  <picture><source type="image/webp" srcSet="/assets/campus-school-v2.webp" /><img
-                    src="/assets/campus-school-v2.jpg"
+                  <picture><source type="image/webp" srcSet="/assets/campus-school.webp" /><img
+                    src="/assets/campus-school.jpg"
                     alt="Principal testimonial"
                     className="w-14 h-14 rounded-full object-cover"
                   /></picture>

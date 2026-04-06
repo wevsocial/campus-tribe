@@ -11,20 +11,20 @@ gsap.registerPlugin(ScrollTrigger);
 export default function LandingPage() {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const pillars = [
-    { title: 'Smart Matching', icon: 'psychology', img: '/assets/campus-matching-v2.jpg' },
-    { title: 'Event Hub', icon: 'event', img: '/assets/campus-events-v2.jpg' },
-    { title: 'Sports Finder', icon: 'sports_soccer', img: '/assets/campus-sports-v2.jpg' },
-    { title: 'Venue Booking', icon: 'location_on', img: '/assets/campus-venues-v2.jpg' },
-    { title: 'Wellbeing Checks', icon: 'favorite', img: '/assets/campus-wellbeing-v2.jpg' },
-    { title: 'Parent Portal', icon: 'family_restroom', img: '/assets/campus-parent-v2.jpg' },
-    { title: 'Group Activities', icon: 'groups', img: '/assets/campus-clubs-v2.jpg' },
-    { title: 'Surveys & Polls', icon: 'poll', img: '/assets/campus-surveys-v2.jpg' },
+    { title: 'Smart Matching', icon: 'psychology', img: '/assets/campus-matching.jpg' },
+    { title: 'Event Hub', icon: 'event', img: '/assets/campus-events.jpg' },
+    { title: 'Sports Finder', icon: 'sports_soccer', img: '/assets/campus-sports.jpg' },
+    { title: 'Venue Booking', icon: 'location_on', img: '/assets/campus-venues.jpg' },
+    { title: 'Wellbeing Checks', icon: 'favorite', img: '/assets/campus-wellbeing.jpg' },
+    { title: 'Parent Portal', icon: 'family_restroom', img: '/assets/campus-parent.jpg' },
+    { title: 'Group Activities', icon: 'groups', img: '/assets/campus-clubs.jpg' },
+    { title: 'Surveys & Polls', icon: 'poll', img: '/assets/campus-surveys.jpg' },
   ];
   const roles = [
-    { title: 'Students', desc: 'Discover events, clubs, and peers that match your vibe.', img: '/assets/campus-students-v2.jpg' },
-    { title: 'Admins & Teachers', desc: 'Manage events, track wellbeing, and build community.', img: '/assets/campus-teachers-v2.jpg' },
-    { title: 'Coaches', desc: 'Coordinate teams, book venues, and track athlete rankings.', img: '/assets/campus-coach-v2.jpg' },
-    { title: 'IT Directors', desc: 'One platform, zero headaches. SSO, APIs, and compliance built in.', img: '/assets/campus-admin-v2.jpg' },
+    { title: 'Students', desc: 'Discover events, clubs, and peers that match your vibe.', img: '/assets/campus-students.jpg' },
+    { title: 'Admins & Teachers', desc: 'Manage events, track wellbeing, and build community.', img: '/assets/campus-teachers.jpg' },
+    { title: 'Coaches', desc: 'Coordinate teams, book venues, and track athlete rankings.', img: '/assets/campus-coach.jpg' },
+    { title: 'IT Directors', desc: 'One platform, zero headaches. SSO, APIs, and compliance built in.', img: '/assets/campus-admin.jpg' },
   ];
   const pillarsDouble = [...pillars, ...pillars];
   const rolesDouble = [...roles, ...roles];
@@ -141,11 +141,11 @@ export default function LandingPage() {
             {/* Main slider stack */}
             <div className="relative w-full max-w-sm aspect-[3/4]">
               {[
-                { src: '/assets/campus-hero-v2.jpg', label: 'Collaborate Better.' },
-                { src: '/assets/campus-aerial-v2.jpg', label: 'Connect Better IRL.' },
-                { src: '/assets/campus-school-v2.jpg', label: 'Find Your Tribe.' },
-                { src: '/assets/campus-sports-v2.jpg', label: 'Game On.' },
-                { src: '/assets/campus-university-v2.jpg', label: 'Varsity Arena.' },
+                { src: '/assets/campus-hero.jpg', label: 'Collaborate Better.' },
+                { src: '/assets/campus-aerial.jpg', label: 'Connect Better IRL.' },
+                { src: '/assets/campus-school.jpg', label: 'Find Your Tribe.' },
+                { src: '/assets/campus-sports.jpg', label: 'Game On.' },
+                { src: '/assets/campus-university.jpg', label: 'Varsity Arena.' },
               ].map((card, i) => (
                 <div key={i} className="slider-card bg-surface-container-lowest rounded-3xl shadow-2xl overflow-hidden border border-surface-container">
                   <img alt={card.label} className="w-full h-full object-cover" src={card.src} />
