@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <style>
+      @keyframes ct-flip {
+        0%   { transform: rotateY(0deg); }
+        45%  { transform: rotateY(0deg); }
+        55%  { transform: rotateY(180deg); }
+        95%  { transform: rotateY(360deg); }
+        100% { transform: rotateY(360deg); }
+      }
+      .ct-g {
+        animation: ct-flip 1.5s ease-in-out infinite;
+        transform-origin: 16px 16px;
+        transform-box: fill-box;
+      }
+    </style>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="#f97316"/>
+  <g class="ct-g">
+    <path d="M20 9 C18 7 15.5 6 12.5 6 C7.8 6 4 9.8 4 14.5 C4 19.2 7.8 23 12.5 23 C15.5 23 18 22 20 20" stroke="white" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+    <line x1="23.5" y1="7" x2="23.5" y2="22" stroke="white" stroke-width="2.8" stroke-linecap="round"/>
+    <line x1="19.5" y1="11.5" x2="27.5" y2="11.5" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="23.5" y1="18" x2="27" y2="18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>
