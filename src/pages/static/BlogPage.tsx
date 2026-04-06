@@ -4,52 +4,58 @@ import PublicFooter from '../../components/layout/PublicFooter';
 
 const articles = [
   {
-    title: 'How Smart Matching Increased Club Membership by 340% at Oxford',
-    category: 'Case Study',
-    date: 'Mar 15, 2026',
-    readTime: '8 min read',
-    excerpt: 'When Oxford partnered with Campus Tribe, they had a simple goal: help students find their community faster. The results exceeded every benchmark.',
-    img: '/assets/campus-teachers.jpg',
-  },
-  {
-    title: 'The Student Wellbeing Crisis and What EdTech Can Do About It',
+    title: 'The 14-Point Retention Gap: How Student Engagement Predicts Who Stays',
     category: 'Research',
-    date: 'Mar 8, 2026',
-    readTime: '12 min read',
-    excerpt: 'Loneliness rates among university students have reached record highs. We explore the root causes and how engagement technology can help.',
-    img: '/assets/campus-admin.jpg',
-  },
-  {
-    title: 'Intramural Sports Scheduling: From Chaos to Championship',
-    category: 'Product',
-    date: 'Feb 28, 2026',
-    readTime: '6 min read',
-    excerpt: 'Manual bracket management was costing athletic departments hundreds of hours per semester. Here is how Campus Tribe automated the entire process.',
-    img: '/assets/campus-parent.jpg',
-  },
-  {
-    title: 'Building a Preschool Parent Portal That Parents Actually Use',
-    category: 'Design',
-    date: 'Feb 20, 2026',
-    readTime: '7 min read',
-    excerpt: 'Most parent communication tools feel like IT projects. We took a different approach - start with the parent, not the feature list.',
-    img: '/assets/campus-coach.jpg',
-  },
-  {
-    title: 'ROI of Student Engagement: A Framework for Admissions Teams',
-    category: 'Strategy',
-    date: 'Feb 12, 2026',
+    date: 'Apr 5, 2026',
     readTime: '10 min read',
-    excerpt: 'Engagement metrics have a direct line to enrollment yield and retention. Here is how to measure and present the value to your board.',
-    img: '/assets/campus-university.jpg',
+    excerpt: 'Universities with high student engagement scores report retention rates 14 percentage points above the national average. New data from 300 institutions shows exactly which engagement signals predict dropout risk months before a student stops showing up.',
+    img: '/assets/campus-students.jpg',
+    author: 'Campus Tribe Research Team',
   },
   {
-    title: 'Campus Tribe Raises Series A to Expand Globally',
-    category: 'News',
-    date: 'Feb 5, 2026',
-    readTime: '4 min read',
-    excerpt: 'We are thrilled to announce our $12M Series A funding round, led by Sequoia Capital. This round accelerates our expansion into the UK, Australia, and Southeast Asia.',
+    title: 'From 8 Vendors to 1: How IT Directors Are Cutting EdTech Sprawl',
+    category: 'Strategy',
+    date: 'Apr 3, 2026',
+    readTime: '8 min read',
+    excerpt: 'The average university IT department manages 8 separate student engagement tools. CIOs who consolidated onto a single SOC 2 + FERPA-compliant platform with SAML SSO cut support tickets by 60% and freed up 1,200 staff hours per year.',
+    img: '/assets/campus-admin.jpg',
+    author: 'Campus Tribe Research Team',
+  },
+  {
+    title: 'Title IX Compliance in 10 Minutes: How Athletics Directors Are Using Automation',
+    category: 'Product',
+    date: 'Apr 1, 2026',
+    readTime: '6 min read',
+    excerpt: 'Manual Title IX reporting was taking athletics departments 40+ hours per semester. With integrated season scheduling, live scores, and one-click compliance exports, departments are completing full reports in under 10 minutes.',
+    img: '/assets/campus-sports.jpg',
+    author: 'Campus Tribe Research Team',
+  },
+  {
+    title: 'Student Government in the Digital Age: Faster Clubs, Higher Turnout',
+    category: 'Case Study',
+    date: 'Mar 28, 2026',
+    readTime: '7 min read',
+    excerpt: 'Student councils using digital club registration cut approval time from 3 weeks to 3 days. Push notification open rates hit 98% when messages come from student reps rather than administration. Here is what the data shows about peer-to-peer engagement.',
+    img: '/assets/campus-clubs.jpg',
+    author: 'Campus Tribe Research Team',
+  },
+  {
+    title: 'One Platform, Five Problems: Why Principals Are Replacing 4 Tools at Once',
+    category: 'Strategy',
+    date: 'Mar 24, 2026',
+    readTime: '9 min read',
+    excerpt: 'Parent communications, activity management, compliance tracking, emergency alerts, and staff coordination were each running on separate tools in most schools. Principals who unified onto one platform report 35% less administrative overhead and faster emergency response times.',
     img: '/assets/campus-school.jpg',
+    author: 'Campus Tribe Research Team',
+  },
+  {
+    title: 'Teachers Spend 2.4 Hours a Day on Admin. Here Is Where That Time Goes',
+    category: 'Research',
+    date: 'Mar 19, 2026',
+    readTime: '11 min read',
+    excerpt: 'A study of 1,200 teachers across K-12 and higher education found that attendance, parent messaging, homework tracking, and behavior logging each live in separate systems. Faculty who consolidate these into one workflow reclaim nearly 2 full teaching days per week.',
+    img: '/assets/campus-teachers.jpg',
+    author: 'Campus Tribe Research Team',
   },
 ];
 
@@ -74,24 +80,30 @@ export default function BlogPage() {
               Insights for Campus Leaders
             </h1>
             <p className="text-xl text-on-surface-variant dark:text-slate-400 max-w-2xl mx-auto">
-              Research, case studies, product updates, and strategy guides for the modern educational institution.
+              Market research, case studies, product updates, and strategy guides for modern educational institutions.
             </p>
           </div>
 
           {/* Featured */}
           <div className="bg-surface-container-lowest dark:bg-slate-800 rounded-3xl overflow-hidden shadow-xl mb-12 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
             <div className="grid lg:grid-cols-2">
-              <img src={articles[0].img} alt={articles[0].title} className="w-full h-64 lg:h-full object-cover" />
+              <picture>
+                <source type="image/webp" srcSet={articles[0].img.replace('.jpg', '.webp')} />
+                <img src={articles[0].img} alt={articles[0].title} className="w-full h-64 lg:h-full object-cover" />
+              </picture>
               <div className="p-10 flex flex-col justify-center">
                 <div className="flex items-center gap-3 mb-4">
                   <span className={`text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full ${categoryColors[articles[0].category]}`}>{articles[0].category}</span>
-                  <span className="text-sm text-on-surface-variant dark:text-slate-400">{articles[0].date} - {articles[0].readTime}</span>
+                  <span className="text-sm text-on-surface-variant dark:text-slate-400">{articles[0].date} &middot; {articles[0].readTime}</span>
                 </div>
                 <h2 className="font-headline font-bold text-3xl text-on-surface dark:text-slate-100 mb-4">{articles[0].title}</h2>
                 <p className="text-on-surface-variant dark:text-slate-400 leading-relaxed mb-6">{articles[0].excerpt}</p>
-                <Link to="/blog" className="text-primary font-headline font-bold flex items-center gap-2 hover:gap-4 transition-all">
-                  Read More <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                </Link>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-on-surface-variant dark:text-slate-500 font-medium">{articles[0].author}</span>
+                  <Link to="/blog" className="text-primary font-headline font-bold flex items-center gap-2 hover:gap-4 transition-all">
+                    Read More <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -100,7 +112,10 @@ export default function BlogPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {articles.slice(1).map(article => (
               <div key={article.title} className="bg-surface-container-lowest dark:bg-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                <img src={article.img} alt={article.title} className="w-full h-48 object-cover" />
+                <picture>
+                  <source type="image/webp" srcSet={article.img.replace('.jpg', '.webp')} />
+                  <img src={article.img} alt={article.title} className="w-full h-48 object-cover" />
+                </picture>
                 <div className="p-6">
                   <div className="flex items-center gap-3 mb-3">
                     <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${categoryColors[article.category]}`}>{article.category}</span>
