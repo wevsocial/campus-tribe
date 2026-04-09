@@ -182,3 +182,144 @@
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #f6f6f9; }
 ::-webkit-scrollbar-thumb { background: rgba(0,71,171,0.3); border-radius: 9999px; }
+
+/* ============================================================
+   MOBILE RESPONSIVENESS GLOBAL FIXES
+   ============================================================ */
+
+/* Prevent horizontal scroll on all pages */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Public pages: reduce padding on mobile */
+@media (max-width: 768px) {
+  /* Footer: reduce padding */
+  footer.bg-surface-container-low {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Hero sections with huge px values */
+  .pt-28 {
+    padding-top: 5rem;
+  }
+
+  /* Blog hero image height */
+  .max-h-\[480px\] {
+    max-height: 250px;
+  }
+
+  /* University/School/Preschool page large CTAs */
+  .px-12 {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+  .py-5 {
+    padding-top: 0.875rem !important;
+    padding-bottom: 0.875rem !important;
+  }
+
+  /* Large text on hero sections */
+  .text-7xl { font-size: 2.5rem !important; line-height: 1.1; }
+  .text-6xl { font-size: 2.25rem !important; line-height: 1.1; }
+  .text-5xl { font-size: 2rem !important; line-height: 1.1; }
+
+  /* Comparison table: make scrollable */
+  .comparison-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Public nav px reduction */
+  nav .px-8 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Dashboard mobile: ensure sidebar is hidden properly */
+@media (max-width: 1023px) {
+  /* Dashboard main content: no left margin when sidebar hidden */
+  .lg\:ml-64 {
+    margin-left: 0 !important;
+  }
+
+  /* Dashboard shell: ensure mobile header padding works */
+  .dashboard-content {
+    padding-top: 4rem;
+  }
+
+  /* Tables in dashboard: scroll horizontally */
+  table {
+    min-width: 600px;
+  }
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 1rem;
+  }
+}
+
+/* Platform landing pages: stack columns on mobile */
+@media (max-width: 640px) {
+  /* Blog featured card: stack on mobile */
+  .grid.lg\:grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Stats row: wrap */
+  .stats-row {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Role carousel: full width */
+  .role-carousel-card {
+    width: 100% !important;
+    min-width: unset !important;
+  }
+
+  /* Pricing cards: stack */
+  .pricing-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Nav: reduce logo text size on tiny screens */
+  .font-headline.text-xl {
+    font-size: 1rem;
+  }
+}
+
+/* Dashboard platform pages: ensure all content areas are scrollable */
+.dashboard-main {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure dashboard stat cards wrap on mobile */
+@media (max-width: 768px) {
+  .grid.grid-cols-2.lg\:grid-cols-4,
+  .grid.grid-cols-3,
+  .grid.sm\:grid-cols-2.lg\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .grid.md\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Touch-friendly buttons on mobile */
+@media (max-width: 768px) {
+  button, a[role="button"], .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Fix overflow on the animated scroll banners (UniversityPage) */
+.overflow-hidden.whitespace-nowrap {
+  -webkit-overflow-scrolling: touch;
+}

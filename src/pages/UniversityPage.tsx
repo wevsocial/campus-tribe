@@ -310,8 +310,8 @@ export default function UniversityPage() {
               <h2 className="font-headline text-5xl md:text-7xl font-black leading-[0.9] tracking-tighter">THE CAMPUS OF THE FUTURE IS ALREADY HERE.</h2>
               <p className="text-xl text-white/90 font-medium">Join 500+ global institutions fostering meaningful student connection.</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/register?platform=university" className="bg-white text-secondary px-12 py-5 rounded-full font-headline text-xl font-black hover:scale-105 transition-transform shadow-xl">Get Started Now</Link>
-                <Link to="/demo" className="bg-transparent border-2 border-white/30 text-white px-12 py-5 rounded-full font-headline text-xl font-black hover:bg-white/10 transition-colors">Book Consultation</Link>
+                <Link to="/register?platform=university" className="bg-white text-secondary px-6 sm:px-12 py-3 sm:py-5 rounded-full font-headline text-base sm:text-xl font-black hover:scale-105 transition-transform shadow-xl">Get Started Now</Link>
+                <Link to="/demo" className="bg-transparent border-2 border-white/30 text-white px-6 sm:px-12 py-3 sm:py-5 rounded-full font-headline text-base sm:text-xl font-black hover:bg-white/10 transition-colors">Book Consultation</Link>
               </div>
             </div>
           </div>

@@ -5,7 +5,7 @@ import CampusTribeLogo from '../ui/CampusTribeLogo';
 
 export default function PublicFooter() {
   return (
-    <footer className="bg-surface-container-low dark:bg-slate-950 w-full py-16 px-12 mt-auto">
+    <footer className="bg-surface-container-low dark:bg-slate-950 w-full py-12 px-4 md:px-8 lg:px-12 mt-auto">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-12">
           <div className="col-span-2 lg:col-span-1">

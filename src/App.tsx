@@ -1,5 +1,27 @@
-import React from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+    dataLayer?: unknown[];
+  }
+}
+
+// GA4 SPA page tracking
+function GATracker() {
+  const location = useLocation();
+  useEffect(() => {
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'page_view', {
+        page_path: location.pathname + location.search,
+        page_title: document.title,
+        page_location: window.location.href,
+      });
+    }
+  }, [location]);
+  return null;
+}
 import LandingPage from './pages/LandingPage';
 import UniversityPage from './pages/UniversityPage';
 import SchoolPage from './pages/SchoolPage';
@@ -51,6 +73,7 @@ function DashboardRedirect() {
 export default function App() {
   return (
     <BrowserRouter>
+      <GATracker />
       <Routes>
         {/* Public */}
         <Route path="/" element={<LandingPage />} />

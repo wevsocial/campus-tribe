@@ -73,7 +73,7 @@ export default function LandingPage() {
       <PublicNav />
       <main className="pt-24 overflow-hidden">
         {/* Hero */}
-        <section data-hero-section className="relative max-w-7xl mx-auto px-8 py-16 lg:py-24 grid lg:grid-cols-2 gap-16 items-center">
+        <section data-hero-section className="relative max-w-7xl mx-auto px-4 sm:px-8 py-10 lg:py-24 grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
           <div className="space-y-8">
             <div data-parallax-orb className="pointer-events-none absolute -left-16 top-28 h-40 w-40 rounded-full bg-primary/10 blur-2xl" />
             <div data-hero-copy className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-container text-secondary text-xs font-label uppercase tracking-widest font-bold">
@@ -83,7 +83,7 @@ export default function LandingPage() {
               </span>
               Campus Tribe Connect
             </div>
-            <h1 data-hero-copy className="font-headline font-extrabold text-5xl lg:text-7xl leading-[1.05] tracking-tight text-on-surface">
+            <h1 data-hero-copy className="font-headline font-extrabold text-3xl sm:text-5xl lg:text-7xl leading-[1.05] tracking-tight text-on-surface">
               Where Campus <br />
               <span className="text-primary italic">Life Connects</span>
             </h1>
