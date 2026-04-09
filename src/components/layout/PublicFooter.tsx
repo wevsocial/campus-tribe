@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
 import WevSocialBadge from '../ui/WevSocialBadge';
+import CampusTribeLogo from '../ui/CampusTribeLogo';
 
 export default function PublicFooter() {
   return (
@@ -8,7 +9,10 @@ export default function PublicFooter() {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-12">
           <div className="col-span-2 lg:col-span-1">
-            <div className="font-headline font-bold text-xl text-primary dark:text-blue-200 mb-6">Campus Tribe</div>
+            <div className="flex items-center gap-2.5 mb-4">
+              <CampusTribeLogo className="w-8 h-8" />
+              <span className="font-headline font-bold text-xl text-primary dark:text-blue-200">Campus<span className="text-orange-500">Tribe</span></span>
+            </div>
             <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-6">
               The world's first student engagement platform designed for modern institutional connection.<br /><br /><WevSocialBadge />
             </p>

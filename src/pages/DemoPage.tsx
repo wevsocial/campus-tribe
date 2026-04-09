@@ -38,7 +38,7 @@ export default function DemoPage() {
               <div>
                 <div className="font-headline text-6xl font-black text-on-primary-container/20 mb-6">02</div>
                 <h3 className="font-headline text-3xl font-bold mb-4">Students Onboard</h3>
-                <p className="leading-relaxed font-medium">Verified .edu join process. Using our Kinetic matching engine, students map interests to discover their personal campus ecosystem immediately.</p>
+                <p className="leading-relaxed font-medium">Verified .edu join process. Using our smart matching engine, students map interests to discover their personal campus ecosystem immediately.</p>
               </div>
               <div className="mt-12">
                 <div className="flex -space-x-4">

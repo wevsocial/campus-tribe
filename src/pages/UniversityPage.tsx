@@ -28,7 +28,7 @@ export default function UniversityPage() {
               TO <span className="text-secondary italic">CONNECTED.</span>
             </h1>
             <p className="text-xl text-on-surface-variant dark:text-slate-400 max-w-xl leading-relaxed">
-              The only student engagement platform built for the kinetic energy of modern campus life. <span className="inline-flex items-center gap-1.5">Powered by <span className="inline-flex items-center gap-1 font-bold text-primary"><WevSocialLogo className="w-5 h-5 text-primary" /> WevSocial</span></span>.
+              The only student engagement platform built for the dynamic energy of modern campus life. <span className="inline-flex items-center gap-1.5">Powered by <span className="inline-flex items-center gap-1 font-bold text-primary"><WevSocialLogo className="w-5 h-5 text-primary" /> WevSocial</span></span>.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Link to="/register?platform=university" className="bg-secondary text-white px-10 py-4 rounded-full font-headline text-lg hover:brightness-110 transition-all shadow-lg shadow-secondary/20">

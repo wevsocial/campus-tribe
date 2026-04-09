@@ -13,7 +13,7 @@ export default function PreschoolPage() {
           <div className="flex flex-col lg:flex-row items-center gap-16">
             <div className="lg:w-1/2 space-y-8 z-10">
               <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-tertiary-container text-on-tertiary-container font-label text-xs font-bold tracking-widest uppercase">
-                The Kinetic Academy for Early Years
+                The Nurturing Academy for Early Years
               </div>
               <h1 className="font-headline text-5xl md:text-7xl font-extrabold tracking-tighter leading-tight text-on-surface">
                 Early Years, <br />
@@ -152,7 +152,7 @@ export default function PreschoolPage() {
                   </div>
                 ))}
               </div>
-              <p className="font-body text-sm opacity-60 italic">Your child's privacy is our kinetic priority.</p>
+              <p className="font-body text-sm opacity-60 italic">Your child's privacy is our top priority.</p>
             </div>
           </div>
         </section>
@@ -163,7 +163,7 @@ export default function PreschoolPage() {
             <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
               <div className="max-w-xl">
                 <h2 className="font-headline text-4xl font-black tracking-tighter text-on-surface leading-none mb-6">Momentum in Action</h2>
-                <p className="font-body text-on-surface-variant text-lg">Experience the vibrant life of Campus Tribe preschools through our kinetic gallery.</p>
+                <p className="font-body text-on-surface-variant text-lg">Experience the vibrant life of Campus Tribe preschools through our vibrant gallery.</p>
               </div>
               <button className="font-headline font-bold text-primary flex items-center gap-2 hover:gap-4 transition-all">
                 View Success Stories <span className="material-symbols-outlined">arrow_forward</span>

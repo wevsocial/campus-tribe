@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import CampusTribeLogo from '../ui/CampusTribeLogo';
 import {
   LayoutDashboard, Home, Users, Calendar, MapPin, Trophy, BarChart2, Settings,
   Compass, Heart, ClipboardList, UserCog, Key, History, Puzzle, Award,
@@ -130,11 +131,9 @@ export default function DashboardShell({ role }: DashboardShellProps) {
       <aside className="hidden lg:flex flex-col w-64 bg-surface-lowest fixed top-0 left-0 h-full z-30 shadow-float">
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-outline-variant/30">
-          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
-            <span className="text-white text-xs font-lexend font-900">CT</span>
-          </div>
+          <CampusTribeLogo className="w-8 h-8" />
           <div>
-            <p className="font-lexend font-900 text-on-surface text-sm">Campus Tribe</p>
+            <p className="font-lexend font-900 text-on-surface text-sm">Campus<span className="text-orange-500">Tribe</span></p>
             <p className="text-xs font-jakarta text-on-surface-variant">{roleLabels[role]}</p>
           </div>
         </div>
@@ -187,9 +186,9 @@ export default function DashboardShell({ role }: DashboardShellProps) {
           <Menu size={22} className="text-on-surface" />
         </button>
         <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-          <span className="text-white text-xs font-lexend font-900">CT</span>
+          <CampusTribeLogo className="w-6 h-6" />
         </div>
-        <p className="font-lexend font-900 text-on-surface text-sm flex-1">Campus Tribe</p>
+        <p className="font-lexend font-900 text-on-surface text-sm flex-1">Campus<span className="text-orange-500">Tribe</span></p>
         <div className="w-7 h-7 rounded-full bg-primary-container flex items-center justify-center">
           <span className="text-primary text-xs font-jakarta font-900">{initials}</span>
         </div>

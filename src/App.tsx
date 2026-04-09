@@ -12,6 +12,7 @@ import PricingPage from './pages/PricingPage';
 import AboutPage from './pages/static/AboutPage';
 import CareersPage from './pages/static/CareersPage';
 import BlogPage from './pages/static/BlogPage';
+import BlogPostPage from './pages/static/BlogPostPage';
 import NewsletterPage from './pages/static/NewsletterPage';
 import FeaturesGuidePage from './pages/static/FeaturesGuidePage';
 import WellbeingPage from './pages/static/WellbeingPage';
@@ -64,6 +65,7 @@ export default function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/careers" element={<CareersPage />} />
         <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<BlogPostPage />} />
         <Route path="/newsletter" element={<NewsletterPage />} />
         <Route path="/resources/features" element={<FeaturesGuidePage />} />
         <Route path="/resources/api-documentation" element={<ApiDocumentationPage />} />
