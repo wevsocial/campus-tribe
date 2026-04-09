@@ -1,8 +1,1 @@
-# Static files served directly (must come before SPA catch-all)
-/sitemap.xml  /sitemap.xml  200
-/robots.txt   /robots.txt   200
-/favicon.svg  /favicon.svg  200
-/assets/*     /assets/:splat  200
-
-# SPA: all other routes → index.html
 /*    /index.html   200
