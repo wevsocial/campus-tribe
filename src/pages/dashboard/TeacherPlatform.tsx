@@ -36,6 +36,7 @@ export default function TeacherPlatform() {
     { id: 'assignments', label: 'Assignments', icon: <ClipboardList size={18} /> },
     { id: 'grades', label: 'Grades', icon: <ClipboardList size={18} /> },
     { id: 'students', label: 'Students', icon: <Users size={18} /> },
+    { id: 'notes', label: 'Performance Notes', icon: <ClipboardList size={18} /> },
     { id: 'announcements', label: 'Announcements', icon: <Megaphone size={18} /> },
     { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
   ];
@@ -115,6 +116,7 @@ export default function TeacherPlatform() {
           {activeSection === 'assignments' && <AssignmentsSection institutionId={institutionId} userId={user?.id} />}
           {activeSection === 'grades' && <GradesSection institutionId={institutionId} userId={user?.id} />}
           {activeSection === 'students' && <StudentsSection institutionId={institutionId} />}
+          {activeSection === 'notes' && <PerformanceNotesSection institutionId={institutionId} userId={user?.id} />}
           {activeSection === 'announcements' && <TeacherAnnouncements institutionId={institutionId} userId={user?.id} />}
           {activeSection === 'settings' && <SettingsSection profile={profile as unknown as Record<string, unknown> | null} userId={user?.id} institutionId={institutionId} />}
         </div>
@@ -783,6 +785,162 @@ function SettingsSection({ profile, userId, institutionId }: { profile: Record<s
           </button>
         </div>
         {pwMsg && <p className={`text-xs font-jakarta mt-2 ${pwMsg.startsWith('Error') ? 'text-red-500' : 'text-tertiary'}`}>{pwMsg}</p>}
+      </div>
+    </div>
+  );
+}
+
+// ─── Performance Notes Section ────────────────────────────────────────────────
+function PerformanceNotesSection({ institutionId, userId }: { institutionId: string | null; userId?: string }) {
+  const [students, setStudents] = React.useState<{ id: string; full_name: string | null; email: string }[]>([]);
+  const [courses, setCourses] = React.useState<{ id: string; name: string; code: string }[]>([]);
+  const [sentNotes, setSentNotes] = React.useState<any[]>([]);
+  const [requests, setRequests] = React.useState<any[]>([]);
+  const [flash, setFlash] = React.useState('');
+  const [saving, setSaving] = React.useState(false);
+  const [form, setForm] = React.useState({
+    studentId: '', courseId: '', noteType: 'general', title: '', content: '',
+    sendToStudent: true, sendToParent: false,
+  });
+
+  const load = React.useCallback(async () => {
+    if (!institutionId || !userId) return;
+    const [studentsRes, coursesRes, notesRes, reqRes] = await Promise.all([
+      supabase.from('ct_users').select('id, full_name, email').eq('institution_id', institutionId).in('role', ['student', 'athlete']).order('full_name'),
+      supabase.from('ct_courses').select('id, name, code').eq('institution_id', institutionId).order('name'),
+      supabase.from('ct_performance_notes').select('*, ct_courses(name), student:ct_users!student_id(full_name)').eq('teacher_id', userId).order('created_at', { ascending: false }).limit(30),
+      supabase.from('ct_note_requests').select('*, parent:ct_users!parent_id(full_name), student:ct_users!student_id(full_name)').eq('teacher_id', userId).order('created_at', { ascending: false }).limit(20),
+    ]);
+    setStudents(studentsRes.data || []);
+    setCourses(coursesRes.data || []);
+    setSentNotes(notesRes.data || []);
+    setRequests(reqRes.data || []);
+  }, [institutionId, userId]);
+
+  React.useEffect(() => { load(); }, [load]);
+
+  const saveNote = async () => {
+    if (!userId || !institutionId || !form.studentId || !form.title || !form.content) return;
+    setSaving(true);
+    const { data: note } = await supabase.from('ct_performance_notes').insert({
+      institution_id: institutionId, teacher_id: userId, student_id: form.studentId,
+      course_id: form.courseId || null, title: form.title, content: form.content,
+      note_type: form.noteType, send_to_student: form.sendToStudent, send_to_parent: form.sendToParent,
+      is_sent: true, sent_at: new Date().toISOString(),
+    }).select('*, ct_courses(name), student:ct_users!student_id(full_name)').single();
+    setSaving(false);
+    if (note) {
+      setSentNotes(prev => [note, ...prev]);
+      setFlash('Note sent!');
+      setForm({ studentId: '', courseId: '', noteType: 'general', title: '', content: '', sendToStudent: true, sendToParent: false });
+      setTimeout(() => setFlash(''), 2500);
+    }
+  };
+
+  const fulfillRequest = async (req: any) => {
+    await supabase.from('ct_note_requests').update({ status: 'fulfilled' }).eq('id', req.id);
+    if (userId && institutionId) {
+      await supabase.from('ct_performance_notes').insert({
+        institution_id: institutionId, teacher_id: userId, student_id: req.student_id,
+        title: 'Performance Note (Parent Request)', content: 'This note was created in response to a parent request. Please review with your child.',
+        note_type: 'general', send_to_student: true, send_to_parent: true,
+        is_sent: true, sent_at: new Date().toISOString(),
+      });
+    }
+    setRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: 'fulfilled' } : r));
+    setFlash('Request fulfilled — note created.');
+    setTimeout(() => setFlash(''), 2500);
+  };
+
+  const declineRequest = async (reqId: string) => {
+    await supabase.from('ct_note_requests').update({ status: 'declined' }).eq('id', reqId);
+    setRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'declined' } : r));
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl p-6 text-white" style={{ background: 'linear-gradient(135deg, #0047AB, #1a5fc9)' }}>
+        <h1 className="font-lexend font-900 text-2xl">Performance Notes</h1>
+        <p className="font-jakarta text-white/80 text-sm mt-1">Create and send performance notes to students and their parents</p>
+      </div>
+      {flash && <div className="rounded-xl bg-primary/10 p-3 text-sm text-primary font-jakarta">{flash}</div>}
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Create Note */}
+        <div className="bg-surface-lowest rounded-2xl p-6 shadow-float border border-outline-variant/30 space-y-4">
+          <h2 className="font-lexend font-700 text-on-surface text-lg">Create & Send Note</h2>
+          <div>
+            <label className="block text-xs font-jakarta font-700 text-on-surface-variant mb-1">Student *</label>
+            <select value={form.studentId} onChange={e => setForm(f => ({ ...f, studentId: e.target.value }))} className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface">
+              <option value="">Select student…</option>
+              {students.map(s => <option key={s.id} value={s.id}>{s.full_name || s.email}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-jakarta font-700 text-on-surface-variant mb-1">Course (optional)</label>
+            <select value={form.courseId} onChange={e => setForm(f => ({ ...f, courseId: e.target.value }))} className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface">
+              <option value="">No specific course</option>
+              {courses.map(c => <option key={c.id} value={c.id}>{c.code} · {c.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-jakarta font-700 text-on-surface-variant mb-1">Note Type</label>
+            <select value={form.noteType} onChange={e => setForm(f => ({ ...f, noteType: e.target.value }))} className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface">
+              {['general','weekly','monthly','midterm','completion'].map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-jakarta font-700 text-on-surface-variant mb-1">Title *</label>
+            <input className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface" placeholder="Week 3 progress update" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+          </div>
+          <div>
+            <label className="block text-xs font-jakarta font-700 text-on-surface-variant mb-1">Content *</label>
+            <textarea className="w-full border border-outline-variant rounded-xl px-4 py-2.5 font-jakarta text-sm bg-surface" rows={5} placeholder="Write performance notes here…" value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))} />
+          </div>
+          <div className="flex gap-6">
+            <label className="flex items-center gap-2 text-sm font-jakarta cursor-pointer"><input type="checkbox" checked={form.sendToStudent} onChange={e => setForm(f => ({ ...f, sendToStudent: e.target.checked }))} className="accent-primary" /> Send to student</label>
+            <label className="flex items-center gap-2 text-sm font-jakarta cursor-pointer"><input type="checkbox" checked={form.sendToParent} onChange={e => setForm(f => ({ ...f, sendToParent: e.target.checked }))} className="accent-primary" /> Send to parent</label>
+          </div>
+          <button onClick={saveNote} disabled={saving || !form.studentId || !form.title || !form.content} className="w-full py-3 rounded-xl bg-primary text-white font-jakarta font-700 text-sm hover:bg-primary/90 disabled:opacity-50">
+            {saving ? 'Sending…' : 'Save & Send Note'}
+          </button>
+        </div>
+
+        {/* Right panel: sent notes + requests */}
+        <div className="space-y-5">
+          <div className="bg-surface-lowest rounded-2xl p-5 shadow-float border border-outline-variant/30">
+            <h2 className="font-lexend font-700 text-on-surface text-lg mb-3">Notes Sent ({sentNotes.length})</h2>
+            <div className="space-y-2 max-h-72 overflow-y-auto">
+              {sentNotes.length === 0 ? <p className="text-sm text-on-surface-variant font-jakarta">No notes sent yet.</p> : sentNotes.map(n => (
+                <div key={n.id} className="rounded-xl bg-surface p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-jakarta font-700 text-sm text-on-surface">{n.title}</p>
+                    <span className="text-xs bg-secondary/20 text-secondary px-2 py-0.5 rounded-full font-jakarta">{n.note_type}</span>
+                  </div>
+                  <p className="text-xs text-on-surface-variant font-jakarta mt-1">{n.student?.full_name} · {n.ct_courses?.name || 'General'} · {n.sent_at ? new Date(n.sent_at).toLocaleDateString() : ''}</p>
+                  {n.send_to_parent && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full mt-1 inline-block font-jakarta">Shared with parent</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="bg-surface-lowest rounded-2xl p-5 shadow-float border border-outline-variant/30">
+            <h2 className="font-lexend font-700 text-on-surface text-lg mb-3">Parent Requests ({requests.filter(r => r.status === 'pending').length} pending)</h2>
+            <div className="space-y-2 max-h-72 overflow-y-auto">
+              {requests.length === 0 ? <p className="text-sm text-on-surface-variant font-jakarta">No parent requests yet.</p> : requests.map(req => (
+                <div key={req.id} className="rounded-xl bg-surface p-3">
+                  <p className="font-jakarta font-700 text-sm text-on-surface">{req.parent?.full_name} → {req.student?.full_name}</p>
+                  {req.request_message && <p className="text-xs text-on-surface-variant font-jakarta mt-1">"{req.request_message}"</p>}
+                  <div className="flex gap-2 mt-2 items-center flex-wrap">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-jakarta ${req.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : req.status === 'fulfilled' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{req.status}</span>
+                    {req.status === 'pending' && <>
+                      <button onClick={() => fulfillRequest(req)} className="text-xs px-3 py-1 rounded-full bg-primary text-white font-jakarta font-700">Fulfill</button>
+                      <button onClick={() => declineRequest(req.id)} className="text-xs px-3 py-1 rounded-full border border-outline-variant font-jakarta font-700 text-on-surface-variant">Decline</button>
+                    </>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
