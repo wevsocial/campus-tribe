@@ -177,13 +177,18 @@ function UsersSection({ institutionId, currentUserId }: { institutionId: string 
 
   const updateRole = async (userId: string) => {
     const rolesToSave = selectedRoles.length ? selectedRoles : [newRole];
-    const primaryRole = rolesToSave[0] || newRole;
-    await supabase.from('ct_users').update({ role: primaryRole, roles: rolesToSave }).eq('id', userId);
+    const primaryRole = newRole || rolesToSave[0];
+    const { error } = await supabase.from('ct_users').update({ role: primaryRole, roles: rolesToSave }).eq('id', userId);
+    if (error) {
+      alert('Failed to save roles: ' + error.message);
+      return;
+    }
+    // Optimistic local update
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: primaryRole, roles: rolesToSave } : u));
     if (userId && institutionId) {
-      await sendNotification(userId, institutionId, 'Role Access Updated', `Your access roles are now: ${rolesToSave.join(', ')}`, 'info');
+      sendNotification(userId, institutionId, 'Role Access Updated', `Your access roles are now: ${rolesToSave.join(', ')}`, 'info').catch(() => {});
     }
     setEditingUser(null);
-    load();
   };
 
   const toggleRole = (role: string) => {
@@ -195,7 +200,7 @@ function UsersSection({ institutionId, currentUserId }: { institutionId: string 
     load();
   };
 
-  const ROLES = ['student', 'student_rep', 'teacher', 'admin', 'staff', 'club_leader', 'coach', 'it_director', 'parent'];
+  const ROLES = ['student', 'student_rep', 'teacher', 'admin', 'staff', 'club_leader', 'coach', 'it_director', 'parent', 'athlete'];
 
   const filtered = users.filter(u => !search || u.full_name?.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()));
 

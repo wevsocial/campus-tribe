@@ -76,26 +76,33 @@ export default function ITDashboard() {
   const saveUserRole = async (userId: string, currentRoles: string[] | null) => {
     const newRole = editingRole[userId];
     if (!newRole || !user?.id) return;
-    const isAthlete = editingAthlete[userId] ?? false;
-    const baseRoles = (currentRoles || []).filter((r: string) => r !== 'athlete');
-    const newRoles = isAthlete ? [...new Set([...baseRoles, newRole, 'athlete'])] : [...new Set([...baseRoles, newRole])];
+    const isAthlete = editingAthlete[userId] ?? (currentRoles || []).includes('athlete');
+    const baseRoles = (currentRoles || []).filter((r: string) => r !== 'athlete' && r !== newRole);
+    const newRoles = isAthlete
+      ? [...new Set([newRole, ...baseRoles, 'athlete'])]
+      : [...new Set([newRole, ...baseRoles])];
+
     const { error } = await supabase.from('ct_users').update({ role: newRole, roles: newRoles }).eq('id', userId);
     if (!error) {
       setData((prev: any) => ({
         ...prev,
         users: prev.users.map((u: any) => u.id === userId ? { ...u, role: newRole, roles: newRoles } : u),
       }));
-      setRoleFlash((f) => ({ ...f, [userId]: 'Saved!' }));
-      setTimeout(() => setRoleFlash((f) => { const n = { ...f }; delete n[userId]; return n; }), 2500);
-      // Audit log
-      await supabase.from('ct_audit_logs').insert({
+      setRoleFlash((f) => ({ ...f, [userId]: '✓ Saved' }));
+      setTimeout(() => setRoleFlash((f) => { const n = { ...f }; delete n[userId]; return n; }), 3000);
+      // Audit log — fire and forget, never block the save
+      void supabase.from('ct_audit_logs').insert({
         institution_id: institutionId,
         actor_id: user.id,
         action: 'role_update',
-        target_type: 'ct_users',
-        target_id: userId,
+        resource_type: 'ct_users',
+        resource_id: userId,
+        severity: 'info',
         metadata: { new_role: newRole, new_roles: newRoles },
       });
+    } else {
+      setRoleFlash((f) => ({ ...f, [userId]: '✗ Error: ' + (error.message || 'save failed') }));
+      setTimeout(() => setRoleFlash((f) => { const n = { ...f }; delete n[userId]; return n; }), 4000);
     }
   };
   const [integrationMessage, setIntegrationMessage] = useState<Record<string, string>>({});
