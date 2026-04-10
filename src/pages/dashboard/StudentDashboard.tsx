@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card } from '../../components/ui/Card';
 import { StatCard } from '../../components/ui/StatCard';
@@ -49,6 +49,17 @@ export default function StudentDashboard() {
   const [surveyModal, setSurveyModal] = useState<ActiveSurvey | null>(null);
   const [surveyAnswers, setSurveyAnswers] = useState<Record<string, any>>({});
   const [surveySubmitted, setSurveySubmitted] = useState(false);
+  const [myNotes, setMyNotes] = useState<any[]>([]);
+  const [expandedNote, setExpandedNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase.from('ct_performance_notes')
+      .select('*, ct_courses(name), teacher:ct_users!teacher_id(full_name)')
+      .eq('student_id', user.id).eq('is_sent', true).eq('send_to_student', true)
+      .order('sent_at', { ascending: false }).limit(20)
+      .then(({ data }) => setMyNotes(data || []));
+  }, [user?.id]);
 
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
     const [clubsRes, membershipsRes, eventsRes, rsvpsRes, wellbeingRes, userRes, leaguesRes, participantsRes, surveysRes] = await Promise.all([
@@ -609,6 +620,37 @@ React.useEffect(() => {
             </div>
           </div>
         )}
+
+        {/* My Performance Notes */}
+        {myNotes.length > 0 && (
+          <div id="notes" className="scroll-mt-24">
+            <h2 className="font-lexend text-xl font-900 text-on-surface mb-4">My Performance Notes</h2>
+            <div className="space-y-3">
+              {myNotes.map((note) => (
+                <div key={note.id} className="rounded-[1.5rem] bg-surface border border-outline-variant p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="font-jakarta font-700 text-on-surface">{note.title}</p>
+                      <p className="text-xs text-on-surface-variant mt-0.5">
+                        {(note as any).teacher?.full_name || 'Teacher'} · {(note as any).ct_courses?.name || 'General'} · {note.sent_at ? new Date(note.sent_at).toLocaleDateString() : ''}
+                      </p>
+                    </div>
+                    <span className="text-xs bg-secondary/20 text-secondary px-2 py-0.5 rounded-full">{note.note_type}</span>
+                  </div>
+                  <p className="mt-2 text-sm text-on-surface-variant">
+                    {expandedNote === note.id ? note.content : `${note.content.slice(0, 120)}${note.content.length > 120 ? '…' : ''}`}
+                  </p>
+                  {note.content.length > 120 && (
+                    <button onClick={() => setExpandedNote(expandedNote === note.id ? null : note.id)} className="mt-1 text-xs text-primary hover:underline">
+                      {expandedNote === note.id ? 'Show less' : 'Read more'}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </DashboardLayout>
   );

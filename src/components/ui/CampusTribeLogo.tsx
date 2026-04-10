@@ -1,8 +1,10 @@
 /**
  * CampusTribeLogo — Official Campus Tribe brand mark.
  * White circle background with orange "Ct" monogram and orange border ring.
- * Supports Y-axis rotation animation (GSAP-style ease via CSS @keyframes).
+ * Supports Y-axis rotation animation via GSAP with CSS @keyframes fallback.
  */
+import React, { useEffect, useRef } from 'react';
+
 export default function CampusTribeLogo({
   className = 'w-8 h-8',
   showText = false,
@@ -12,6 +14,34 @@ export default function CampusTribeLogo({
   showText?: boolean;
   animated?: boolean;
 }) {
+  const spanRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!animated || !spanRef.current) return;
+    let tween: any;
+    try {
+      // Dynamic import to avoid SSR issues
+      import('gsap').then(({ gsap }) => {
+        if (!spanRef.current) return;
+        tween = gsap.to(spanRef.current, {
+          rotationY: 360,
+          duration: 3,
+          ease: 'power1.inOut',
+          repeat: -1,
+          transformPerspective: 300,
+          transformOrigin: '50% 50%',
+        });
+      }).catch(() => {
+        // GSAP not available, CSS fallback handles it
+      });
+    } catch {
+      // GSAP not available, CSS fallback handles it
+    }
+    return () => {
+      tween?.kill?.();
+    };
+  }, [animated]);
+
   return (
     <span className="inline-flex items-center gap-2.5">
       {animated && (
@@ -21,15 +51,18 @@ export default function CampusTribeLogo({
             50%     { transform: perspective(200px) rotateY(180deg); }
             70%,100%{ transform: perspective(200px) rotateY(360deg); }
           }
-          .ct-logo-animated {
+          .ct-logo-animated-fallback {
             animation: ct-flipY 3s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
             transform-origin: center center;
-            transform-box: fill-box;
             display: inline-block;
           }
         `}</style>
       )}
-      <span className={animated ? 'ct-logo-animated' : undefined} style={{ display: 'inline-flex' }}>
+      <span
+        ref={spanRef}
+        className={animated ? 'ct-logo-animated-fallback' : undefined}
+        style={{ display: 'inline-flex' }}
+      >
         <svg
           className={className}
           viewBox="0 0 100 100"

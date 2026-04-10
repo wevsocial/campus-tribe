@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -54,6 +54,43 @@ export default function ParentDashboard() {
   const [selectedSurveyId, setSelectedSurveyId] = useState('');
   const [responseValues, setResponseValues] = useState<Record<string, any>>({});
   const [flash, setFlash] = useState('');
+  const [perfNotes, setPerfNotes] = useState<any[]>([]);
+  const [noteTeachers, setNoteTeachers] = useState<any[]>([]);
+  const [noteReqForm, setNoteReqForm] = useState({ childId: '', teacherId: '', courseId: '', message: '' });
+  const [noteReqSaving, setNoteReqSaving] = useState(false);
+  const [noteReqFlash, setNoteReqFlash] = useState('');
+
+  useEffect(() => {
+    if (!user?.id || !institutionId) return;
+    // Load performance notes for this parent (RLS handles filtering)
+    supabase.from('ct_performance_notes')
+      .select('*, ct_courses(name), teacher:ct_users!teacher_id(full_name), student:ct_users!student_id(full_name)')
+      .eq('send_to_parent', true).eq('is_sent', true)
+      .order('sent_at', { ascending: false }).limit(20)
+      .then(({ data: notes }) => setPerfNotes(notes || []));
+    // Load teachers for request form
+    supabase.from('ct_users').select('id, full_name').eq('institution_id', institutionId).eq('role', 'teacher').limit(50)
+      .then(({ data: teachers }) => setNoteTeachers(teachers || []));
+  }, [user?.id, institutionId]);
+
+  const submitNoteRequest = async () => {
+    if (!user?.id || !institutionId || !noteReqForm.childId || !noteReqForm.teacherId) return;
+    setNoteReqSaving(true);
+    const { error } = await supabase.from('ct_note_requests').insert({
+      institution_id: institutionId,
+      parent_id: user.id,
+      student_id: noteReqForm.childId,
+      teacher_id: noteReqForm.teacherId,
+      course_id: noteReqForm.courseId || null,
+      request_message: noteReqForm.message || null,
+    });
+    setNoteReqSaving(false);
+    if (!error) {
+      setNoteReqForm({ childId: '', teacherId: '', courseId: '', message: '' });
+      setNoteReqFlash('Request sent!');
+      setTimeout(() => setNoteReqFlash(''), 3000);
+    }
+  };
 
   const selectedSurvey = useMemo(() => data.surveys.find((survey: Survey) => survey.id === selectedSurveyId) || data.surveys[0] || null, [data.surveys, selectedSurveyId]);
   const selectedSurveyQuestions = useMemo(() => data.questions.filter((question: SurveyQuestion) => question.survey_id === selectedSurvey?.id), [data.questions, selectedSurvey]);
@@ -217,6 +254,63 @@ React.useEffect(() => {
             </div>
           ))}
         </Card>
+
+        {/* Performance Notes */}
+        <div id="performance-notes" className="space-y-6 scroll-mt-24 mt-6">
+          <h2 className="font-lexend text-xl font-900 text-on-surface">Performance Notes</h2>
+          <div className="grid lg:grid-cols-2 gap-6">
+            <Card>
+              <h3 className="mb-4 font-lexend text-lg font-800 text-on-surface">Notes from Teachers</h3>
+              {perfNotes.length === 0 ? (
+                <p className="text-sm text-on-surface-variant">No performance notes shared yet.</p>
+              ) : (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {perfNotes.map((note) => (
+                    <div key={note.id} className="rounded-[1rem] bg-surface p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-jakarta font-700 text-sm text-on-surface">{note.title}</p>
+                        <span className="text-xs bg-secondary/20 text-secondary px-2 py-0.5 rounded-full">{note.note_type}</span>
+                      </div>
+                      <p className="text-xs text-on-surface-variant mt-0.5">
+                        {(note as any).teacher?.full_name} → {(note as any).student?.full_name} · {note.sent_at ? new Date(note.sent_at).toLocaleDateString() : ''}
+                      </p>
+                      <p className="mt-2 text-sm text-on-surface">{note.content}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            <Card>
+              <h3 className="mb-4 font-lexend text-lg font-800 text-on-surface">Request a Note from Teacher</h3>
+              {noteReqFlash && <div className="mb-3 rounded-[1rem] bg-primary/10 p-3 text-sm text-primary">{noteReqFlash}</div>}
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Child</label>
+                  <select value={noteReqForm.childId} onChange={(e) => setNoteReqForm((f) => ({ ...f, childId: e.target.value }))} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm">
+                    <option value="">Select child…</option>
+                    {data.children.map((c: any) => <option key={c.id} value={c.id}>{c.full_name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Teacher</label>
+                  <select value={noteReqForm.teacherId} onChange={(e) => setNoteReqForm((f) => ({ ...f, teacherId: e.target.value }))} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm">
+                    <option value="">Select teacher…</option>
+                    {noteTeachers.map((t) => <option key={t.id} value={t.id}>{t.full_name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Message (optional)</label>
+                  <textarea value={noteReqForm.message} onChange={(e) => setNoteReqForm((f) => ({ ...f, message: e.target.value }))} rows={3} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-3 text-sm" placeholder="Please share a mid-term progress update…" />
+                </div>
+                <Button onClick={submitNoteRequest} className="w-full rounded-full" disabled={noteReqSaving || !noteReqForm.childId || !noteReqForm.teacherId}>
+                  {noteReqSaving ? 'Sending…' : 'Send Request'}
+                </Button>
+              </div>
+            </Card>
+          </div>
+        </div>
+
       </div>
     </DashboardLayout>
   );

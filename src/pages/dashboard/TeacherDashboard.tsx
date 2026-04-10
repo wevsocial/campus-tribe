@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Download } from 'lucide-react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card } from '../../components/ui/Card';
@@ -81,6 +81,78 @@ export default function TeacherDashboard() {
   const [selectedSurveyId, setSelectedSurveyId] = useState('');
   const [responseValues, setResponseValues] = useState<Record<string, any>>({});
   const [flash, setFlash] = useState('');
+
+  // Performance Notes state
+  const [noteStudents, setNoteStudents] = useState<any[]>([]);
+  const [sentNotes, setSentNotes] = useState<any[]>([]);
+  const [parentRequests, setParentRequests] = useState<any[]>([]);
+  const [noteForm, setNoteForm] = useState({ courseId: '', studentId: '', noteType: 'general', title: '', content: '', sendToStudent: true, sendToParent: false });
+  const [noteSaving, setNoteSaving] = useState(false);
+  const [noteFlash, setNoteFlash] = useState('');
+
+  useEffect(() => {
+    if (!institutionId || !user?.id) return;
+    // Load students for note form
+    supabase.from('ct_users').select('id, full_name, email').eq('institution_id', institutionId).eq('role', 'student').limit(100)
+      .then(({ data }) => setNoteStudents(data || []));
+    // Load sent notes
+    supabase.from('ct_performance_notes').select('*, ct_courses(name), student:ct_users!student_id(full_name)').eq('teacher_id', user.id).eq('is_sent', true).order('sent_at', { ascending: false }).limit(20)
+      .then(({ data }) => setSentNotes(data || []));
+    // Load parent requests
+    supabase.from('ct_note_requests').select('*, parent:ct_users!parent_id(full_name), student:ct_users!student_id(full_name), ct_courses(name)').eq('teacher_id', user.id).order('created_at', { ascending: false }).limit(20)
+      .then(({ data }) => setParentRequests(data || []));
+  }, [institutionId, user?.id]);
+
+  const saveAndSendNote = async () => {
+    if (!user?.id || !institutionId || !noteForm.studentId || !noteForm.title || !noteForm.content) return;
+    setNoteSaving(true);
+    const { data: note, error } = await supabase.from('ct_performance_notes').insert({
+      institution_id: institutionId,
+      teacher_id: user.id,
+      student_id: noteForm.studentId,
+      course_id: noteForm.courseId || null,
+      title: noteForm.title,
+      content: noteForm.content,
+      note_type: noteForm.noteType,
+      send_to_student: noteForm.sendToStudent,
+      send_to_parent: noteForm.sendToParent,
+      is_sent: true,
+      sent_at: new Date().toISOString(),
+    }).select('*, ct_courses(name), student:ct_users!student_id(full_name)').single();
+    setNoteSaving(false);
+    if (!error && note) {
+      setSentNotes((prev) => [note, ...prev]);
+      setNoteForm({ courseId: '', studentId: '', noteType: 'general', title: '', content: '', sendToStudent: true, sendToParent: false });
+      setNoteFlash('Note sent!');
+      setTimeout(() => setNoteFlash(''), 3000);
+    }
+  };
+
+  const fulfillRequest = async (req: any) => {
+    await supabase.from('ct_note_requests').update({ status: 'fulfilled' }).eq('id', req.id);
+    // Create a note for this student/parent
+    if (user?.id && institutionId) {
+      await supabase.from('ct_performance_notes').insert({
+        institution_id: institutionId,
+        teacher_id: user.id,
+        student_id: req.student_id,
+        course_id: req.course_id || null,
+        title: 'Response to parent request',
+        content: req.request_message || 'Performance update as requested.',
+        note_type: 'general',
+        send_to_student: false,
+        send_to_parent: true,
+        is_sent: true,
+        sent_at: new Date().toISOString(),
+      });
+    }
+    setParentRequests((prev) => prev.map((r) => r.id === req.id ? { ...r, status: 'fulfilled' } : r));
+  };
+
+  const declineRequest = async (reqId: string) => {
+    await supabase.from('ct_note_requests').update({ status: 'declined' }).eq('id', reqId);
+    setParentRequests((prev) => prev.map((r) => r.id === reqId ? { ...r, status: 'declined' } : r));
+  };
 
   const selectedSurvey = useMemo(() => data.publishedSurveys.find((survey: Survey) => survey.id === selectedSurveyId) || data.surveys.find((survey: Survey) => survey.id === selectedSurveyId) || data.surveys[0] || null, [data.publishedSurveys, data.surveys, selectedSurveyId]);
   const selectedQuestions = useMemo(() => data.questions.filter((question: SurveyQuestion) => question.survey_id === selectedSurvey?.id).sort((a: SurveyQuestion, b: SurveyQuestion) => a.position - b.position), [data.questions, selectedSurvey]);
@@ -495,7 +567,94 @@ React.useEffect(() => {
             )}
           </Card>
         </div>
-      </div>
+
+        {/* Performance Notes Section */}
+        <div id="notes" className="space-y-6 scroll-mt-24">
+          <h2 className="font-lexend text-xl font-900 text-on-surface">Performance Notes</h2>
+          <div className="grid lg:grid-cols-2 gap-6">
+            <Card>
+              <h3 className="mb-4 font-lexend text-lg font-800 text-on-surface">Create & Send Note</h3>
+              {noteFlash && <div className="mb-3 rounded-[1rem] bg-primary/10 p-3 text-sm text-primary">{noteFlash}</div>}
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Student</label>
+                  <select value={noteForm.studentId} onChange={(e) => setNoteForm((f) => ({ ...f, studentId: e.target.value }))} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm">
+                    <option value="">Select student…</option>
+                    {noteStudents.map((s) => <option key={s.id} value={s.id}>{s.full_name || s.email}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Course (optional)</label>
+                  <select value={noteForm.courseId} onChange={(e) => setNoteForm((f) => ({ ...f, courseId: e.target.value }))} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm">
+                    <option value="">No specific course</option>
+                    {data.classes.map((klass: any) => <option key={klass.id} value={klass.course_id}>{klass.ct_courses?.code} · {klass.ct_courses?.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Note type</label>
+                  <select value={noteForm.noteType} onChange={(e) => setNoteForm((f) => ({ ...f, noteType: e.target.value }))} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm">
+                    {['general', 'weekly', 'monthly', 'midterm', 'completion'].map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <Input label="Title" value={noteForm.title} onChange={(e) => setNoteForm((f) => ({ ...f, title: e.target.value }))} placeholder="Week 3 progress update" />
+                <div>
+                  <label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Content</label>
+                  <textarea value={noteForm.content} onChange={(e) => setNoteForm((f) => ({ ...f, content: e.target.value }))} rows={4} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-3 text-sm" placeholder="Write your performance notes here…" />
+                </div>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 text-sm font-jakarta font-700 text-on-surface cursor-pointer">
+                    <input type="checkbox" checked={noteForm.sendToStudent} onChange={(e) => setNoteForm((f) => ({ ...f, sendToStudent: e.target.checked }))} className="rounded" /> Send to student
+                  </label>
+                  <label className="flex items-center gap-2 text-sm font-jakarta font-700 text-on-surface cursor-pointer">
+                    <input type="checkbox" checked={noteForm.sendToParent} onChange={(e) => setNoteForm((f) => ({ ...f, sendToParent: e.target.checked }))} className="rounded" /> Send to parent
+                  </label>
+                </div>
+                <Button onClick={saveAndSendNote} className="w-full rounded-full" disabled={noteSaving || !noteForm.studentId || !noteForm.title || !noteForm.content}>
+                  {noteSaving ? 'Sending…' : 'Save & Send'}
+                </Button>
+              </div>
+            </Card>
+
+            <div className="space-y-4">
+              <Card>
+                <h3 className="mb-3 font-lexend text-lg font-800 text-on-surface">Notes Sent ({sentNotes.length})</h3>
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {sentNotes.length === 0 ? <p className="text-sm text-on-surface-variant">No notes sent yet.</p> : sentNotes.map((n) => (
+                    <div key={n.id} className="rounded-[1rem] bg-surface p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-jakarta font-700 text-sm text-on-surface">{n.title}</p>
+                        <span className="text-xs bg-secondary/20 text-secondary px-2 py-0.5 rounded-full">{n.note_type}</span>
+                      </div>
+                      <p className="text-xs text-on-surface-variant mt-1">{(n as any).student?.full_name} · {(n as any).ct_courses?.name || 'General'} · {n.sent_at ? new Date(n.sent_at).toLocaleDateString() : ''}</p>
+                      {n.send_to_parent && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full mt-1 inline-block">Shared with parent</span>}
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              <Card>
+                <h3 className="mb-3 font-lexend text-lg font-800 text-on-surface">Parent Requests ({parentRequests.filter((r) => r.status === 'pending').length} pending)</h3>
+                <div className="space-y-2 max-h-80 overflow-y-auto">
+                  {parentRequests.length === 0 ? <p className="text-sm text-on-surface-variant">No requests from parents.</p> : parentRequests.map((req) => (
+                    <div key={req.id} className="rounded-[1rem] bg-surface p-3">
+                      <p className="font-jakarta font-700 text-sm text-on-surface">{(req as any).parent?.full_name} → {(req as any).student?.full_name}</p>
+                      {req.request_message && <p className="text-xs text-on-surface-variant mt-1">"{req.request_message}"</p>}
+                      <div className="flex gap-2 mt-2">
+                        <Badge label={req.status} variant={req.status === 'pending' ? 'secondary' : req.status === 'fulfilled' ? 'tertiary' : 'neutral'} />
+                        {req.status === 'pending' && <>
+                          <Button size="sm" className="rounded-full" onClick={() => fulfillRequest(req)}>Fulfill</Button>
+                          <Button size="sm" variant="outline" className="rounded-full" onClick={() => declineRequest(req.id)}>Decline</Button>
+                        </>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          </div>
+        </div>
+
+    </div>
     </DashboardLayout>
   );
 }

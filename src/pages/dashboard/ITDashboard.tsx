@@ -67,6 +67,37 @@ export default function ITDashboard() {
   }, []);
   const [search, setSearch] = useState('');
   const [apiName, setApiName] = useState('');
+  const [editingRole, setEditingRole] = useState<Record<string, string>>({});
+  const [editingAthlete, setEditingAthlete] = useState<Record<string, boolean>>({});
+  const [roleFlash, setRoleFlash] = useState<Record<string, string>>({});
+
+  const ALL_ROLES = ['student', 'student_rep', 'teacher', 'club_leader', 'coach', 'it_director', 'staff', 'admin', 'parent', 'athlete'];
+
+  const saveUserRole = async (userId: string, currentRoles: string[] | null) => {
+    const newRole = editingRole[userId];
+    if (!newRole || !user?.id) return;
+    const isAthlete = editingAthlete[userId] ?? false;
+    const baseRoles = (currentRoles || []).filter((r: string) => r !== 'athlete');
+    const newRoles = isAthlete ? [...new Set([...baseRoles, newRole, 'athlete'])] : [...new Set([...baseRoles, newRole])];
+    const { error } = await supabase.from('ct_users').update({ role: newRole, roles: newRoles }).eq('id', userId);
+    if (!error) {
+      setData((prev: any) => ({
+        ...prev,
+        users: prev.users.map((u: any) => u.id === userId ? { ...u, role: newRole, roles: newRoles } : u),
+      }));
+      setRoleFlash((f) => ({ ...f, [userId]: 'Saved!' }));
+      setTimeout(() => setRoleFlash((f) => { const n = { ...f }; delete n[userId]; return n; }), 2500);
+      // Audit log
+      await supabase.from('ct_audit_logs').insert({
+        institution_id: institutionId,
+        actor_id: user.id,
+        action: 'role_update',
+        target_type: 'ct_users',
+        target_id: userId,
+        metadata: { new_role: newRole, new_roles: newRoles },
+      });
+    }
+  };
   const [integrationMessage, setIntegrationMessage] = useState<Record<string, string>>({});
   const [lmsConfigs, setLmsConfigs] = useState<Record<string, { apiKey: string; baseUrl: string; lastSync: string | null; courseCount: number }>>({
     canvas: { apiKey: '', baseUrl: 'https://canvas.instructure.com', lastSync: null, courseCount: 0 },
@@ -116,7 +147,7 @@ export default function ITDashboard() {
 
   const { data, setData } = useDashboardData(async ({ institutionId }) => {
     const [usersRes, apiKeysRes, auditRes, announcementsRes] = await Promise.all([
-      supabase.from('ct_users').select('id, full_name, email, role, institution_type, is_active, created_at').eq('institution_id', institutionId).order('created_at', { ascending: false }),
+      supabase.from('ct_users').select('id, full_name, email, role, roles, institution_type, is_active, created_at').eq('institution_id', institutionId).order('created_at', { ascending: false }),
       supabase.from('ct_api_keys').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }),
       supabase.from('ct_audit_logs').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(30),
       supabase.from('ct_announcements').select('id, title, created_at').eq('institution_id', institutionId).order('created_at', { ascending: false }).limit(10),
@@ -215,12 +246,39 @@ export default function ITDashboard() {
             </div>
             <div className="space-y-3">
               {filteredUsers.length === 0 ? <p className="text-sm text-on-surface-variant">No users found for this search.</p> : filteredUsers.map((entry: any) => (
-                <div key={entry.id} className="rounded-[1rem] bg-surface p-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <p className="font-jakarta font-700 text-on-surface">{entry.full_name || entry.email}</p>
-                    <p className="text-sm text-on-surface-variant">{entry.email} · {entry.role} · {entry.institution_type || 'platform pending'}</p>
+                <div key={entry.id} className="rounded-[1rem] bg-surface p-4 flex flex-col gap-3">
+                  <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="font-jakarta font-700 text-on-surface">{entry.full_name || entry.email}</p>
+                      <p className="text-sm text-on-surface-variant">{entry.email} · {entry.institution_type || 'platform pending'}</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {(entry.roles || [entry.role]).filter(Boolean).map((r: string) => (
+                          <span key={r} className="inline-block bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">{r}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <Badge label={entry.is_active === false ? 'inactive' : 'active'} variant={entry.is_active === false ? 'neutral' : 'tertiary'} />
                   </div>
-                  <Badge label={entry.is_active === false ? 'inactive' : 'active'} variant={entry.is_active === false ? 'neutral' : 'tertiary'} />
+                  <div className="flex flex-col gap-2 md:flex-row md:items-center">
+                    <select
+                      value={editingRole[entry.id] ?? entry.role ?? 'student'}
+                      onChange={(e) => setEditingRole((prev) => ({ ...prev, [entry.id]: e.target.value }))}
+                      className="rounded-xl border border-outline-variant bg-surface-lowest px-3 py-2 text-sm"
+                    >
+                      {ALL_ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                    <label className="flex items-center gap-2 text-sm font-jakarta font-700 text-on-surface cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editingAthlete[entry.id] ?? (entry.roles || []).includes('athlete')}
+                        onChange={(e) => setEditingAthlete((prev) => ({ ...prev, [entry.id]: e.target.checked }))}
+                        className="rounded"
+                      />
+                      Also athlete
+                    </label>
+                    <Button size="sm" className="rounded-full" onClick={() => saveUserRole(entry.id, entry.roles)}>Save</Button>
+                    {roleFlash[entry.id] && <span className="text-sm text-primary">{roleFlash[entry.id]}</span>}
+                  </div>
                 </div>
               ))}
             </div>

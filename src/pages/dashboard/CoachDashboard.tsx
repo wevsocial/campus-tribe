@@ -222,6 +222,10 @@ export default function CoachDashboard() {
       is_free_agent: !athleteTeamId,
     }).select('*').single();
     if (participant) {
+      // Also update ct_users with athlete status and coach/team info
+      await supabase.from('ct_users')
+        .update({ is_athlete: true, athlete_coach_id: user!.id, athlete_team_id: athleteTeamId || null })
+        .eq('id', athleteUserId);
       setData((c) => ({ ...c, participants: [participant as Participant, ...c.participants] }));
       setAthleteUserId(''); setAthleteLeagueId(''); setAthleteTeamId('');
       setMessage('Athlete registered.');

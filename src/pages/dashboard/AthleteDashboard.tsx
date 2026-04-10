@@ -92,14 +92,24 @@ export default function AthleteDashboard() {
 
       if (ap) {
         setAthleteProfile(ap);
-        setWaiverSigned(ap.is_athlete === true);
+
+        // Check waiver from ct_sport_participants first
+        const { data: myParticipations } = await supabase
+          .from('ct_sport_participants')
+          .select('id, team_id, league_id, is_free_agent, waiver_signed')
+          .eq('user_id', user!.id)
+          .limit(1);
+
+        const myPart = myParticipations?.[0];
+        setWaiverSigned(myPart?.waiver_signed === true || ap.is_athlete === true);
 
         // Load team info
-        if (ap.athlete_team_id) {
+        const teamIdToUse = myPart?.team_id || ap.athlete_team_id;
+        if (teamIdToUse) {
           const { data: team } = await supabase
             .from('ct_sports_teams')
             .select('id, name')
-            .eq('id', ap.athlete_team_id)
+            .eq('id', teamIdToUse)
             .maybeSingle();
           if (team) setTeamName(team.name || '');
 
@@ -107,7 +117,7 @@ export default function AthleteDashboard() {
           const { data: participants } = await supabase
             .from('ct_sport_participants')
             .select('user_id')
-            .eq('team_id', ap.athlete_team_id)
+            .eq('team_id', teamIdToUse)
             .limit(10);
 
           if (participants?.length) {
@@ -123,7 +133,7 @@ export default function AthleteDashboard() {
           const { data: upcomingGames } = await supabase
             .from('ct_sports_games')
             .select('id, home_team_name, away_team_name, scheduled_at, location, status')
-            .or(`home_team_id.eq.${ap.athlete_team_id},away_team_id.eq.${ap.athlete_team_id}`)
+            .or(`home_team_id.eq.${teamIdToUse},away_team_id.eq.${teamIdToUse}`)
             .gte('scheduled_at', new Date().toISOString())
             .order('scheduled_at', { ascending: true })
             .limit(3);
@@ -173,6 +183,11 @@ export default function AthleteDashboard() {
         .from('ct_users')
         .update({ is_athlete: true })
         .eq('id', user.id);
+      // Also update ct_sport_participants
+      await supabase
+        .from('ct_sport_participants')
+        .update({ waiver_signed: true })
+        .eq('user_id', user.id);
       setWaiverSigned(true);
     } finally {
       setWaiverSubmitting(false);
