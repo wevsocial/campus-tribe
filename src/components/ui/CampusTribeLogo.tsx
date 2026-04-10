@@ -1,7 +1,7 @@
 /**
- * CampusTribeLogo — The official Campus Tribe Ct mark in a circular frame.
- * Matches the actual brand logo: orange Ct monogram on blue circle.
- * Includes Y-axis flip animation when used as favicon (controlled by CSS).
+ * CampusTribeLogo — Official Campus Tribe brand mark.
+ * White circle background with orange "Ct" monogram and orange border ring.
+ * Supports Y-axis rotation animation (GSAP-style ease via CSS @keyframes).
  */
 export default function CampusTribeLogo({
   className = 'w-8 h-8',
@@ -12,63 +12,57 @@ export default function CampusTribeLogo({
   showText?: boolean;
   animated?: boolean;
 }) {
-  const animStyle = animated
-    ? {
-        animation: 'ct-flipY 3s ease-in-out infinite',
-        transformOrigin: '50px 50px',
-        transformBox: 'fill-box' as const,
-      }
-    : {};
-
   return (
     <span className="inline-flex items-center gap-2.5">
       {animated && (
         <style>{`
           @keyframes ct-flipY {
-            0%,32%  { transform: rotateY(0deg); }
-            52%     { transform: rotateY(180deg); }
-            88%,100%{ transform: rotateY(360deg); }
+            0%,30%  { transform: perspective(200px) rotateY(0deg); }
+            50%     { transform: perspective(200px) rotateY(180deg); }
+            70%,100%{ transform: perspective(200px) rotateY(360deg); }
+          }
+          .ct-logo-animated {
+            animation: ct-flipY 3s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+            transform-origin: center center;
+            transform-box: fill-box;
+            display: inline-block;
           }
         `}</style>
       )}
-      <svg
-        className={className}
-        viewBox="0 0 100 100"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <clipPath id="ct-logo-clip">
-            <circle cx="50" cy="50" r="49" />
-          </clipPath>
-        </defs>
+      <span className={animated ? 'ct-logo-animated' : undefined} style={{ display: 'inline-flex' }}>
+        <svg
+          className={className}
+          viewBox="0 0 100 100"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-label="Campus Tribe logo"
+        >
+          {/* White circle background */}
+          <circle cx="50" cy="50" r="50" fill="#ffffff" />
+          {/* Orange border ring */}
+          <circle cx="50" cy="50" r="47" fill="none" stroke="#f97316" strokeWidth="5" />
 
-        {/* Blue circular background */}
-        <circle cx="50" cy="50" r="50" fill="#1a56db" />
+          {/* C shape — arc open on right */}
+          <path
+            d="M50 18 A32 32 0 1 0 50 82 L50 71 A21 21 0 1 1 50 29 Z"
+            fill="#f97316"
+          />
+          {/* White mask to cut the right opening of C */}
+          <polygon
+            points="50,18 84,40 84,60 50,82 50,71 76,60 76,40 50,29"
+            fill="#ffffff"
+          />
 
-        <g clipPath="url(#ct-logo-clip)">
-          <g style={animStyle}>
-            {/* C ring arc — opens on right side */}
-            <path
-              d="M50 14 A36 36 0 1 0 50 86 L50 76 A26 26 0 1 1 50 24 Z"
-              fill="#f97316"
-            />
-            {/* Blue mask cutting right opening of C */}
-            <polygon
-              points="50,14 86,38 86,62 50,86 50,76 78,62 78,38 50,24"
-              fill="#1a56db"
-            />
-            {/* t vertical stem */}
-            <rect x="56" y="25" width="10" height="48" rx="2.5" fill="#f97316" />
-            {/* t crossbar */}
-            <rect x="49" y="37" width="22" height="10" rx="2.5" fill="#f97316" />
-          </g>
-        </g>
-      </svg>
+          {/* t — vertical stem */}
+          <rect x="57" y="26" width="10" height="47" rx="3" fill="#f97316" />
+          {/* t — crossbar */}
+          <rect x="50" y="37" width="22" height="10" rx="3" fill="#f97316" />
+        </svg>
+      </span>
       {showText && (
-        <span className="font-lexend font-black tracking-tight leading-none">
-          <span className="text-primary">Campus</span>
-          <span className="text-orange-500">Tribe</span>
+        <span className="font-lexend font-black italic tracking-tight leading-none">
+          <span style={{ color: '#1a56db' }}>Campus</span>
+          <span style={{ color: '#f97316' }}> Tribe</span>
         </span>
       )}
     </span>

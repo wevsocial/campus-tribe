@@ -18,7 +18,8 @@ type Role =
   | 'club_leader'
   | 'student_rep'
   | 'parent'
-  | 'staff';
+  | 'staff'
+  | 'athlete';
 
 interface NavItem {
   label: string;
@@ -89,6 +90,12 @@ const navConfig: Record<Role, NavItem[]> = {
     { label: 'Reports', path: '/dashboard/staff/reports', icon: <FileText size={18} /> },
     { label: 'Updates', path: '/dashboard/staff/updates', icon: <Bell size={18} /> },
   ],
+  athlete: [
+    { label: 'Overview', path: '/dashboard/athlete', icon: <LayoutDashboard size={18} /> },
+    { label: 'My Team', path: '/dashboard/athlete#team', icon: <Users size={18} /> },
+    { label: 'Schedule', path: '/dashboard/athlete#schedule', icon: <CalendarDays size={18} /> },
+    { label: 'Training', path: '/dashboard/athlete#training', icon: <Trophy size={18} /> },
+  ],
 };
 
 const roleLabels: Record<Role, string> = {
@@ -101,6 +108,7 @@ const roleLabels: Record<Role, string> = {
   student_rep: 'Student Rep',
   parent: 'Parent',
   staff: 'Staff',
+  athlete: 'Student Athlete',
 };
 
 interface DashboardShellProps {
@@ -131,11 +139,8 @@ export default function DashboardShell({ role }: DashboardShellProps) {
       <aside className="hidden lg:flex flex-col w-64 bg-surface-lowest fixed top-0 left-0 h-full z-30 shadow-float">
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-outline-variant/30">
-          <CampusTribeLogo className="w-8 h-8" />
-          <div>
-            <p className="font-lexend font-900 text-on-surface text-sm">Campus<span className="text-orange-500">Tribe</span></p>
-            <p className="text-xs font-jakarta text-on-surface-variant">{roleLabels[role]}</p>
-          </div>
+          <CampusTribeLogo className="w-8 h-8" animated={true} showText={true} />
+          <p className="text-xs font-jakarta text-on-surface-variant">{roleLabels[role]}</p>
         </div>
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 overflow-y-auto">
@@ -185,11 +190,8 @@ export default function DashboardShell({ role }: DashboardShellProps) {
         <button onClick={() => setMobileOpen(!mobileOpen)} className="p-1">
           <Menu size={22} className="text-on-surface" />
         </button>
-        <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-          <CampusTribeLogo className="w-6 h-6" />
-        </div>
-        <p className="font-lexend font-900 text-on-surface text-sm flex-1">Campus<span className="text-orange-500">Tribe</span></p>
-        <div className="w-7 h-7 rounded-full bg-primary-container flex items-center justify-center">
+        <CampusTribeLogo className="w-7 h-7" animated={true} showText={true} />
+        <div className="w-7 h-7 rounded-full bg-primary-container flex items-center justify-center ml-auto">
           <span className="text-primary text-xs font-jakarta font-900">{initials}</span>
         </div>
       </div>
@@ -200,10 +202,8 @@ export default function DashboardShell({ role }: DashboardShellProps) {
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
           <aside className="absolute left-0 top-0 bottom-0 w-64 bg-surface-lowest shadow-xl flex flex-col">
             <div className="flex items-center gap-3 px-6 py-5 border-b border-outline-variant/30">
-              <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
-                <span className="text-white text-xs font-lexend font-900">CT</span>
-              </div>
-              <p className="font-lexend font-900 text-on-surface text-sm">{roleLabels[role]}</p>
+              <CampusTribeLogo className="w-8 h-8" animated={true} showText={true} />
+              <p className="text-xs font-jakarta text-on-surface-variant">{roleLabels[role]}</p>
             </div>
             <nav className="flex-1 px-3 py-4 overflow-y-auto">
               <ul className="space-y-1">

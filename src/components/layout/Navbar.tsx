@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import { Menu, X, ChevronDown } from 'lucide-react';
+import CampusTribeLogo from '../ui/CampusTribeLogo';
 
 export const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -13,8 +14,8 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <span className="font-lexend font-900 italic text-xl text-primary">Campus Tribe</span>
-          <span className="text-xs font-jakarta font-700 text-white bg-secondary px-2 py-0.5 rounded-full">by WevSocial</span>
+          <CampusTribeLogo className="w-9 h-9" animated={true} showText={true} />
+          <span className="text-xs font-jakarta font-700 text-white bg-secondary px-2 py-0.5 rounded-full hidden sm:inline">by WevSocial</span>
         </Link>
 
         {!isDashboard && (

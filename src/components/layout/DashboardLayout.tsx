@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../dashboard/NotificationBell';
+import CampusTribeLogo from '../ui/CampusTribeLogo';
 
 const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; hash: string }[]> = {
   student: [
@@ -81,6 +82,12 @@ const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; has
     { label: 'Messages', icon: <Bell size={18} />, hash: 'messages' },
     { label: 'Events', icon: <Calendar size={18} />, hash: 'events' },
   ],
+  athlete: [
+    { label: 'Overview', icon: <LayoutDashboard size={18} />, hash: '' },
+    { label: 'My Team', icon: <Users size={18} />, hash: 'team' },
+    { label: 'Schedule', icon: <Calendar size={18} />, hash: 'schedule' },
+    { label: 'Training', icon: <Trophy size={18} />, hash: 'training' },
+  ],
 };
 
 const roleBadge: Record<UserRole, string> = {
@@ -93,6 +100,7 @@ const roleBadge: Record<UserRole, string> = {
   it_director: 'bg-surface-container-high text-on-surface',
   teacher: 'bg-primary-container text-primary',
   parent: 'bg-tertiary-container text-tertiary',
+  athlete: 'bg-tertiary-container text-tertiary',
 };
 
 const roleLabel: Record<UserRole, string> = {
@@ -105,6 +113,7 @@ const roleLabel: Record<UserRole, string> = {
   it_director: 'IT Director',
   teacher: 'Teacher',
   parent: 'Parent',
+  athlete: 'Student Athlete',
 };
 
 interface DashboardLayoutProps {
@@ -175,7 +184,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
         {/* Brand */}
         <div className="flex items-center justify-between px-5 py-5 bg-surface border-b border-surface-container-low">
           <div>
-            <span className="font-lexend font-900 italic text-xl text-primary">Campus Tribe</span>
+            <CampusTribeLogo className="w-9 h-9" animated={true} showText={true} />
             <div className={clsx('mt-2 inline-flex px-2 py-0.5 rounded-full text-xs font-jakarta font-700', roleBadge[role])}>
               {roleLabel[role]}
             </div>
@@ -251,7 +260,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             >
               <Menu size={20} />
             </button>
-            <span className="font-lexend font-900 italic text-primary lg:hidden">Campus Tribe</span>
+            <span className="font-lexend font-900 italic text-primary lg:hidden"><CampusTribeLogo className="w-7 h-7" animated={true} showText={true} /></span>
           </div>
           <NotificationBell />
         </div>

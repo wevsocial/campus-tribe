@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
-export type CampusRole = 'student' | 'student_rep' | 'admin' | 'coach' | 'club_leader' | 'staff' | 'it_director' | 'teacher' | 'parent';
+export type CampusRole = 'student' | 'student_rep' | 'admin' | 'coach' | 'club_leader' | 'staff' | 'it_director' | 'teacher' | 'parent' | 'athlete';
 
 export interface CampusProfile {
   id: string;
@@ -98,6 +98,8 @@ export function getRoleDashboardPath(role?: string | null) {
       return '/dashboard/admin';
     case 'parent':
       return '/dashboard/parent';
+    case 'athlete':
+      return '/dashboard/athlete';
     default:
       return '/dashboard/student';
   }

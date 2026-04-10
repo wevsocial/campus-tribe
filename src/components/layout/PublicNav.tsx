@@ -12,10 +12,7 @@ export default function PublicNav() {
     <nav className="fixed top-0 w-full z-50 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md shadow-sm">
       <div className="flex justify-between items-center px-8 h-20 max-w-full mx-auto">
         <Link to="/" className="flex items-center gap-2.5 group">
-          <CampusTribeLogo className="w-9 h-9 transition-transform group-hover:scale-105" />
-          <span className="text-xl font-black text-primary italic tracking-tighter font-headline">
-            Campus<span className="text-orange-500">Tribe</span>
-          </span>
+          <CampusTribeLogo className="w-9 h-9 transition-transform group-hover:scale-105" animated={true} showText={true} />
         </Link>
         <div className="hidden md:flex gap-8 items-center">
           <Link to="/university" className="text-slate-600 dark:text-slate-300 hover:text-primary font-headline tracking-tight font-medium transition-colors duration-200">University</Link>

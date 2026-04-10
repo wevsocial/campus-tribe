@@ -8,6 +8,7 @@ import {
   Backpack, Vote, BookOpen, Trophy, Monitor, UserCheck, Users,
 } from 'lucide-react';
 import { AnimatedIcon } from '../components/ui/AnimatedIcon';
+import CampusTribeLogo from '../components/ui/CampusTribeLogo';
 
 /* ── Platform / Role config ── */
 const PLATFORMS = [
@@ -23,7 +24,8 @@ const ROLES: Record<string, { id: string; label: string; desc: string }[]> = {
     { id: 'teacher',     label: 'Teacher / Faculty',    desc: 'Courses, surveys, room bookings' },
     { id: 'club_leader', label: 'Club Leader',           desc: 'Manage your club or org' },
     { id: 'coach',       label: 'Sports Coach',          desc: 'Leagues, teams, schedules' },
-    { id: 'it_director', label: 'IT Director',           desc: 'Platform config & security' },
+    { id: 'athlete',     label: 'Student Athlete',        desc: 'Sports teams, training schedules, coaches' },
+    { id: 'it_director', label: 'IT Director',            desc: 'Platform config & security' },
     { id: 'staff',       label: 'Staff Member',          desc: 'Daily operations & reports' },
     { id: 'admin',       label: 'Administrator',         desc: 'Full platform management' },
     { id: 'parent',      label: 'Parent / Guardian',    desc: 'Monitor campus life' },
@@ -36,6 +38,7 @@ const ROLES: Record<string, { id: string; label: string; desc: string }[]> = {
     { id: 'staff',       label: 'Staff Member',          desc: 'Operations & reports' },
     { id: 'club_leader', label: 'Club Leader',           desc: 'Lead student activities' },
     { id: 'coach',       label: 'Sports Coach',          desc: 'Teams & competitions' },
+    { id: 'athlete',     label: 'Student Athlete',        desc: 'Sports teams, training schedules, coaches' },
   ],
   preschool: [
     { id: 'parent',  label: 'Parent / Guardian', desc: 'Daily updates & reports' },
@@ -54,6 +57,7 @@ function getRoleIcon(roleId: string): LucideIcon {
     case 'teacher':     return BookOpen;
     case 'club_leader': return Trophy;
     case 'coach':       return Trophy;
+    case 'athlete':     return Trophy;
     case 'it_director': return Monitor;
     case 'staff':       return UserCheck;
     case 'admin':       return Building2;
@@ -204,8 +208,10 @@ const RegisterPage: React.FC = () => {
       {/* ── RIGHT: single-page form ── */}
       <div className="flex items-start justify-center bg-white dark:bg-slate-950 overflow-y-auto p-6 lg:p-10">
         <div className="w-full max-w-xl py-4">
-          {/* Mobile logo */}
-          <Link to="/" className="font-lexend font-black text-xl text-blue-700 lg:hidden block mb-6">Campus Tribe</Link>
+          {/* Mobile + desktop logo */}
+          <div className="mb-4 flex">
+            <CampusTribeLogo className="w-10 h-10" animated={true} showText={true} />
+          </div>
 
           <div className="mb-6">
             <h1 className="font-lexend font-black text-3xl text-gray-900 dark:text-white">Create your account</h1>

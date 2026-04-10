@@ -6,6 +6,7 @@ import { initializeGoogleButton } from '../lib/googleIdentity';
 import { AnimatedIcon } from '../components/ui/AnimatedIcon';
 import { supabase } from '../lib/supabase';
 import type { LucideIcon } from 'lucide-react';
+import CampusTribeLogo from '../components/ui/CampusTribeLogo';
 
 const PLATFORM_CARDS: { icon: LucideIcon; label: string; desc: string; iconBg: string }[] = [
   { icon: GraduationCap, label: 'University', desc: 'Students, faculty, clubs, sports, surveys, venue booking', iconBg: 'bg-primary' },
@@ -13,7 +14,7 @@ const PLATFORM_CARDS: { icon: LucideIcon; label: string; desc: string; iconBg: s
   { icon: Baby,          label: 'Preschool',  desc: 'Parents, teachers, staff, daily reports', iconBg: 'bg-tertiary' },
 ];
 
-const ALL_ROLES = ['Student', 'Student Rep', 'Teacher', 'Club Leader', 'Coach', 'IT Director', 'Staff', 'Admin', 'Parent'];
+const ALL_ROLES = ['Student', 'Student Rep', 'Teacher', 'Club Leader', 'Coach', 'Athlete', 'IT Director', 'Staff', 'Admin', 'Parent'];
 
 const STATS = [
   { val: '12K+', label: 'Students' },
@@ -27,6 +28,7 @@ const ROLE_META: Record<string, { label: string; description: string; icon: Luci
   teacher: { label: 'Teacher', description: 'Courses and student progress', icon: BookOpen },
   club_leader: { label: 'Club Leader', description: 'Members, budget and activities', icon: Award },
   coach: { label: 'Coach', description: 'Teams, leagues and schedules', icon: Trophy },
+  athlete: { label: 'Athlete', description: 'Teams, training and game schedules', icon: Trophy },
   it_director: { label: 'IT Director', description: 'Platform security and integrations', icon: Monitor },
   staff: { label: 'Staff', description: 'Operations and reports', icon: UserCheck },
   admin: { label: 'Admin', description: 'Institution-wide management', icon: Building2 },
@@ -281,8 +283,13 @@ const LoginPage: React.FC = () => {
       <div className="flex items-center justify-center p-8 bg-white dark:bg-slate-950">
         <div className="w-full max-w-md">
           <div className="mb-8">
-            <Link to="/" className="font-lexend font-900 text-xl text-primary lg:hidden">Campus Tribe</Link>
-            <h1 className="font-lexend font-900 text-4xl text-gray-900 dark:text-white mt-2 tracking-tight">Welcome back</h1>
+            <Link to="/" className="lg:hidden inline-flex mb-2">
+              <CampusTribeLogo className="w-10 h-10" animated={true} showText={true} />
+            </Link>
+            <div className="hidden lg:flex mb-4">
+              <CampusTribeLogo className="w-10 h-10" animated={true} showText={true} />
+            </div>
+            <h1 className="font-lexend font-black text-4xl text-gray-900 dark:text-white mt-2 tracking-tight">Welcome back</h1>
             <p className="text-gray-500 dark:text-slate-400 text-sm mt-2 font-jakarta">Sign in to your Campus Tribe account.</p>
           </div>
 
