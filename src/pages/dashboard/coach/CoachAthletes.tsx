@@ -32,16 +32,23 @@ export default function CoachAthletes() {
   useEffect(() => {
     if (!institutionId) return;
     Promise.all([
-      supabase.from('ct_sport_participants').select('*, user:ct_users(full_name, email, gender), team:ct_sports_teams(name)').eq('institution_id', institutionId),
+      supabase.from('ct_sport_participants').select('*').eq('institution_id', institutionId),
       supabase.from('ct_sports_teams').select('id,name,league_id').eq('institution_id', institutionId),
       supabase.from('ct_sports_leagues').select('id,name').eq('institution_id', institutionId),
-      supabase.from('ct_users').select('id,full_name,email').eq('institution_id', institutionId).in('role', ['student','athlete','student_rep']),
+      supabase.from('ct_users').select('id,full_name,email,gender,role').eq('institution_id', institutionId),
       supabase.from('ct_institutions').select('name').eq('id', institutionId).maybeSingle(),
-    ]).then(([a, t, l, s, inst]) => {
-      setAthletes((a.data as Athlete[]) ?? []);
-      setTeams((t.data as any[]) ?? []);
+    ]).then(([a, t, l, u, inst]) => {
+      const teamsData = (t.data as any[]) ?? [];
+      const usersData = (u.data as any[]) ?? [];
+      const mapped = ((a.data as any[]) ?? []).map(p => ({
+        ...p,
+        user: usersData.find(x => x.id === p.user_id) || null,
+        team: teamsData.find(x => x.id === p.team_id) ? { name: teamsData.find(x => x.id === p.team_id).name } : null,
+      }));
+      setAthletes(mapped as Athlete[]);
+      setTeams(teamsData);
       setLeagues((l.data as any[]) ?? []);
-      setStudents((s.data as any[]) ?? []);
+      setStudents(usersData.filter(x => ['student','athlete','student_rep'].includes(x.role)).map(x => ({ id:x.id, full_name:x.full_name, email:x.email })));
       if (inst.data?.name) setInstitutionName(inst.data.name);
       setLoading(false);
     });
@@ -88,8 +95,17 @@ export default function CoachAthletes() {
     };
     await supabase.from('ct_sport_participants').insert(payload);
     // reload quick
-    const { data } = await supabase.from('ct_sport_participants').select('*, user:ct_users(full_name, email, gender), team:ct_sports_teams(name)').eq('institution_id', institutionId);
-    setAthletes((data as Athlete[]) || []);
+    const [{ data: parts }, { data: usersData }, { data: teamsData }] = await Promise.all([
+      supabase.from('ct_sport_participants').select('*').eq('institution_id', institutionId),
+      supabase.from('ct_users').select('id,full_name,email,gender').eq('institution_id', institutionId),
+      supabase.from('ct_sports_teams').select('id,name').eq('institution_id', institutionId),
+    ]);
+    const mapped = ((parts as any[]) || []).map((p: any) => ({
+      ...p,
+      user: (usersData as any[] || []).find((u: any) => u.id === p.user_id) || null,
+      team: (teamsData as any[] || []).find((t: any) => t.id === p.team_id) ? { name: (teamsData as any[]).find((t: any) => t.id === p.team_id).name } : null,
+    }));
+    setAthletes(mapped as Athlete[]);
     setSelectedStudent('');
     setSelectedTeam('');
     setSelectedLeague('');
