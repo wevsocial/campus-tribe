@@ -11,6 +11,7 @@ import NotificationCenter from '../../components/ui/NotificationCenter';
 import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
 import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 import BillingSection from '../../components/billing/BillingSection';
+import PaywallOverlay from '../../components/billing/PaywallOverlay';
 
 interface Course { id: string; name: string; code: string; description: string | null; credits: number | null; }
 interface Assignment {
@@ -117,12 +118,12 @@ export default function TeacherPlatform() {
         <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6">
           <div className="hidden lg:flex justify-end mb-4"><NotificationCenter /></div>
           {activeSection === 'overview' && <TeacherOverview institutionId={institutionId} />}
-          {activeSection === 'courses' && <CoursesSection institutionId={institutionId} />}
-          {activeSection === 'assignments' && <AssignmentsSection institutionId={institutionId} userId={user?.id} />}
-          {activeSection === 'grades' && <GradesSection institutionId={institutionId} userId={user?.id} />}
-          {activeSection === 'students' && <StudentsSection institutionId={institutionId} />}
-          {activeSection === 'notes' && <PerformanceNotesSection institutionId={institutionId} userId={user?.id} />}
-          {activeSection === 'announcements' && <TeacherAnnouncements institutionId={institutionId} userId={user?.id} />}
+          {activeSection === 'courses' && <PaywallOverlay><CoursesSection institutionId={institutionId} /></PaywallOverlay>}
+          {activeSection === 'assignments' && <PaywallOverlay><AssignmentsSection institutionId={institutionId} userId={user?.id} /></PaywallOverlay>}
+          {activeSection === 'grades' && <PaywallOverlay><GradesSection institutionId={institutionId} userId={user?.id} /></PaywallOverlay>}
+          {activeSection === 'students' && <PaywallOverlay><StudentsSection institutionId={institutionId} /></PaywallOverlay>}
+          {activeSection === 'notes' && <PaywallOverlay><PerformanceNotesSection institutionId={institutionId} userId={user?.id} /></PaywallOverlay>}
+          {activeSection === 'announcements' && <PaywallOverlay><TeacherAnnouncements institutionId={institutionId} userId={user?.id} /></PaywallOverlay>}
           {activeSection === 'billing' && <BillingSection isAdmin={false} />}
           {activeSection === 'settings' && <SettingsSection profile={profile as unknown as Record<string, unknown> | null} userId={user?.id} institutionId={institutionId} />}
         </div>

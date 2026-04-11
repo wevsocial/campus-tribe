@@ -12,6 +12,7 @@ import { sendNotification } from '../../lib/notify';
 import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
 import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 import BillingSection from '../../components/billing/BillingSection';
+import PaywallOverlay from '../../components/billing/PaywallOverlay';
 
 export default function AdminITPlatform() {
   const { profile, user, institutionId, institution, role, signOut, needsPayment } = useAuth();
@@ -104,17 +105,17 @@ export default function AdminITPlatform() {
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6">
           <div className="hidden lg:flex justify-end mb-4"><NotificationCenter /></div>
           {activeSection === 'overview' && <AdminOverview institutionId={institutionId} />}
-          {activeSection === 'users' && <UsersSection institutionId={institutionId} currentUserId={user?.id} />}
-          {activeSection === 'clubs' && <ClubsSection institutionId={institutionId} />}
-          {activeSection === 'events' && <EventsSection institutionId={institutionId} userId={user?.id} />}
-          {activeSection === 'venues' && <VenuesSection institutionId={institutionId} />}
-          {activeSection === 'sports' && <SportsSection institutionId={institutionId} />}
-          {activeSection === 'surveys' && <SurveysSection institutionId={institutionId} userId={user?.id} />}
-          {activeSection === 'announcements' && <AnnouncementsSection institutionId={institutionId} userId={user?.id} />}
-          {activeSection === 'reports' && <ReportsSection institutionId={institutionId} />}
-          {activeSection === 'api-keys' && <ApiKeysSection institutionId={institutionId} />}
-          {activeSection === 'audit' && <AuditSection institutionId={institutionId} />}
-          {activeSection === 'integrations' && <IntegrationsSection institutionId={institutionId} />}
+          {activeSection === 'users' && <PaywallOverlay><UsersSection institutionId={institutionId} currentUserId={user?.id} /></PaywallOverlay>}
+          {activeSection === 'clubs' && <PaywallOverlay><ClubsSection institutionId={institutionId} /></PaywallOverlay>}
+          {activeSection === 'events' && <PaywallOverlay><EventsSection institutionId={institutionId} userId={user?.id} /></PaywallOverlay>}
+          {activeSection === 'venues' && <PaywallOverlay><VenuesSection institutionId={institutionId} /></PaywallOverlay>}
+          {activeSection === 'sports' && <PaywallOverlay><SportsSection institutionId={institutionId} /></PaywallOverlay>}
+          {activeSection === 'surveys' && <PaywallOverlay><SurveysSection institutionId={institutionId} userId={user?.id} /></PaywallOverlay>}
+          {activeSection === 'announcements' && <PaywallOverlay><AnnouncementsSection institutionId={institutionId} userId={user?.id} /></PaywallOverlay>}
+          {activeSection === 'reports' && <PaywallOverlay><ReportsSection institutionId={institutionId} /></PaywallOverlay>}
+          {activeSection === 'api-keys' && <PaywallOverlay><ApiKeysSection institutionId={institutionId} /></PaywallOverlay>}
+          {activeSection === 'audit' && <PaywallOverlay><AuditSection institutionId={institutionId} /></PaywallOverlay>}
+          {activeSection === 'integrations' && <PaywallOverlay><IntegrationsSection institutionId={institutionId} /></PaywallOverlay>}
           {activeSection === 'billing' && <BillingSection isAdmin={true} />}
           {activeSection === 'settings' && <SettingsSection institutionId={institutionId} />}
           {activeSection === 'profile' && <ProfileSection profile={profile as Record<string, unknown> | null} userId={user?.id} institutionId={institutionId} />}
