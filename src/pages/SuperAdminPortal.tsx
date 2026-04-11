@@ -87,7 +87,12 @@ export default function SuperAdminPortal() {
         .select('*')
         .order('total_users', { ascending: false });
 
-      setInstitutions((analytics || []) as Institution[]);
+      // The analytics view returns institution_id, map it to id
+      setInstitutions(((analytics || []) as any[]).map(i => ({
+        ...i,
+        id: i.institution_id || i.id,
+        name: i.institution_name || i.name,
+      })) as Institution[]);
 
       // Compute platform stats
       if (analytics) {
