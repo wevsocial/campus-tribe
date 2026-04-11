@@ -3,6 +3,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { supabase } from '../../../lib/supabase';
 import ProfilePhotoUpload from '../../../components/ui/ProfilePhotoUpload';
 import NotificationPrefsPanel from '../../../components/ui/NotificationPrefsPanel';
+import BillingSection from '../../../components/billing/BillingSection';
 
 export default function CoachSettings() {
   const { profile, user, institutionId, refreshProfile } = useAuth();
@@ -98,6 +99,8 @@ export default function CoachSettings() {
           <NotificationPrefsPanel userId={user.id} institutionId={institutionId} role="coach" />
         )}
       </div>
+
+      <BillingSection isAdmin={false} />
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-float border border-outline-variant/30">
         <h3 className="font-lexend font-700 text-on-surface mb-4">Change Password</h3>

@@ -43,6 +43,7 @@ import ApiDocumentationPage from './pages/static/ApiDocumentationPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { getRoleDashboardPath, useAuth } from './context/AuthContext';
 import DashboardShell from './components/layout/DashboardShell';
+import SuperAdminPortal from './pages/SuperAdminPortal';
 
 // New unified platforms
 import StudentPlatform from './pages/dashboard/StudentPlatform';
@@ -95,6 +96,9 @@ export default function App() {
         <Route path="/resources/api-documentation" element={<ApiDocumentationPage />} />
         <Route path="/resources/wellbeing" element={<WellbeingPage />} />
         <Route path="/resources/support" element={<SupportPage />} />
+
+        {/* Super Admin Portal */}
+        <Route path="/admin" element={<ProtectedRoute><SuperAdminPortal /></ProtectedRoute>} />
 
         {/* Dashboard root */}
         <Route path="/dashboard" element={<ProtectedRoute><DashboardRedirect /></ProtectedRoute>} />

@@ -21,7 +21,7 @@ interface Survey { id: string; title: string; description: string | null; status
 
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 export default function StudentPlatform() {
-  const { profile, roles, user, institutionId, signOut } = useAuth();
+  const { profile, roles, user, institutionId, institution, signOut } = useAuth();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('home');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -64,6 +64,9 @@ export default function StudentPlatform() {
         </div>
         <div>
           <p className="font-lexend font-900 text-white text-sm">Campus Tribe</p>
+          {institution?.name && (
+            <p className="text-[10px] font-jakarta text-white/80 truncate max-w-[140px]" title={institution.name}>{institution.short_name || institution.name}</p>
+          )}
           <p className="text-xs font-jakarta text-white/70">{roleLabel}</p>
         </div>
       </div>

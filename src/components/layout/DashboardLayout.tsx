@@ -5,7 +5,7 @@ import type { UserRole } from '../../types';
 import {
   LayoutDashboard, Compass, Calendar, Users, Trophy, Heart, User,
   BarChart2, Building2, Settings, Flag, List, Wallet, LogOut,
-  BookOpen, Menu, X, Bell,
+  BookOpen, Menu, X, Bell, CreditCard, ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../dashboard/NotificationBell';
@@ -121,7 +121,7 @@ interface DashboardLayoutProps {
 }
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
-  const { profile, signOut } = useAuth();
+  const { profile, institution, signOut, needsPayment } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -182,16 +182,25 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
         )}
       >
         {/* Brand */}
-        <div className="flex items-center justify-between px-5 py-5 bg-surface border-b border-surface-container-low">
-          <div>
-            <CampusTribeLogo className="w-9 h-9" animated={true} showText={true} />
-            <div className={clsx('mt-2 inline-flex px-2 py-0.5 rounded-full text-xs font-jakarta font-700', roleBadge[role])}>
+        <div className="flex items-center justify-between px-4 py-4 bg-surface border-b border-surface-container-low">
+          <div className="min-w-0 flex-1">
+            <CampusTribeLogo className="w-8 h-8" animated={true} showText={true} />
+            {/* Institution name ribbon */}
+            {institution?.name && (
+              <div className="mt-1.5 flex items-center gap-1.5 min-w-0">
+                <Building2 size={11} className="text-primary shrink-0" />
+                <span className="text-[11px] font-jakarta font-700 text-primary truncate leading-tight max-w-[140px]" title={institution.name}>
+                  {institution.short_name || institution.name}
+                </span>
+              </div>
+            )}
+            <div className={clsx('mt-1 inline-flex px-2 py-0.5 rounded-full text-xs font-jakarta font-700', roleBadge[role])}>
               {roleLabel[role]}
             </div>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-on-surface-variant p-1 rounded-full hover:bg-surface"
+            className="lg:hidden text-on-surface-variant p-1 rounded-full hover:bg-surface shrink-0"
           >
             <X size={18} />
           </button>
@@ -218,6 +227,24 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               </button>
             );
           })}
+          {/* Bills & Payments nav item for paid roles */}
+          {['admin','it_director','teacher','coach','staff','student_rep','parent'].includes(role) && (
+            <button
+              onClick={() => handleNavClick('billing')}
+              className={clsx(
+                'w-full flex items-center gap-3 px-4 py-3 rounded-[1rem] text-sm font-jakarta font-600 transition-all text-left mt-1',
+                activeHash === 'billing'
+                  ? 'bg-primary-container text-primary font-700'
+                  : needsPayment
+                    ? 'text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100'
+                    : 'text-on-surface-variant hover:bg-surface hover:text-on-surface'
+              )}
+            >
+              <CreditCard size={18} className="shrink-0" />
+              <span className="flex-1">Bills & Payments</span>
+              {needsPayment && <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />}
+            </button>
+          )}
         </nav>
 
         {/* User footer */}
@@ -266,6 +293,22 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
         </div>
 
         <div className="p-4 lg:p-6">
+          {/* Payment required banner */}
+          {needsPayment && activeHash !== 'billing' && (
+            <div className="mb-4 flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl px-4 py-3">
+              <CreditCard size={18} className="text-amber-600 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-jakarta font-700 text-amber-800 dark:text-amber-300">Payment Required</p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">Your account requires a payment method to unlock all features. Some features are restricted until payment is added.</p>
+              </div>
+              <button
+                onClick={() => handleNavClick('billing')}
+                className="text-xs font-jakarta font-700 text-amber-700 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-full shrink-0 transition-colors"
+              >
+                Add Payment
+              </button>
+            </div>
+          )}
           {children}
         </div>
       </main>

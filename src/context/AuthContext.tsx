@@ -21,6 +21,18 @@ export interface CampusProfile {
   major?: string | null;
   year_of_study?: number | null;
   onboarding_complete?: boolean | null;
+  payment_status?: 'not_required' | 'pending' | 'paid' | 'overdue' | null;
+  email_verified?: boolean | null;
+}
+
+export interface InstitutionInfo {
+  id: string;
+  name: string;
+  short_name?: string | null;
+  institution_type?: string | null;
+  logo_url?: string | null;
+  color_primary?: string | null;
+  subscription_status?: string | null;
 }
 
 type PendingSignup = {
@@ -39,15 +51,22 @@ interface AuthContextValue {
   role: CampusRole | null;
   roles: CampusRole[];
   institutionId: string | null;
+  institution: InstitutionInfo | null;
   loading: boolean;
   isEmailVerified: boolean;
+  isSuperAdmin: boolean;
+  needsPayment: boolean;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   refreshProfile: (userId?: string) => Promise<CampusProfile | null>;
+  refreshInstitution: (instId?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 const PENDING_SIGNUP_KEY = 'campus-tribe.pending-signup';
+
+// Roles that require payment to use the platform
+const PAID_ROLES: CampusRole[] = ['admin', 'it_director', 'teacher', 'coach', 'staff'];
 
 function readPendingSignup(): PendingSignup | null {
   try {
@@ -61,17 +80,13 @@ function readPendingSignup(): PendingSignup | null {
 function writePendingSignup(payload: PendingSignup) {
   try {
     localStorage.setItem(PENDING_SIGNUP_KEY, JSON.stringify(payload));
-  } catch {
-    // ignore storage failures
-  }
+  } catch {}
 }
 
 function clearPendingSignup() {
   try {
     localStorage.removeItem(PENDING_SIGNUP_KEY);
-  } catch {
-    // ignore storage failures
-  }
+  } catch {}
 }
 
 export function persistPendingSignup(payload: PendingSignup) {
@@ -80,58 +95,60 @@ export function persistPendingSignup(payload: PendingSignup) {
 
 export function getRoleDashboardPath(role?: string | null) {
   switch (role) {
-    case 'student':
-      return '/dashboard/student';
-    case 'student_rep':
-      return '/dashboard/student';
-    case 'teacher':
-      return '/dashboard/teacher';
-    case 'admin':
-      return '/dashboard/admin';
-    case 'staff':
-      return '/dashboard/staff';
-    case 'club_leader':
-      return '/dashboard/student';
-    case 'coach':
-      return '/dashboard/coach';
-    case 'it_director':
-      return '/dashboard/admin';
-    case 'parent':
-      return '/dashboard/parent';
-    case 'athlete':
-      return '/dashboard/athlete';
-    default:
-      return '/dashboard/student';
+    case 'student':      return '/dashboard/student';
+    case 'student_rep':  return '/dashboard/student';
+    case 'teacher':      return '/dashboard/teacher';
+    case 'admin':        return '/dashboard/admin';
+    case 'staff':        return '/dashboard/staff';
+    case 'club_leader':  return '/dashboard/student';
+    case 'coach':        return '/dashboard/coach';
+    case 'it_director':  return '/dashboard/admin';
+    case 'parent':       return '/dashboard/parent';
+    case 'athlete':      return '/dashboard/athlete';
+    default:             return '/dashboard/student';
   }
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise((resolve, reject) => {
     const t = setTimeout(() => reject(new Error('timeout')), ms);
-    promise
-      .then((v) => {
-        clearTimeout(t);
-        resolve(v);
-      })
-      .catch((e) => {
-        clearTimeout(t);
-        reject(e);
-      });
+    promise.then((v) => { clearTimeout(t); resolve(v); })
+           .catch((e) => { clearTimeout(t); reject(e); });
   });
 }
+
+// Super admin email list (client-side fast check — DB is authoritative)
+const SUPERADMIN_EMAILS = [
+  'mrxxxbond@gmail.com',
+  'mrxxxbong@gmail.com',
+  'siinamits@gmail.com',
+  'sdescha21@gmail.com',
+  'wevsocial.s@gmail.com',
+  'amitt.k.sin@gmail.com',
+  'javbollad@gmail.com',
+];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [profile, setProfile] = useState<CampusProfile | null>(null);
+  const [institution, setInstitution] = useState<InstitutionInfo | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const refreshInstitution = async (instId?: string) => {
+    const targetId = instId ?? profile?.institution_id;
+    if (!targetId) { setInstitution(null); return; }
+    const { data } = await supabase
+      .from('ct_institutions')
+      .select('id, name, short_name, institution_type, logo_url, color_primary, subscription_status')
+      .eq('id', targetId)
+      .maybeSingle();
+    setInstitution(data as InstitutionInfo | null);
+  };
 
   const refreshProfile = async (userId?: string) => {
     const targetUserId = userId ?? user?.id;
-    if (!targetUserId) {
-      setProfile(null);
-      return null;
-    }
+    if (!targetUserId) { setProfile(null); return null; }
 
     const { data, error } = await supabase
       .from('ct_users')
@@ -139,14 +156,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq('id', targetUserId)
       .maybeSingle();
 
-    if (error) {
-      console.error('Failed to load profile', error);
-      setProfile(null);
-      return null;
-    }
-
+    if (error) { console.error('Failed to load profile', error); setProfile(null); return null; }
     const next = (data as CampusProfile | null) ?? null;
     setProfile(next);
+    if (next?.institution_id) await refreshInstitution(next.institution_id);
     return next;
   };
 
@@ -165,10 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     const signupData = (canUsePending
-      ? {
-          ...pending,
-          email: authUser.email || pending?.email || '',
-        }
+      ? { ...pending, email: authUser.email || pending?.email || '' }
       : {
           email: authUser.email || '',
           full_name: metadata.full_name || metadata.name || authUser.email || 'Campus User',
@@ -217,7 +227,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       institutionType = (createdInstitution?.institution_type || institutionType) as typeof institutionType;
     }
 
-    // Fallback: if still no institution, attach first available institution
     if (!institutionId) {
       const { data: firstInst } = await supabase
         .from('ct_institutions')
@@ -230,27 +239,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
+    const role = signupData.role;
+    // Determine payment status based on role
+    const paymentStatus = PAID_ROLES.includes(role) ? 'pending' : 'not_required';
+
     const { error: profileError } = await supabase.from('ct_users').upsert({
       id: authUser.id,
       email: signupData.email,
       full_name: signupData.full_name,
-      role: signupData.role,
-      roles: [signupData.role],
+      role,
+      roles: [role],
       institution_id: institutionId,
       platform_type: institutionType,
       institution_type: institutionType,
       onboarding_complete: false,
       is_active: true,
+      payment_status: paymentStatus,
+      email_verified: false,
     });
 
     if (profileError) throw profileError;
 
+    // Seed trial subscription for new institution if not exists
     if (institutionId) {
+      await supabase.from('ct_institution_subscriptions').upsert({
+        institution_id: institutionId,
+        status: 'trial',
+        trial_ends_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      }, { onConflict: 'institution_id' });
+
       await supabase.from('ct_notifications').insert({
         user_id: authUser.id,
         institution_id: institutionId,
         title: 'Welcome to Campus Tribe',
-        body: `Your ${institutionType} workspace is ready. Start by creating your first record.`,
+        body: `Your workspace is ready. ${PAID_ROLES.includes(role) ? 'Please complete payment to unlock all features.' : 'Start exploring your campus!'}`,
         type: 'system',
         created_by: authUser.id,
       });
@@ -269,13 +291,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (!nextSession?.user) {
         setProfile(null);
+        setInstitution(null);
         if (mounted) setLoading(false);
         return;
       }
 
       try {
-        // Prevent infinite loading on slow/mobile sessions
-        await withTimeout(bootstrapProfileIfMissing(nextSession.user), 6000);
+        await withTimeout(bootstrapProfileIfMissing(nextSession.user), 8000);
       } catch (error) {
         console.error('Failed to bootstrap profile', error);
       } finally {
@@ -296,7 +318,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     bootstrap();
 
-    // Important: do NOT await inside onAuthStateChange callback (can deadlock on some clients)
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setLoading(true);
       void syncAuthState(nextSession ?? null);
@@ -308,30 +329,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  const isSuperAdmin = useMemo(() => {
+    if (!user?.email) return false;
+    return SUPERADMIN_EMAILS.includes(user.email.toLowerCase());
+  }, [user?.email]);
+
+  const needsPayment = useMemo(() => {
+    if (!profile) return false;
+    if (isSuperAdmin) return false;
+    const role = profile.role;
+    if (!PAID_ROLES.includes(role)) return false;
+    return profile.payment_status === 'pending' || profile.payment_status === 'overdue';
+  }, [profile, isSuperAdmin]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
-      session,
-      user,
-      profile,
+      session, user, profile, institution,
       role: profile?.role ?? null,
       roles: profile?.roles?.length ? profile.roles : (profile?.role ? [profile.role] : []),
       institutionId: profile?.institution_id ?? null,
       loading,
-      isEmailVerified: user?.email_confirmed_at != null,
+      isEmailVerified: user?.email_confirmed_at != null || profile?.email_verified === true,
+      isSuperAdmin,
+      needsPayment,
       signIn: async (email: string, password: string) => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          return { success: false, error: error.message };
-        }
+        if (error) return { success: false, error: error.message };
         return { success: true };
       },
       signOut: async () => {
         await supabase.auth.signOut();
         setProfile(null);
+        setInstitution(null);
       },
       refreshProfile,
+      refreshInstitution,
     }),
-    [session, user, profile, loading]
+    [session, user, profile, institution, loading, isSuperAdmin, needsPayment]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -339,8 +373,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 }

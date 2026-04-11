@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, GraduationCap, ClipboardList, Users, Megaphone,
-  Settings, LogOut, Menu, Plus, Loader2, Upload, Download, CheckCircle, X
+  Settings, LogOut, Menu, Plus, Loader2, Upload, Download, CheckCircle, X, CreditCard
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -10,6 +10,7 @@ import { sendEmailNotification, gradeNotificationHtml } from '../../lib/emailNot
 import NotificationCenter from '../../components/ui/NotificationCenter';
 import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
 import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
+import BillingSection from '../../components/billing/BillingSection';
 
 interface Course { id: string; name: string; code: string; description: string | null; credits: number | null; }
 interface Assignment {
@@ -25,7 +26,7 @@ interface Submission {
 }
 
 export default function TeacherPlatform() {
-  const { profile, user, institutionId, signOut } = useAuth();
+  const { profile, user, institutionId, institution, signOut, needsPayment } = useAuth();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('overview');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -38,6 +39,7 @@ export default function TeacherPlatform() {
     { id: 'students', label: 'Students', icon: <Users size={18} /> },
     { id: 'notes', label: 'Performance Notes', icon: <ClipboardList size={18} /> },
     { id: 'announcements', label: 'Announcements', icon: <Megaphone size={18} /> },
+    { id: 'billing', label: 'Bills & Payments', icon: <CreditCard size={18} /> },
     { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
   ];
 
@@ -53,6 +55,9 @@ export default function TeacherPlatform() {
         </div>
         <div>
           <p className="font-lexend font-900 text-white text-sm">Campus Tribe</p>
+          {institution?.name && (
+            <p className="text-[10px] font-jakarta text-white/80 truncate max-w-[140px]" title={institution.name}>{institution.short_name || institution.name}</p>
+          )}
           <p className="text-xs font-jakarta text-white/70">Teacher</p>
         </div>
       </div>
@@ -118,6 +123,7 @@ export default function TeacherPlatform() {
           {activeSection === 'students' && <StudentsSection institutionId={institutionId} />}
           {activeSection === 'notes' && <PerformanceNotesSection institutionId={institutionId} userId={user?.id} />}
           {activeSection === 'announcements' && <TeacherAnnouncements institutionId={institutionId} userId={user?.id} />}
+          {activeSection === 'billing' && <BillingSection isAdmin={false} />}
           {activeSection === 'settings' && <SettingsSection profile={profile as unknown as Record<string, unknown> | null} userId={user?.id} institutionId={institutionId} />}
         </div>
       </main>

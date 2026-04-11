@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Award, Calendar, MapPin, Trophy, ClipboardList,
   Megaphone, BarChart2, Key, History, Puzzle, Settings, User, LogOut, Menu,
-  Plus, Search, Loader2, CheckCircle, XCircle
+  Plus, Search, Loader2, CheckCircle, XCircle, CreditCard, Building2
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -11,9 +11,10 @@ import NotificationCenter from '../../components/ui/NotificationCenter';
 import { sendNotification } from '../../lib/notify';
 import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
 import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
+import BillingSection from '../../components/billing/BillingSection';
 
 export default function AdminITPlatform() {
-  const { profile, user, institutionId, role, signOut } = useAuth();
+  const { profile, user, institutionId, institution, role, signOut, needsPayment } = useAuth();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('overview');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -33,6 +34,7 @@ export default function AdminITPlatform() {
     { id: 'api-keys', label: 'API Keys', icon: <Key size={18} /> },
     { id: 'audit', label: 'Audit Log', icon: <History size={18} /> },
     { id: 'integrations', label: 'Integrations', icon: <Puzzle size={18} /> },
+    { id: 'billing', label: 'Bills & Payments', icon: <CreditCard size={18} /> },
     { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
     { id: 'profile', label: 'Profile', icon: <User size={18} /> },
   ];
@@ -50,6 +52,9 @@ export default function AdminITPlatform() {
         </div>
         <div>
           <p className="font-lexend font-900 text-white text-sm">Campus Tribe</p>
+          {institution?.name && (
+            <p className="text-[10px] font-jakarta text-white/80 truncate max-w-[140px]" title={institution.name}>{institution.short_name || institution.name}</p>
+          )}
           <p className="text-xs font-jakarta text-white/70">{roleLabel}</p>
         </div>
       </div>
@@ -110,6 +115,7 @@ export default function AdminITPlatform() {
           {activeSection === 'api-keys' && <ApiKeysSection institutionId={institutionId} />}
           {activeSection === 'audit' && <AuditSection institutionId={institutionId} />}
           {activeSection === 'integrations' && <IntegrationsSection institutionId={institutionId} />}
+          {activeSection === 'billing' && <BillingSection isAdmin={true} />}
           {activeSection === 'settings' && <SettingsSection institutionId={institutionId} />}
           {activeSection === 'profile' && <ProfileSection profile={profile as Record<string, unknown> | null} userId={user?.id} institutionId={institutionId} />}
         </div>
