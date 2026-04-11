@@ -12,10 +12,11 @@ import { sendNotification } from '../../lib/notify';
 import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
 import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 import BillingSection from '../../components/billing/BillingSection';
-import PaywallOverlay from '../../components/billing/PaywallOverlay';
+import PaywallGate from '../../components/billing/PaywallGate';
+import StealthBanner from '../../components/layout/StealthBanner';
 
 export default function AdminITPlatform() {
-  const { profile, user, institutionId, institution, role, signOut, needsPayment } = useAuth();
+  const { profile, user, institutionId, effectiveInstitutionId, institution, role, signOut, needsPayment } = useAuth();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('overview');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -92,7 +93,10 @@ export default function AdminITPlatform() {
       <aside className="hidden lg:flex flex-col w-64 fixed top-0 left-0 h-full z-30 bg-surface-lowest shadow-float"><SidebarContent /></aside>
       <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-surface-lowest border-b border-outline-variant/30 flex items-center gap-3 px-4 py-3">
         <button onClick={() => setMobileOpen(!mobileOpen)}><Menu size={22} className="text-on-surface" /></button>
-        <p className="font-lexend font-900 text-on-surface text-sm flex-1">Campus Tribe</p>
+        <div className="flex-1 min-w-0">
+          <p className="font-lexend font-900 text-on-surface text-sm truncate">Campus Tribe</p>
+          {institution?.name && <p className="text-[10px] text-on-surface-variant truncate">{institution.short_name || institution.name}</p>}
+        </div>
         <NotificationCenter />
       </div>
       {mobileOpen && (
@@ -102,25 +106,31 @@ export default function AdminITPlatform() {
         </div>
       )}
       <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 min-h-screen overflow-y-auto">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6 pb-16">
           <div className="hidden lg:flex justify-end mb-4"><NotificationCenter /></div>
-          {activeSection === 'overview' && <AdminOverview institutionId={institutionId} />}
-          {activeSection === 'users' && <PaywallOverlay><UsersSection institutionId={institutionId} currentUserId={user?.id} /></PaywallOverlay>}
-          {activeSection === 'clubs' && <PaywallOverlay><ClubsSection institutionId={institutionId} /></PaywallOverlay>}
-          {activeSection === 'events' && <PaywallOverlay><EventsSection institutionId={institutionId} userId={user?.id} /></PaywallOverlay>}
-          {activeSection === 'venues' && <PaywallOverlay><VenuesSection institutionId={institutionId} /></PaywallOverlay>}
-          {activeSection === 'sports' && <PaywallOverlay><SportsSection institutionId={institutionId} /></PaywallOverlay>}
-          {activeSection === 'surveys' && <PaywallOverlay><SurveysSection institutionId={institutionId} userId={user?.id} /></PaywallOverlay>}
-          {activeSection === 'announcements' && <PaywallOverlay><AnnouncementsSection institutionId={institutionId} userId={user?.id} /></PaywallOverlay>}
-          {activeSection === 'reports' && <PaywallOverlay><ReportsSection institutionId={institutionId} /></PaywallOverlay>}
-          {activeSection === 'api-keys' && <PaywallOverlay><ApiKeysSection institutionId={institutionId} /></PaywallOverlay>}
-          {activeSection === 'audit' && <PaywallOverlay><AuditSection institutionId={institutionId} /></PaywallOverlay>}
-          {activeSection === 'integrations' && <PaywallOverlay><IntegrationsSection institutionId={institutionId} /></PaywallOverlay>}
-          {activeSection === 'billing' && <BillingSection isAdmin={true} />}
-          {activeSection === 'settings' && <SettingsSection institutionId={institutionId} />}
-          {activeSection === 'profile' && <ProfileSection profile={profile as Record<string, unknown> | null} userId={user?.id} institutionId={institutionId} />}
+          {activeSection === 'billing' ? (
+            <BillingSection isAdmin={true} />
+          ) : (
+            <PaywallGate onGoToBilling={() => setActiveSection('billing')}>
+              {activeSection === 'overview' && <AdminOverview institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'users' && <UsersSection institutionId={effectiveInstitutionId ?? institutionId} currentUserId={user?.id} />}
+              {activeSection === 'clubs' && <ClubsSection institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'events' && <EventsSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
+              {activeSection === 'venues' && <VenuesSection institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'sports' && <SportsSection institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'surveys' && <SurveysSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
+              {activeSection === 'announcements' && <AnnouncementsSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
+              {activeSection === 'reports' && <ReportsSection institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'api-keys' && <ApiKeysSection institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'audit' && <AuditSection institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'integrations' && <IntegrationsSection institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'settings' && <SettingsSection institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'profile' && <ProfileSection profile={profile as Record<string, unknown> | null} userId={user?.id} institutionId={effectiveInstitutionId ?? institutionId} />}
+            </PaywallGate>
+          )}
         </div>
       </main>
+      <StealthBanner />
     </div>
   );
 }

@@ -51,6 +51,7 @@ interface AuthContextValue {
   role: CampusRole | null;
   roles: CampusRole[];
   institutionId: string | null;
+  effectiveInstitutionId: string | null;
   institution: InstitutionInfo | null;
   loading: boolean;
   isEmailVerified: boolean;
@@ -134,6 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<CampusProfile | null>(null);
   const [institution, setInstitution] = useState<InstitutionInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [stealthInstitutionId, setStealthInstitutionId] = useState<string | null>(null);
 
   const refreshInstitution = async (instId?: string) => {
     const targetId = instId ?? profile?.institution_id;
@@ -278,12 +280,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     }
 
+    // Send welcome/verification email for paid roles via Resend edge function
+    if (PAID_ROLES.includes(role) && signupData.email) {
+      try {
+        const instName = institutionId
+          ? (await supabase.from('ct_institutions').select('name').eq('id', institutionId).maybeSingle()).data?.name || 'your institution'
+          : 'your institution';
+        const dashUrl = `${window.location.origin}${getRoleDashboardPath(role)}`;
+        const billingUrl = `${window.location.origin}${getRoleDashboardPath(role)}#billing`;
+        const emailHtml = `
+<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;">
+<div style="background:linear-gradient(135deg,#0047AB,#1a5fc9);padding:24px;border-radius:12px;margin-bottom:24px;">
+  <h1 style="color:white;margin:0;font-size:24px;">Welcome to Campus Tribe 🎓</h1>
+  <p style="color:rgba(255,255,255,0.85);margin:8px 0 0;">Your account for ${instName} is ready</p>
+</div>
+<p style="color:#333;">Hi ${signupData.full_name},</p>
+<p style="color:#333;">You've successfully registered as a <strong>${role.replace('_',' ')}</strong> at <strong>${instName}</strong> on Campus Tribe.</p>
+<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px;margin:16px 0;">
+  <p style="margin:0;color:#856404;font-weight:600;">⚠️ Action Required: Add Payment Method</p>
+  <p style="margin:8px 0 0;color:#856404;">Your role requires a monthly subscription to access all features. Please add a payment method to activate your account.</p>
+</div>
+<a href="${billingUrl}" style="display:inline-block;background:#0047AB;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;margin:8px 0;">Add Payment Method →</a>
+<p style="color:#666;font-size:14px;">Questions? Email us at support@campustribe.org</p>
+<p style="color:#aaa;font-size:12px;">Campus Tribe by WevSocial</p>
+</body></html>`;
+
+        await supabase.functions.invoke('send-notification-email', {
+          body: {
+            to: signupData.email,
+            subject: `Welcome to Campus Tribe — ${instName} (Action Required)`,
+            html: emailHtml,
+          },
+        });
+      } catch (emailErr) {
+        console.warn('Welcome email failed (non-blocking):', emailErr);
+      }
+    }
+
     clearPendingSignup();
     return await refreshProfile(authUser.id);
   };
 
   useEffect(() => {
     let mounted = true;
+
+    // Sync stealth mode from sessionStorage for super admins
+    try {
+      const rawStealth = sessionStorage.getItem('ct_stealth_mode');
+      const parsedStealth = rawStealth ? JSON.parse(rawStealth) : null;
+      setStealthInstitutionId(parsedStealth?.institutionId || null);
+    } catch {
+      setStealthInstitutionId(null);
+    }
 
     const syncAuthState = async (nextSession: Session | null) => {
       setSession(nextSession ?? null);
@@ -348,6 +396,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       role: profile?.role ?? null,
       roles: profile?.roles?.length ? profile.roles : (profile?.role ? [profile.role] : []),
       institutionId: profile?.institution_id ?? null,
+      effectiveInstitutionId: (isSuperAdmin && stealthInstitutionId) ? stealthInstitutionId : (profile?.institution_id ?? null),
       loading,
       isEmailVerified: user?.email_confirmed_at != null || profile?.email_verified === true,
       isSuperAdmin,
@@ -365,7 +414,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       refreshProfile,
       refreshInstitution,
     }),
-    [session, user, profile, institution, loading, isSuperAdmin, needsPayment]
+    [session, user, profile, institution, loading, isSuperAdmin, needsPayment, stealthInstitutionId]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

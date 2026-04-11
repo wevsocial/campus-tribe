@@ -21,7 +21,7 @@ interface Survey { id: string; title: string; description: string | null; status
 
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 export default function StudentPlatform() {
-  const { profile, roles, user, institutionId, institution, signOut } = useAuth();
+  const { profile, roles, user, institutionId, effectiveInstitutionId, institution, signOut } = useAuth();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('home');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -137,19 +137,19 @@ export default function StudentPlatform() {
           <div className="hidden lg:flex justify-end mb-4">
             <NotificationCenter />
           </div>
-          {activeSection === 'home' && <StudentHome institutionId={institutionId} profile={profile} isRep={isRep} isLeader={isLeader} />}
-          {activeSection === 'events' && <EventsSection institutionId={institutionId} canCreate={isRep || isLeader} />}
-          {activeSection === 'clubs' && <ClubsSection institutionId={institutionId} isLeader={isLeader} userId={user?.id} />}
-          {activeSection === 'venues' && <VenueSection institutionId={institutionId} />}
-          {activeSection === 'announcements' && <AnnouncementsSection institutionId={institutionId} canCreate={isRep} />}
-          {activeSection === 'budget' && <BudgetSection institutionId={institutionId} />}
-          {activeSection === 'sports' && <SportsSection institutionId={institutionId} userId={user?.id} />}
-          {activeSection === 'wellness' && <WellnessSection userId={user?.id} institutionId={institutionId} />}
-          {activeSection === 'surveys' && <SurveysSection institutionId={institutionId} userId={user?.id} />}
+          {activeSection === 'home' && <StudentHome institutionId={effectiveInstitutionId ?? institutionId} profile={profile} isRep={isRep} isLeader={isLeader} />}
+          {activeSection === 'events' && <EventsSection institutionId={effectiveInstitutionId ?? institutionId} canCreate={isRep || isLeader} />}
+          {activeSection === 'clubs' && <ClubsSection institutionId={effectiveInstitutionId ?? institutionId} isLeader={isLeader} userId={user?.id} />}
+          {activeSection === 'venues' && <VenueSection institutionId={effectiveInstitutionId ?? institutionId} />}
+          {activeSection === 'announcements' && <AnnouncementsSection institutionId={effectiveInstitutionId ?? institutionId} canCreate={isRep} />}
+          {activeSection === 'budget' && <BudgetSection institutionId={effectiveInstitutionId ?? institutionId} />}
+          {activeSection === 'sports' && <SportsSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
+          {activeSection === 'wellness' && <WellnessSection userId={user?.id} institutionId={effectiveInstitutionId ?? institutionId} />}
+          {activeSection === 'surveys' && <SurveysSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
           {activeSection === 'grades' && <GradesSection userId={user?.id} />}
           {activeSection === 'courses' && <CoursesSection userId={user?.id} />}
-          {activeSection === 'myclubs' && isLeader && <MyClubsSection institutionId={institutionId} userId={user?.id} />}
-          {activeSection === 'settings' && <SettingsSection profile={profile as unknown as Record<string, unknown> | null} userId={user?.id} institutionId={institutionId} role={isLeader ? 'club_leader' : 'student'} />}
+          {activeSection === 'myclubs' && isLeader && <MyClubsSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
+          {activeSection === 'settings' && <SettingsSection profile={profile as unknown as Record<string, unknown> | null} userId={user?.id} institutionId={effectiveInstitutionId ?? institutionId} role={isLeader ? 'club_leader' : 'student'} />}
         </div>
       </main>
     </div>

@@ -11,7 +11,8 @@ import NotificationCenter from '../../components/ui/NotificationCenter';
 import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
 import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 import BillingSection from '../../components/billing/BillingSection';
-import PaywallOverlay from '../../components/billing/PaywallOverlay';
+import PaywallGate from '../../components/billing/PaywallGate';
+import StealthBanner from '../../components/layout/StealthBanner';
 
 interface Course { id: string; name: string; code: string; description: string | null; credits: number | null; }
 interface Assignment {
@@ -27,7 +28,7 @@ interface Submission {
 }
 
 export default function TeacherPlatform() {
-  const { profile, user, institutionId, institution, signOut, needsPayment } = useAuth();
+  const { profile, user, institutionId, effectiveInstitutionId, institution, signOut, needsPayment } = useAuth();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('overview');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -101,7 +102,10 @@ export default function TeacherPlatform() {
 
       <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-surface-lowest border-b border-outline-variant/30 flex items-center gap-3 px-4 py-3">
         <button onClick={() => setMobileOpen(!mobileOpen)}><Menu size={22} className="text-on-surface" /></button>
-        <p className="font-lexend font-900 text-on-surface text-sm flex-1">Campus Tribe</p>
+        <div className="flex-1 min-w-0">
+          <p className="font-lexend font-900 text-on-surface text-sm truncate">Campus Tribe</p>
+          {institution?.name && <p className="text-[10px] text-on-surface-variant truncate">{institution.short_name || institution.name}</p>}
+        </div>
         <NotificationCenter />
       </div>
 
@@ -115,19 +119,25 @@ export default function TeacherPlatform() {
       )}
 
       <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 min-h-screen overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6">
+        <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6 pb-16">
           <div className="hidden lg:flex justify-end mb-4"><NotificationCenter /></div>
-          {activeSection === 'overview' && <TeacherOverview institutionId={institutionId} />}
-          {activeSection === 'courses' && <PaywallOverlay><CoursesSection institutionId={institutionId} /></PaywallOverlay>}
-          {activeSection === 'assignments' && <PaywallOverlay><AssignmentsSection institutionId={institutionId} userId={user?.id} /></PaywallOverlay>}
-          {activeSection === 'grades' && <PaywallOverlay><GradesSection institutionId={institutionId} userId={user?.id} /></PaywallOverlay>}
-          {activeSection === 'students' && <PaywallOverlay><StudentsSection institutionId={institutionId} /></PaywallOverlay>}
-          {activeSection === 'notes' && <PaywallOverlay><PerformanceNotesSection institutionId={institutionId} userId={user?.id} /></PaywallOverlay>}
-          {activeSection === 'announcements' && <PaywallOverlay><TeacherAnnouncements institutionId={institutionId} userId={user?.id} /></PaywallOverlay>}
-          {activeSection === 'billing' && <BillingSection isAdmin={false} />}
-          {activeSection === 'settings' && <SettingsSection profile={profile as unknown as Record<string, unknown> | null} userId={user?.id} institutionId={institutionId} />}
+          {activeSection === 'billing' ? (
+            <BillingSection isAdmin={false} />
+          ) : (
+            <PaywallGate onGoToBilling={() => setActiveSection('billing')}>
+              {activeSection === 'overview' && <TeacherOverview institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'courses' && <CoursesSection institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'assignments' && <AssignmentsSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
+              {activeSection === 'grades' && <GradesSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
+              {activeSection === 'students' && <StudentsSection institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'notes' && <PerformanceNotesSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
+              {activeSection === 'announcements' && <TeacherAnnouncements institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
+              {activeSection === 'settings' && <SettingsSection profile={profile as unknown as Record<string, unknown> | null} userId={user?.id} institutionId={effectiveInstitutionId ?? institutionId} />}
+            </PaywallGate>
+          )}
         </div>
       </main>
+      <StealthBanner />
     </div>
   );
 }

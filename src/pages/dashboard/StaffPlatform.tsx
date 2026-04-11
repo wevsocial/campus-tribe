@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Bell, Calendar, MapPin, Megaphone, User, LogOut, Menu, Plus, Loader2, Settings } from 'lucide-react';
+import { LayoutDashboard, FileText, Bell, Calendar, MapPin, Megaphone, User, LogOut, Menu, Plus, Loader2, Settings, CreditCard } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import NotificationCenter from '../../components/ui/NotificationCenter';
 import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
 import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
+import BillingSection from '../../components/billing/BillingSection';
+import PaywallGate from '../../components/billing/PaywallGate';
+import StealthBanner from '../../components/layout/StealthBanner';
 
 export default function StaffPlatform() {
-  const { profile, user, institutionId, signOut } = useAuth();
+  const { profile, user, institutionId, effectiveInstitutionId, institution, signOut } = useAuth();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('overview');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -19,6 +22,7 @@ export default function StaffPlatform() {
     { id: 'events', label: 'Events', icon: <Calendar size={18} /> },
     { id: 'venues', label: 'Venues', icon: <MapPin size={18} /> },
     { id: 'announcements', label: 'Announcements', icon: <Megaphone size={18} /> },
+    { id: 'billing', label: 'Bills & Payments', icon: <CreditCard size={18} /> },
     { id: 'profile', label: 'Profile', icon: <User size={18} /> },
     { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
   ];
@@ -35,6 +39,9 @@ export default function StaffPlatform() {
         </div>
         <div>
           <p className="font-lexend font-900 text-white text-sm">Campus Tribe</p>
+          {institution?.name && (
+            <p className="text-[10px] font-jakarta text-white/80 truncate max-w-[140px]" title={institution.name}>{institution.short_name || institution.name}</p>
+          )}
           <p className="text-xs font-jakarta text-white/70">Staff</p>
         </div>
       </div>
@@ -71,7 +78,10 @@ export default function StaffPlatform() {
       <aside className="hidden lg:flex flex-col w-64 fixed top-0 left-0 h-full z-30 bg-surface-lowest shadow-float"><SidebarContent /></aside>
       <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-surface-lowest border-b border-outline-variant/30 flex items-center gap-3 px-4 py-3">
         <button onClick={() => setMobileOpen(!mobileOpen)}><Menu size={22} className="text-on-surface" /></button>
-        <p className="font-lexend font-900 text-on-surface text-sm flex-1">Campus Tribe</p>
+        <div className="flex-1 min-w-0">
+          <p className="font-lexend font-900 text-on-surface text-sm truncate">Campus Tribe</p>
+          {institution?.name && <p className="text-[10px] text-on-surface-variant truncate">{institution.short_name || institution.name}</p>}
+        </div>
         <NotificationCenter />
       </div>
       {mobileOpen && (
@@ -81,17 +91,24 @@ export default function StaffPlatform() {
         </div>
       )}
       <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 min-h-screen overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6">
+        <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6 pb-16">
           <div className="hidden lg:flex justify-end mb-4"><NotificationCenter /></div>
-          {activeSection === 'overview' && <StaffOverviewSection institutionId={institutionId} />}
-          {activeSection === 'reports' && <ReportsSection institutionId={institutionId} userId={user?.id} />}
-          {activeSection === 'events' && <EventsSection institutionId={institutionId} />}
-          {activeSection === 'venues' && <VenueQueueSection institutionId={institutionId} />}
-          {activeSection === 'announcements' && <AnnouncementsSection institutionId={institutionId} userId={user?.id} />}
-          {activeSection === 'profile' && <ProfileSection profile={profile as Record<string, unknown> | null} userId={user?.id} institutionId={institutionId} />}
-          {activeSection === 'settings' && <ProfileSection profile={profile as Record<string, unknown> | null} userId={user?.id} institutionId={institutionId} />}
+          {activeSection === 'billing' ? (
+            <BillingSection isAdmin={true} />
+          ) : (
+            <PaywallGate onGoToBilling={() => setActiveSection('billing')}>
+              {activeSection === 'overview' && <StaffOverviewSection institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'reports' && <ReportsSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
+              {activeSection === 'events' && <EventsSection institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'venues' && <VenueQueueSection institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'announcements' && <AnnouncementsSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
+              {activeSection === 'profile' && <ProfileSection profile={profile as Record<string, unknown> | null} userId={user?.id} institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'settings' && <ProfileSection profile={profile as Record<string, unknown> | null} userId={user?.id} institutionId={effectiveInstitutionId ?? institutionId} />}
+            </PaywallGate>
+          )}
         </div>
       </main>
+      <StealthBanner />
     </div>
   );
 }

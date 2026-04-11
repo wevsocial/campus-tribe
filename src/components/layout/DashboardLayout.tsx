@@ -10,6 +10,8 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../dashboard/NotificationBell';
 import CampusTribeLogo from '../ui/CampusTribeLogo';
+import StealthBanner from './StealthBanner';
+import PaywallGate from '../billing/PaywallGate';
 
 const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; hash: string }[]> = {
   student: [
@@ -173,6 +175,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
     .toUpperCase();
 
   return (
+    <>
     <div className="flex h-screen bg-surface overflow-hidden">
       {/* Sidebar */}
       <aside
@@ -292,27 +295,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           <NotificationBell />
         </div>
 
-        <div className="p-4 lg:p-6">
-          {/* Payment required banner */}
-          {needsPayment && activeHash !== 'billing' && (
-            <div className="mb-4 flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl px-4 py-3">
-              <CreditCard size={18} className="text-amber-600 shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-jakarta font-700 text-amber-800 dark:text-amber-300">Payment Required</p>
-                <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">Your account requires a payment method to unlock all features. Some features are restricted until payment is added.</p>
-              </div>
-              <button
-                onClick={() => handleNavClick('billing')}
-                className="text-xs font-jakarta font-700 text-amber-700 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-full shrink-0 transition-colors"
-              >
-                Add Payment
-              </button>
-            </div>
-          )}
-          {children}
+        <div className="p-4 lg:p-6 pb-16">
+          <PaywallGate onGoToBilling={() => handleNavClick('billing')}>
+            {children}
+          </PaywallGate>
         </div>
       </main>
     </div>
+    <StealthBanner />
+    </>
   );
 };
 

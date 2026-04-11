@@ -7,7 +7,7 @@ export function useDashboardData<T>(
   initialValue: T,
   options?: { requireInstitution?: boolean }
 ) {
-  const { user, institutionId, loading: authLoading } = useAuth();
+  const { user, institutionId, effectiveInstitutionId, loading: authLoading } = useAuth();
   const [data, setData] = useState<T>(initialValue);
   const [loading, setLoading] = useState(true);
 
@@ -19,7 +19,9 @@ export function useDashboardData<T>(
       return;
     }
 
-    if (options?.requireInstitution && !institutionId) {
+    const instId = effectiveInstitutionId ?? institutionId;
+
+    if (options?.requireInstitution && !instId) {
       setLoading(false);
       return;
     }
@@ -29,7 +31,7 @@ export function useDashboardData<T>(
     const run = async () => {
       setLoading(true);
       try {
-        const next = await loader({ userId: user.id, institutionId });
+        const next = await loader({ userId: user.id, institutionId: instId });
         if (active) setData(next);
       } catch (err) {
         console.error('Dashboard data load error', err);
@@ -43,7 +45,7 @@ export function useDashboardData<T>(
     return () => {
       active = false;
     };
-  }, [authLoading, user?.id, institutionId]);
+  }, [authLoading, user?.id, institutionId, effectiveInstitutionId]);
 
   return { data, loading, setData };
 }

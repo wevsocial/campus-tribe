@@ -56,7 +56,7 @@ function maskCardNumber(num: string): string {
 }
 
 export default function BillingSection({ isAdmin = false }: { isAdmin?: boolean }) {
-  const { profile, institutionId, refreshProfile } = useAuth();
+  const { profile, institutionId, refreshProfile, user } = useAuth();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [subscription, setSubscription] = useState<any>(null);
@@ -212,7 +212,7 @@ export default function BillingSection({ isAdmin = false }: { isAdmin?: boolean 
       setShowAddCard(false);
       setCardNumber(''); setCardHolder(''); setExpiry(''); setCvv('');
       await loadData();
-      await refreshProfile();
+      if (user?.id) await refreshProfile(user.id);
       setTimeout(() => setSaveSuccess(false), 5000);
     } catch (e: any) {
       setCardError(e.message || 'Failed to save card. Please try again.');
