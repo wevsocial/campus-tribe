@@ -13,7 +13,9 @@ import StealthBanner from '../../components/layout/StealthBanner';
 export default function StaffPlatform() {
   const { profile, user, institutionId, effectiveInstitutionId, institution, signOut } = useAuth();
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState('overview');
+  const [activeSection, setActiveSection] = useState(() => {
+    try { return localStorage.getItem('ct.staff.activeSection') || 'overview'; } catch { return 'overview'; }
+  });
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navItems = [
@@ -29,6 +31,10 @@ export default function StaffPlatform() {
 
   const userName = profile?.full_name || user?.email?.split('@')[0] || 'Staff';
   const initials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+
+  useEffect(() => {
+    try { localStorage.setItem('ct.staff.activeSection', activeSection); } catch {}
+  }, [activeSection]);
   const handleSignOut = async () => { await signOut(); navigate('/login'); };
 
   const SidebarContent = () => (

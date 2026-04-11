@@ -17,6 +17,7 @@ interface Athlete {
 export default function CoachAthletes() {
   const { institutionId, user } = useAuth();
   const [athletes, setAthletes] = useState<Athlete[]>([]);
+  const [teams, setTeams] = useState<Array<{id:string; name:string; league_id:string|null}>>([]);
   const [loading, setLoading] = useState(true);
   const [waiverAthlete, setWaiverAthlete] = useState<Athlete | null>(null);
   const [waiverChecked, setWaiverChecked] = useState(false);
@@ -27,9 +28,11 @@ export default function CoachAthletes() {
     if (!institutionId) return;
     Promise.all([
       supabase.from('ct_sport_participants').select('*, user:ct_users(full_name, email, gender), team:ct_sports_teams(name)').eq('institution_id', institutionId),
+      supabase.from('ct_sports_teams').select('id,name,league_id').eq('institution_id', institutionId),
       supabase.from('ct_institutions').select('name').eq('id', institutionId).maybeSingle(),
-    ]).then(([a, inst]) => {
+    ]).then(([a, t, inst]) => {
       setAthletes((a.data as Athlete[]) ?? []);
+      setTeams((t.data as any[]) ?? []);
       if (inst.data?.name) setInstitutionName(inst.data.name);
       setLoading(false);
     });
@@ -57,6 +60,11 @@ export default function CoachAthletes() {
       metadata: { athlete_name: a.user?.full_name, athlete_email: a.user?.email },
     });
     alert(`Reminder logged for ${a.user?.full_name || 'athlete'}`);
+  };
+
+  const assignAthleteTeam = async (athleteId: string, teamId: string | null) => {
+    await supabase.from('ct_sport_participants').update({ team_id: teamId }).eq('id', athleteId);
+    setAthletes(prev => prev.map(a => a.id === athleteId ? { ...a, team_id: teamId, team: teamId ? { name: teams.find(t => t.id === teamId)?.name || 'Assigned' } : null } : a));
   };
 
   const totalMale = athletes.filter(a => a.user?.gender === 'male').length;
@@ -94,7 +102,7 @@ export default function CoachAthletes() {
             <table className="w-full">
               <thead className="bg-surface-low">
                 <tr>
-                  {['Name', 'Email', 'Team', 'Free Agent', 'Waiver', 'Actions'].map(h => (
+                  {['Name', 'Email', 'Team', 'Assign Team', 'Free Agent', 'Waiver', 'Actions'].map(h => (
                     <th key={h} className="px-4 py-3 text-left font-jakarta text-xs font-bold text-on-surface-variant uppercase">{h}</th>
                   ))}
                 </tr>
@@ -105,6 +113,16 @@ export default function CoachAthletes() {
                     <td className="px-4 py-3 font-jakarta font-bold text-on-surface text-sm">{a.user?.full_name || 'Unknown'}</td>
                     <td className="px-4 py-3 text-on-surface-variant text-sm">{a.user?.email || 'N/A'}</td>
                     <td className="px-4 py-3 text-on-surface-variant text-sm">{a.team?.name || 'N/A'}</td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={a.team_id || ''}
+                        onChange={e => assignAthleteTeam(a.id, e.target.value || null)}
+                        className="px-2 py-1 rounded-lg border border-outline-variant/40 bg-surface-low text-xs font-jakarta"
+                      >
+                        <option value="">Unassigned</option>
+                        {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                      </select>
+                    </td>
                     <td className="px-4 py-3">
                       <Badge label={a.is_free_agent ? 'Yes' : 'No'} variant={a.is_free_agent ? 'warning' : 'neutral'} />
                     </td>

@@ -18,7 +18,9 @@ import StealthBanner from '../../components/layout/StealthBanner';
 export default function AdminITPlatform() {
   const { profile, user, institutionId, effectiveInstitutionId, institution, role, signOut, needsPayment } = useAuth();
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState('overview');
+  const [activeSection, setActiveSection] = useState(() => {
+    try { return localStorage.getItem('ct.admin.activeSection') || 'overview'; } catch { return 'overview'; }
+  });
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isIT = role === 'it_director';
@@ -44,6 +46,10 @@ export default function AdminITPlatform() {
   const userName = profile?.full_name || user?.email?.split('@')[0] || 'Admin';
   const initials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
   const roleLabel = isIT ? 'IT Director' : 'Administrator';
+
+  useEffect(() => {
+    try { localStorage.setItem('ct.admin.activeSection', activeSection); } catch {}
+  }, [activeSection]);
   const handleSignOut = async () => { await signOut(); navigate('/login'); };
 
   const SidebarContent = () => (

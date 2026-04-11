@@ -23,7 +23,9 @@ interface Survey { id: string; title: string; description: string | null; status
 export default function StudentPlatform() {
   const { profile, roles, user, institutionId, effectiveInstitutionId, institution, signOut } = useAuth();
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState('home');
+  const [activeSection, setActiveSection] = useState(() => {
+    try { return localStorage.getItem('ct.student.activeSection') || 'home'; } catch { return 'home'; }
+  });
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const isStudent = roles.includes('student') || roles.includes('student_rep') || roles.includes('club_leader');
@@ -38,6 +40,7 @@ export default function StudentPlatform() {
     ...(isRep ? [{ id: 'announcements', label: 'Announcements', icon: <Megaphone size={18} /> }] : []),
     ...(isLeader ? [{ id: 'budget', label: 'Budget', icon: <Wallet size={18} /> }] : []),
     { id: 'sports', label: 'Sports', icon: <Trophy size={18} /> },
+    { id: 'directory', label: 'Directory', icon: <Users size={18} /> },
     { id: 'wellness', label: 'Wellness', icon: <Heart size={18} /> },
     { id: 'surveys', label: 'Surveys', icon: <ClipboardList size={18} /> },
     { id: 'courses', label: 'My Courses', icon: <BookOpen size={18} /> },
@@ -49,6 +52,10 @@ export default function StudentPlatform() {
   const userName = profile?.full_name || user?.email?.split('@')[0] || 'User';
   const initials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
   const roleLabel = isLeader ? 'Club Leader' : isRep ? 'Student Rep' : 'Student';
+
+  useEffect(() => {
+    try { localStorage.setItem('ct.student.activeSection', activeSection); } catch {}
+  }, [activeSection]);
 
   const handleSignOut = async () => { await signOut(); navigate('/login'); };
   const switchRole = () => {
@@ -116,7 +123,10 @@ export default function StudentPlatform() {
       {/* Mobile header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-surface-lowest border-b border-outline-variant/30 flex items-center gap-3 px-4 py-3">
         <button onClick={() => setMobileOpen(!mobileOpen)}><Menu size={22} className="text-on-surface" /></button>
-        <p className="font-lexend font-900 text-on-surface text-sm flex-1">Campus Tribe</p>
+        <div className="flex-1 min-w-0">
+          <p className="font-lexend font-900 text-on-surface text-sm truncate">Campus Tribe</p>
+          {institution?.name && <p className="text-[10px] text-on-surface-variant truncate">{institution.short_name || institution.name}</p>}
+        </div>
         <NotificationCenter />
         <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
           <span className="text-white text-xs font-jakarta font-900">{initials}</span>
@@ -144,6 +154,7 @@ export default function StudentPlatform() {
           {activeSection === 'announcements' && <AnnouncementsSection institutionId={effectiveInstitutionId ?? institutionId} canCreate={isRep} />}
           {activeSection === 'budget' && <BudgetSection institutionId={effectiveInstitutionId ?? institutionId} />}
           {activeSection === 'sports' && <SportsSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
+          {activeSection === 'directory' && <DirectorySection institutionId={effectiveInstitutionId ?? institutionId} />}
           {activeSection === 'wellness' && <WellnessSection userId={user?.id} institutionId={effectiveInstitutionId ?? institutionId} />}
           {activeSection === 'surveys' && <SurveysSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
           {activeSection === 'grades' && <GradesSection userId={user?.id} />}
@@ -649,8 +660,11 @@ interface SportRanking { id?: string; user_id: string; institution_id?: string; 
 
 function SportsSection({ institutionId, userId }: { institutionId: string | null; userId?: string }) {
   const [leagues, setLeagues] = useState<Array<{ id: string; name: string; sport: string; status: string }>>([]);
+  const [matches, setMatches] = useState<Array<{ id: string; game_date: string | null; status: string | null; league_id: string | null; home_team_id: string | null; away_team_id: string | null }>>([]);
+  const [joinedLeagueIds, setJoinedLeagueIds] = useState<string[]>([]);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [rankings, setRankings] = useState<SportRanking[]>([]);
+  const [activeSportsTab, setActiveSportsTab] = useState<'leagues'|'matches'|'challenges'|'rankings'>('leagues');
   const [showCreate, setShowCreate] = useState(false);
   const [challengeForm, setChallengeForm] = useState({ title: '', description: '', sport: 'Basketball', scheduled_at: '' });
   const [postScore, setPostScore] = useState<{ id: string; myScore: string; oppScore: string } | null>(null);
@@ -659,10 +673,16 @@ function SportsSection({ institutionId, userId }: { institutionId: string | null
 
   const load = () => {
     if (!institutionId) return;
-    supabase.from('ct_sports_leagues').select('id,name,sport,status').eq('institution_id', institutionId).limit(20).then(({ data }) => setLeagues(data || []));
+    supabase.from('ct_sports_leagues').select('id,name,sport,status').eq('institution_id', institutionId).limit(30).then(({ data }) => setLeagues(data || []));
+    supabase.from('ct_sports_games').select('id,game_date,status,league_id,home_team_id,away_team_id').eq('institution_id', institutionId).order('game_date', { ascending: true }).limit(50).then(({ data }) => setMatches((data || []) as any));
     supabase.from('ct_sport_challenges').select('*').eq('institution_id', institutionId).eq('status', 'open').order('challenge_date').limit(30).then(({ data }) => setChallenges((data || []) as Challenge[]));
     supabase.from('ct_sport_rankings').select('*').eq('institution_id', institutionId).order('points', { ascending: false }).limit(20).then(({ data }) => setRankings((data || []) as SportRanking[]));
-    if (userId) supabase.from('ct_users').select('free_agent').eq('id', userId).maybeSingle().then(({ data }) => setFreeAgent(data?.free_agent || false));
+    if (userId) {
+      supabase.from('ct_users').select('free_agent').eq('id', userId).maybeSingle().then(({ data }) => setFreeAgent(data?.free_agent || false));
+      supabase.from('ct_sport_participants').select('league_id').eq('user_id', userId).eq('institution_id', institutionId).then(({ data }) => {
+        setJoinedLeagueIds((data || []).map((d: any) => d.league_id).filter(Boolean));
+      });
+    }
   };
 
   useEffect(() => { load(); }, [institutionId, userId]);
@@ -731,6 +751,17 @@ function SportsSection({ institutionId, userId }: { institutionId: string | null
 
   const SPORTS = ['Basketball', 'Soccer', 'Tennis', 'Volleyball', 'Swimming', 'Track', 'Badminton', 'Table Tennis'];
 
+  const joinLeague = async (leagueId: string) => {
+    if (!userId || !institutionId) return;
+    await supabase.from('ct_sport_participants').upsert({
+      user_id: userId,
+      league_id: leagueId,
+      institution_id: institutionId,
+      is_free_agent: freeAgent,
+    }, { onConflict: 'user_id,league_id' as any });
+    load();
+  };
+
   return (
     <div className="space-y-6">
       <div className="rounded-2xl p-6 text-white" style={{ background: 'linear-gradient(135deg, #FF7F50, #ff6030)' }}>
@@ -749,27 +780,66 @@ function SportsSection({ institutionId, userId }: { institutionId: string | null
         </button>
       </div>
 
+      {/* Sports tabs */}
+      <div className="bg-surface-lowest rounded-2xl p-2 border border-outline-variant/30 flex gap-1 overflow-x-auto">
+        {[
+          { id: 'leagues', label: 'Leagues' },
+          { id: 'matches', label: 'Matches' },
+          { id: 'challenges', label: 'Challenges' },
+          { id: 'rankings', label: 'Rankings' },
+        ].map(tab => (
+          <button key={tab.id} onClick={() => setActiveSportsTab(tab.id as any)}
+            className={`px-4 py-2 rounded-xl text-sm font-jakarta font-700 whitespace-nowrap ${activeSportsTab===tab.id ? 'bg-primary text-white' : 'text-on-surface-variant hover:bg-surface-low'}`}>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {/* Leagues */}
-      {leagues.length > 0 && (
+      {activeSportsTab === 'leagues' && (
         <div>
           <h2 className="font-lexend font-700 text-lg text-on-surface mb-3">Active Leagues</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {leagues.map(l => (
               <div key={l.id} className="bg-surface-lowest rounded-2xl p-4 shadow-float border border-outline-variant/30">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center"><Trophy size={18} className="text-secondary" /></div>
-                  <div>
-                    <p className="font-lexend font-700 text-on-surface">{l.name}</p>
-                    <p className="text-xs text-on-surface-variant">{l.sport} · {l.status}</p>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center"><Trophy size={18} className="text-secondary" /></div>
+                    <div className="min-w-0">
+                      <p className="font-lexend font-700 text-on-surface truncate">{l.name}</p>
+                      <p className="text-xs text-on-surface-variant">{l.sport} · {l.status}</p>
+                    </div>
                   </div>
+                  <button
+                    onClick={() => joinLeague(l.id)}
+                    disabled={joinedLeagueIds.includes(l.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-jakarta font-700 ${joinedLeagueIds.includes(l.id) ? 'bg-tertiary-container text-tertiary' : 'bg-secondary text-white hover:bg-secondary/90'}`}>
+                    {joinedLeagueIds.includes(l.id) ? 'Joined' : 'Join'}
+                  </button>
                 </div>
               </div>
             ))}
+            {leagues.length === 0 && <p className="text-on-surface-variant">No active leagues yet.</p>}
           </div>
         </div>
       )}
 
+      {/* Matches */}
+      {activeSportsTab === 'matches' && (
+        <div className="space-y-3">
+          <h2 className="font-lexend font-700 text-lg text-on-surface">Upcoming Matches</h2>
+          {matches.map(m => (
+            <div key={m.id} className="bg-surface-lowest rounded-2xl p-4 shadow-float border border-outline-variant/30">
+              <p className="font-jakarta font-700 text-on-surface text-sm">{m.status || 'scheduled'} match</p>
+              <p className="text-xs text-on-surface-variant">{m.game_date ? new Date(m.game_date).toLocaleString() : 'TBA'}</p>
+            </div>
+          ))}
+          {matches.length === 0 && <p className="text-on-surface-variant">No matches scheduled yet.</p>}
+        </div>
+      )}
+
       {/* Open Challenges */}
+      {activeSportsTab === 'challenges' && (
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-lexend font-700 text-lg text-on-surface">Open Challenges</h2>
@@ -834,9 +904,10 @@ function SportsSection({ institutionId, userId }: { institutionId: string | null
           {challenges.length === 0 && <p className="text-on-surface-variant font-jakarta text-center py-8">No open challenges yet. Be the first to post one!</p>}
         </div>
       </div>
+      )}
 
       {/* Campus Rankings */}
-      {rankings.length > 0 && (
+      {activeSportsTab === 'rankings' && (
         <div>
           <h2 className="font-lexend font-700 text-lg text-on-surface mb-3">Campus Rankings</h2>
           <div className="bg-surface-lowest rounded-2xl shadow-float border border-outline-variant/30 overflow-hidden">
@@ -853,9 +924,69 @@ function SportsSection({ institutionId, userId }: { institutionId: string | null
                 <span className="text-sm font-lexend font-700 text-secondary text-center">{r.points ?? 0} pts</span>
               </div>
             ))}
+            {rankings.length === 0 && <div className="px-4 py-4 text-on-surface-variant text-sm">No rankings yet.</div>}
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Directory Section ─────────────────────────────────────────────────────────
+function DirectorySection({ institutionId }: { institutionId: string | null }) {
+  const [active, setActive] = useState<'students'|'teachers'|'coaches'|'admin'|'ops_it'>('students');
+  const [rows, setRows] = useState<Array<{ id:string; full_name:string|null; email:string; role:string }>>([]);
+
+  const roleFilter: Record<string, string[]> = {
+    students: ['student','student_rep','athlete','club_leader'],
+    teachers: ['teacher'],
+    coaches: ['coach'],
+    admin: ['admin'],
+    ops_it: ['staff','it_director'],
+  };
+
+  useEffect(() => {
+    if (!institutionId) return;
+    const roles = roleFilter[active];
+    supabase.from('ct_users')
+      .select('id,full_name,email,role')
+      .eq('institution_id', institutionId)
+      .in('role', roles)
+      .order('full_name')
+      .then(({ data }) => setRows((data || []) as any));
+  }, [institutionId, active]);
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl p-6 text-white" style={{ background: 'linear-gradient(135deg, #5B4BDB, #7B68EE)' }}>
+        <h1 className="font-lexend font-900 text-2xl mb-1">Campus Directory</h1>
+        <p className="font-jakarta text-white/80 text-sm">Find students, teachers, coaches, admin, and ops/IT in your institution</p>
+      </div>
+      <div className="bg-surface-lowest rounded-2xl p-2 border border-outline-variant/30 flex gap-1 overflow-x-auto">
+        {[
+          {id:'students',label:'Students'},
+          {id:'teachers',label:'Teachers'},
+          {id:'coaches',label:'Sports Coaches'},
+          {id:'admin',label:'Admin'},
+          {id:'ops_it',label:'Ops & IT'},
+        ].map(t => (
+          <button key={t.id} onClick={() => setActive(t.id as any)} className={`px-4 py-2 rounded-xl text-sm font-jakarta font-700 whitespace-nowrap ${active===t.id ? 'bg-primary text-white' : 'text-on-surface-variant hover:bg-surface-low'}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <div className="bg-surface-lowest rounded-2xl shadow-float border border-outline-variant/30 overflow-hidden">
+        {rows.map(r => (
+          <div key={r.id} className="px-4 py-3 border-t border-outline-variant/20 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-jakarta font-700 text-on-surface text-sm truncate">{r.full_name || r.email}</p>
+              <p className="text-xs text-on-surface-variant truncate">{r.email}</p>
+            </div>
+            <span className="text-xs px-2 py-1 rounded-full bg-surface-low text-on-surface-variant capitalize">{r.role.replace('_',' ')}</span>
+          </div>
+        ))}
+        {rows.length === 0 && <div className="px-4 py-8 text-center text-sm text-on-surface-variant">No directory entries in this category.</div>}
+      </div>
     </div>
   );
 }
@@ -880,13 +1011,40 @@ function WellnessSection({ userId, institutionId }: { userId?: string; instituti
   const save = async () => {
     if (!userId) return;
     setSaving(true);
-    await supabase.from('ct_wellbeing_checks').insert({
-      user_id: userId,
-      happiness_score: happinessScore,
-      stress_score: stressScore,
-      notes,
-      date: new Date().toISOString().split('T')[0],
-    });
+    const today = new Date().toISOString().split('T')[0];
+    const { data: existing } = await supabase
+      .from('ct_wellbeing_checks')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('date', today)
+      .maybeSingle();
+
+    if (existing?.id) {
+      await supabase.from('ct_wellbeing_checks').update({
+        happiness_score: happinessScore,
+        stress_score: stressScore,
+        notes,
+        updated_at: new Date().toISOString(),
+      }).eq('id', existing.id);
+    } else {
+      await supabase.from('ct_wellbeing_checks').insert({
+        user_id: userId,
+        happiness_score: happinessScore,
+        stress_score: stressScore,
+        notes,
+        date: today,
+      });
+    }
+
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: trendData } = await supabase
+      .from('ct_wellbeing_checks')
+      .select('date,happiness_score,stress_score')
+      .eq('user_id', userId)
+      .gte('date', sevenDaysAgo)
+      .order('date');
+    setTrend((trendData || []).map(d => ({ date: d.date, happiness_score: d.happiness_score, stress_score: d.stress_score })));
+
     setSaving(false);
     setSaved(true);
     setNotes('');

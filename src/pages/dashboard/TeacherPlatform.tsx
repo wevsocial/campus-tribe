@@ -30,7 +30,9 @@ interface Submission {
 export default function TeacherPlatform() {
   const { profile, user, institutionId, effectiveInstitutionId, institution, signOut, needsPayment } = useAuth();
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState('overview');
+  const [activeSection, setActiveSection] = useState(() => {
+    try { return localStorage.getItem('ct.teacher.activeSection') || 'overview'; } catch { return 'overview'; }
+  });
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navItems = [
@@ -48,6 +50,10 @@ export default function TeacherPlatform() {
   const userName = profile?.full_name || user?.email?.split('@')[0] || 'Teacher';
   const initials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
   const handleSignOut = async () => { await signOut(); navigate('/login'); };
+
+  useEffect(() => {
+    try { localStorage.setItem('ct.teacher.activeSection', activeSection); } catch {}
+  }, [activeSection]);
 
   const SidebarContent = () => (
     <>

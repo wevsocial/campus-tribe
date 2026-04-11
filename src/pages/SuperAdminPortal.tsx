@@ -9,6 +9,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import CampusTribeLogo from '../components/ui/CampusTribeLogo';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 
 interface Institution {
   id: string;
@@ -58,6 +59,8 @@ export default function SuperAdminPortal() {
   const [stealthSessions, setStealthSessions] = useState<StealthSession[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [allInvoices, setAllInvoices] = useState<any[]>([]);
+  const [errorAlerts, setErrorAlerts] = useState<{ date: string; errors: number; warnings: number }[]>([]);
+  const [usageSummary, setUsageSummary] = useState<{ events:number; clubs:number; leagues:number; challenges:number; surveys:number }>({ events:0, clubs:0, leagues:0, challenges:0, surveys:0 });
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [stealthTarget, setStealthTarget] = useState<{ institution: Institution | null; role: string; userId?: string } | null>(null);
@@ -131,6 +134,39 @@ export default function SuperAdminPortal() {
         .order('started_at', { ascending: false })
         .limit(50);
       setStealthSessions(stealth || []);
+
+      // Alert/Error management from audit logs (last 14 days)
+      const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: logs } = await supabase
+        .from('ct_audit_logs')
+        .select('created_at,severity')
+        .gte('created_at', since)
+        .order('created_at', { ascending: true });
+
+      const bucket: Record<string, { errors: number; warnings: number }> = {};
+      (logs || []).forEach((l: any) => {
+        const d = new Date(l.created_at).toISOString().slice(0, 10);
+        if (!bucket[d]) bucket[d] = { errors: 0, warnings: 0 };
+        if (l.severity === 'error' || l.severity === 'critical') bucket[d].errors += 1;
+        if (l.severity === 'warning') bucket[d].warnings += 1;
+      });
+      setErrorAlerts(Object.entries(bucket).map(([date, v]) => ({ date, ...v })));
+
+      // Product usage analytics
+      const [ev, cb, lg, ch, sv] = await Promise.all([
+        supabase.from('ct_events').select('id', { count: 'exact', head: true }),
+        supabase.from('ct_clubs').select('id', { count: 'exact', head: true }),
+        supabase.from('ct_sports_leagues').select('id', { count: 'exact', head: true }),
+        supabase.from('ct_sport_challenges').select('id', { count: 'exact', head: true }),
+        supabase.from('ct_surveys').select('id', { count: 'exact', head: true }),
+      ]);
+      setUsageSummary({
+        events: ev.count || 0,
+        clubs: cb.count || 0,
+        leagues: lg.count || 0,
+        challenges: ch.count || 0,
+        surveys: sv.count || 0,
+      });
     } finally {
       setLoading(false);
     }
@@ -323,6 +359,76 @@ export default function SuperAdminPortal() {
                     </div>
                     <p className="text-2xl font-lexend font-900 text-gray-900 dark:text-white">{card.value}</p>
                     <p className="text-xs text-gray-500 mt-0.5 font-jakarta">{card.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Visual analytics */}
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4">
+                  <h3 className="font-jakarta font-800 text-gray-900 dark:text-white mb-3">User Growth by Institution</h3>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={institutions.map(i => ({ name: (i.institution_name || i.name || '').slice(0, 16), users: i.total_users || 0, paid: i.paid_users || 0 }))}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="users" fill="#3b82f6" name="Total Users" radius={[6,6,0,0]} />
+                        <Bar dataKey="paid" fill="#10b981" name="Paid Users" radius={[6,6,0,0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4">
+                  <h3 className="font-jakarta font-800 text-gray-900 dark:text-white mb-3">Revenue / Billing Status</h3>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={[
+                          { name: 'Paid Invoices', value: allInvoices.filter(i => i.status === 'paid').length },
+                          { name: 'Pending', value: allInvoices.filter(i => i.status === 'pending').length },
+                          { name: 'Failed', value: allInvoices.filter(i => i.status === 'failed').length },
+                        ]} dataKey="value" cx="50%" cy="50%" outerRadius={86} label>
+                          {['#10b981','#f59e0b','#ef4444'].map((c, idx) => <Cell key={idx} fill={c} />)}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4 xl:col-span-2">
+                  <h3 className="font-jakarta font-800 text-gray-900 dark:text-white mb-3">Alert & Error Management (Last 14 Days)</h3>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={errorAlerts}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Area type="monotone" dataKey="warnings" stroke="#f59e0b" fill="#fef3c7" name="Warnings" />
+                        <Area type="monotone" dataKey="errors" stroke="#ef4444" fill="#fee2e2" name="Errors" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* Product usage metrics */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {[
+                  { label: 'Events', value: usageSummary.events, color: 'text-blue-600 bg-blue-50' },
+                  { label: 'Clubs', value: usageSummary.clubs, color: 'text-purple-600 bg-purple-50' },
+                  { label: 'Leagues', value: usageSummary.leagues, color: 'text-green-600 bg-green-50' },
+                  { label: 'Challenges', value: usageSummary.challenges, color: 'text-amber-600 bg-amber-50' },
+                  { label: 'Surveys', value: usageSummary.surveys, color: 'text-pink-600 bg-pink-50' },
+                ].map(m => (
+                  <div key={m.label} className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4">
+                    <div className={`inline-flex px-2 py-1 rounded-full text-xs font-jakarta font-700 ${m.color}`}>{m.label}</div>
+                    <p className="text-2xl font-lexend font-900 text-gray-900 dark:text-white mt-2">{m.value}</p>
                   </div>
                 ))}
               </div>

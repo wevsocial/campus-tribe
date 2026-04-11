@@ -347,6 +347,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setStealthInstitutionId(null);
           }
         }
+        // Prevent stale cross-user role locks
+        sessionStorage.removeItem('ct.session-role');
       } catch {}
 
 
