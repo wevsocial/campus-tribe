@@ -387,7 +387,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isSuperAdmin) return false;
     const role = profile.role;
     if (!PAID_ROLES.includes(role)) return false;
-    return profile.payment_status === 'pending' || profile.payment_status === 'overdue';
+    // Any paid-role user is blocked unless explicitly marked paid
+    return profile.payment_status !== 'paid';
   }, [profile, isSuperAdmin]);
 
   const value = useMemo<AuthContextValue>(
