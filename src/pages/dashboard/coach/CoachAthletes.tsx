@@ -18,6 +18,11 @@ export default function CoachAthletes() {
   const { institutionId, user } = useAuth();
   const [athletes, setAthletes] = useState<Athlete[]>([]);
   const [teams, setTeams] = useState<Array<{id:string; name:string; league_id:string|null}>>([]);
+  const [leagues, setLeagues] = useState<Array<{id:string; name:string}>>([]);
+  const [students, setStudents] = useState<Array<{id:string; full_name:string|null; email:string}>>([]);
+  const [selectedStudent, setSelectedStudent] = useState('');
+  const [selectedTeam, setSelectedTeam] = useState('');
+  const [selectedLeague, setSelectedLeague] = useState('');
   const [loading, setLoading] = useState(true);
   const [waiverAthlete, setWaiverAthlete] = useState<Athlete | null>(null);
   const [waiverChecked, setWaiverChecked] = useState(false);
@@ -29,10 +34,14 @@ export default function CoachAthletes() {
     Promise.all([
       supabase.from('ct_sport_participants').select('*, user:ct_users(full_name, email, gender), team:ct_sports_teams(name)').eq('institution_id', institutionId),
       supabase.from('ct_sports_teams').select('id,name,league_id').eq('institution_id', institutionId),
+      supabase.from('ct_sports_leagues').select('id,name').eq('institution_id', institutionId),
+      supabase.from('ct_users').select('id,full_name,email').eq('institution_id', institutionId).in('role', ['student','athlete','student_rep']),
       supabase.from('ct_institutions').select('name').eq('id', institutionId).maybeSingle(),
-    ]).then(([a, t, inst]) => {
+    ]).then(([a, t, l, s, inst]) => {
       setAthletes((a.data as Athlete[]) ?? []);
       setTeams((t.data as any[]) ?? []);
+      setLeagues((l.data as any[]) ?? []);
+      setStudents((s.data as any[]) ?? []);
       if (inst.data?.name) setInstitutionName(inst.data.name);
       setLoading(false);
     });
@@ -67,6 +76,25 @@ export default function CoachAthletes() {
     setAthletes(prev => prev.map(a => a.id === athleteId ? { ...a, team_id: teamId, team: teamId ? { name: teams.find(t => t.id === teamId)?.name || 'Assigned' } : null } : a));
   };
 
+  const addAthleteFromDirectory = async () => {
+    if (!institutionId || !selectedStudent) return;
+    const payload: any = {
+      user_id: selectedStudent,
+      institution_id: institutionId,
+      team_id: selectedTeam || null,
+      league_id: selectedLeague || null,
+      is_free_agent: !selectedTeam,
+      waiver_signed: false,
+    };
+    await supabase.from('ct_sport_participants').insert(payload);
+    // reload quick
+    const { data } = await supabase.from('ct_sport_participants').select('*, user:ct_users(full_name, email, gender), team:ct_sports_teams(name)').eq('institution_id', institutionId);
+    setAthletes((data as Athlete[]) || []);
+    setSelectedStudent('');
+    setSelectedTeam('');
+    setSelectedLeague('');
+  };
+
   const totalMale = athletes.filter(a => a.user?.gender === 'male').length;
   const totalFemale = athletes.filter(a => a.user?.gender === 'female').length;
   const totalUnknown = athletes.filter(a => !a.user?.gender || !['male','female','non_binary'].includes(a.user.gender)).length;
@@ -93,6 +121,26 @@ export default function CoachAthletes() {
             <p className="text-2xl font-lexend font-black text-gray-700">{totalUnknown}</p>
             <p className="text-sm text-gray-600">Unknown/NB</p>
           </div>
+        </div>
+      </Card>
+
+      {/* Add athlete from directory */}
+      <Card>
+        <h2 className="font-lexend font-bold text-on-surface mb-3">Add Athlete from Student Directory</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <select value={selectedStudent} onChange={e => setSelectedStudent(e.target.value)} className="px-3 py-2 rounded-xl border border-outline-variant/50 bg-surface-low text-sm font-jakarta">
+            <option value="">Select student</option>
+            {students.map(s => <option key={s.id} value={s.id}>{s.full_name || s.email}</option>)}
+          </select>
+          <select value={selectedLeague} onChange={e => setSelectedLeague(e.target.value)} className="px-3 py-2 rounded-xl border border-outline-variant/50 bg-surface-low text-sm font-jakarta">
+            <option value="">Select league (optional)</option>
+            {leagues.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+          </select>
+          <select value={selectedTeam} onChange={e => setSelectedTeam(e.target.value)} className="px-3 py-2 rounded-xl border border-outline-variant/50 bg-surface-low text-sm font-jakarta">
+            <option value="">Select team (optional)</option>
+            {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+          <Button onClick={addAthleteFromDirectory} disabled={!selectedStudent}>Add Athlete</Button>
         </div>
       </Card>
 
