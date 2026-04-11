@@ -337,6 +337,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(nextSession ?? null);
       setUser(nextSession?.user ?? null);
 
+      // If user changed, clear stale stealth context unless current user is a super admin
+      try {
+        const rawStealth = sessionStorage.getItem('ct_stealth_mode');
+        if (rawStealth && nextSession?.user?.email) {
+          const isSa = SUPERADMIN_EMAILS.includes(nextSession.user.email.toLowerCase());
+          if (!isSa) {
+            sessionStorage.removeItem('ct_stealth_mode');
+            setStealthInstitutionId(null);
+          }
+        }
+      } catch {}
+
+
       if (!nextSession?.user) {
         setProfile(null);
         setInstitution(null);
