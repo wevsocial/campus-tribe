@@ -753,12 +753,20 @@ function SportsSection({ institutionId, userId }: { institutionId: string | null
 
   const joinLeague = async (leagueId: string) => {
     if (!userId || !institutionId) return;
-    await supabase.from('ct_sport_participants').upsert({
-      user_id: userId,
-      league_id: leagueId,
-      institution_id: institutionId,
-      is_free_agent: freeAgent,
-    }, { onConflict: 'user_id,league_id' as any });
+    const { data: existing } = await supabase.from('ct_sport_participants')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('league_id', leagueId)
+      .maybeSingle();
+    if (!existing) {
+      await supabase.from('ct_sport_participants').insert({
+        user_id: userId,
+        league_id: leagueId,
+        institution_id: institutionId,
+        is_free_agent: freeAgent,
+      });
+    }
+    setJoinedLeagueIds(prev => prev.includes(leagueId) ? prev : [...prev, leagueId]);
     load();
   };
 
