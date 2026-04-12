@@ -66,6 +66,7 @@ import ParentChildren from './pages/dashboard/parent/ParentChildren';
 import ParentReports from './pages/dashboard/parent/ParentReports';
 import ParentMessages from './pages/dashboard/parent/ParentMessages';
 import AthleteDashboard from './pages/dashboard/AthleteDashboard';
+import DirectoryPage from './pages/dashboard/DirectoryPage';
 
 function DashboardRedirect() {
   const { role, session } = useAuth();
@@ -141,6 +142,9 @@ export default function App() {
 
         {/* Athlete */}
         <Route path="/dashboard/athlete" element={<ProtectedRoute allowedRoles={['athlete', 'student']}><AthleteDashboard /></ProtectedRoute>} />
+
+        {/* Directory */}
+        <Route path="/directory" element={<ProtectedRoute><DirectoryPage /></ProtectedRoute>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

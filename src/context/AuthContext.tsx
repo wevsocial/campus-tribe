@@ -192,10 +192,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (!signupData.email) return null;
 
-    let institutionId: string | null = null;
+    let institutionId: string | null = (metadata.institution_id as string | undefined) ?? null;
     let institutionType = signupData.platform_type;
 
-    if (signupData.invite_code) {
+    // If institution_id was passed directly, look it up
+    if (institutionId) {
+      const { data: directInst } = await supabase
+        .from('ct_institutions')
+        .select('id, institution_type')
+        .eq('id', institutionId)
+        .maybeSingle();
+      if (directInst) institutionType = (directInst.institution_type || institutionType) as typeof institutionType;
+      else institutionId = null; // invalid id, fall through
+    }
+
+    if (!institutionId && signupData.invite_code) {
       const { data: institution } = await supabase
         .from('ct_institutions')
         .select('id, institution_type')

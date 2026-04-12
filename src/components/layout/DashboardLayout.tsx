@@ -5,7 +5,7 @@ import type { UserRole } from '../../types';
 import {
   LayoutDashboard, Compass, Calendar, Users, Trophy, Heart, User,
   BarChart2, Building2, Settings, Flag, List, Wallet, LogOut,
-  BookOpen, Menu, X, Bell, CreditCard, ShieldCheck,
+  BookOpen, Menu, X, Bell, CreditCard, ShieldCheck, BookUser,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../dashboard/NotificationBell';
@@ -128,7 +128,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeHash, setActiveHash] = useState(location.hash.replace('#', ''));
-
   const role = (profile?.role || 'student') as UserRole;
   const navItems = roleNavItems[role] || roleNavItems.student;
 
@@ -248,6 +247,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               {needsPayment && <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />}
             </button>
           )}
+          {/* Directory link for all roles */}
+          <button
+            onClick={() => navigate('/directory')}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-[1rem] text-sm font-jakarta font-600 transition-all text-left mt-1 text-on-surface-variant hover:bg-surface hover:text-on-surface"
+          >
+            <BookUser size={18} className="shrink-0" />
+            <span className="flex-1">Directory</span>
+          </button>
         </nav>
 
         {/* User footer */}

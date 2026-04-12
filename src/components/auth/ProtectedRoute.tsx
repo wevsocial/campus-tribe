@@ -1,14 +1,20 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth, getRoleDashboardPath } from '../../context/AuthContext';
+import InstitutionSelector from './InstitutionSelector';
 
 interface ProtectedRouteProps {
   children: React.ReactElement;
   allowedRoles?: string[];
 }
 
+const SUPERADMIN_EMAILS = [
+  'mrxxxbond@gmail.com','mrxxxbong@gmail.com','siinamits@gmail.com',
+  'sdescha21@gmail.com','wevsocial.s@gmail.com','amitt.k.sin@gmail.com','javbollad@gmail.com',
+];
+
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-  const { loading, session, user, roles, role, isEmailVerified } = useAuth();
+  const { loading, session, user, roles, role, isEmailVerified, profile, isSuperAdmin } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -39,6 +45,12 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
     if (location.pathname !== dashRoot) {
       return <Navigate to={dashRoot} replace />;
     }
+  }
+
+  // Institution gate: if no institution_id, show selector (skip for super admins)
+  const isSA = isSuperAdmin || SUPERADMIN_EMAILS.includes(user?.email || '');
+  if (profile && !profile.institution_id && !isSA && location.pathname !== '/admin') {
+    return <InstitutionSelector />;
   }
 
   return children;

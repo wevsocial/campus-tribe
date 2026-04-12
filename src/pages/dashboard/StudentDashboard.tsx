@@ -206,14 +206,21 @@ export default function StudentDashboard() {
   const submitWellbeing = async () => {
     if (!user?.id) return;
     const today = new Date().toISOString().slice(0, 10);
-    const exists = data.wellbeing.some((w: any) => w.date === today);
-    if (exists) { setFlash('You\'ve already checked in today. See you tomorrow!'); setTimeout(() => setFlash(''), 3000); return; }
-    const { data: checkin } = await supabase
+    const moodNum = Number(mood);
+    const { error } = await supabase
       .from('ct_wellbeing_checks')
-      .insert({ user_id: user.id, date: today, mood: Number(mood), energy: Number(mood), stress: 6 - Number(mood) })
-      .select('*').single();
-    if (checkin) {
-      setData((current: any) => ({ ...current, wellbeing: [checkin, ...current.wellbeing] }));
+      .upsert(
+        { user_id: user.id, date: today, mood: moodNum, energy: moodNum, stress: 6 - moodNum, notes: '' },
+        { onConflict: 'user_id,date' }
+      );
+    if (!error) {
+      const { data: fresh } = await supabase
+        .from('ct_wellbeing_checks')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false })
+        .limit(7);
+      setData((current: any) => ({ ...current, wellbeing: fresh || [] }));
       setFlash('Check-in saved! Keep it up. Consistency builds insights.');
       setTimeout(() => setFlash(''), 3000);
     }

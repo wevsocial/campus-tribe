@@ -53,13 +53,20 @@ const SUPERADMIN_EMAILS = [
 export default function SuperAdminPortal() {
   const { user, signOut, isSuperAdmin } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'institutions' | 'users' | 'billing' | 'stealth' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'institutions' | 'users' | 'billing' | 'stealth' | 'analytics' | 'alerts' | 'settings'>(() => {
+    try { return (localStorage.getItem('ct_tab_superadmin') as any) || 'overview'; } catch { return 'overview'; }
+  });
   const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [stealthSessions, setStealthSessions] = useState<StealthSession[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [allInvoices, setAllInvoices] = useState<any[]>([]);
   const [errorAlerts, setErrorAlerts] = useState<{ date: string; errors: number; warnings: number }[]>([]);
+  const [errorLogs, setErrorLogs] = useState<any[]>([]);
+  const [alertLevelFilter, setAlertLevelFilter] = useState<'all' | 'error' | 'warning' | 'info'>('all');
+  const [userGrowth, setUserGrowth] = useState<{ date: string; count: number }[]>([]);
+  const [roleDist, setRoleDist] = useState<{ role: string; count: number }[]>([]);
+  const [topInstitutions, setTopInstitutions] = useState<{ name: string; count: number }[]>([]);
   const [usageSummary, setUsageSummary] = useState<{ events:number; clubs:number; leagues:number; challenges:number; surveys:number }>({ events:0, clubs:0, leagues:0, challenges:0, surveys:0 });
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -119,6 +126,33 @@ export default function SuperAdminPortal() {
         .limit(200);
       setAllUsers(users || []);
 
+      // Compute role distribution
+      const roleCounts: Record<string, number> = {};
+      (users || []).forEach((u: any) => {
+        roleCounts[u.role] = (roleCounts[u.role] || 0) + 1;
+      });
+      setRoleDist(Object.entries(roleCounts).map(([role, count]) => ({ role, count })));
+
+      // Compute user growth from loaded users
+      const growthBucket: Record<string, number> = {};
+      const since30 = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      (users || []).forEach((u: any) => {
+        if (new Date(u.created_at).getTime() > since30) {
+          const d = u.created_at.slice(0, 10);
+          growthBucket[d] = (growthBucket[d] || 0) + 1;
+        }
+      });
+      setUserGrowth(Object.entries(growthBucket).sort().map(([date, count]) => ({ date, count })));
+
+      // Top institutions by user count
+      const instCounts: Record<string, { name: string; count: number }> = {};
+      (users || []).forEach((u: any) => {
+        const instName = (u.ct_institutions as any)?.name || u.institution_id || 'Unknown';
+        if (!instCounts[instName]) instCounts[instName] = { name: instName, count: 0 };
+        instCounts[instName].count += 1;
+      });
+      setTopInstitutions(Object.values(instCounts).sort((a, b) => b.count - a.count).slice(0, 5));
+
       // Load all invoices
       const { data: invoices } = await supabase
         .from('ct_billing_invoices')
@@ -153,20 +187,30 @@ export default function SuperAdminPortal() {
       setErrorAlerts(Object.entries(bucket).map(([date, v]) => ({ date, ...v })));
 
       // Product usage analytics
-      const [ev, cb, lg, ch, sv] = await Promise.all([
+      const [ev, cb, lg, sv] = await Promise.all([
         supabase.from('ct_events').select('id', { count: 'exact', head: true }),
         supabase.from('ct_clubs').select('id', { count: 'exact', head: true }),
         supabase.from('ct_sports_leagues').select('id', { count: 'exact', head: true }),
-        supabase.from('ct_sport_challenges').select('id', { count: 'exact', head: true }),
         supabase.from('ct_surveys').select('id', { count: 'exact', head: true }),
       ]);
       setUsageSummary({
         events: ev.count || 0,
         clubs: cb.count || 0,
         leagues: lg.count || 0,
-        challenges: ch.count || 0,
+        challenges: 0,
         surveys: sv.count || 0,
       });
+
+      // Error logs for Alerts tab
+      const { data: eLogs } = await supabase
+        .from('ct_error_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      setErrorLogs(eLogs || []);
+
+      // User growth last 30 days - compute from users
+      // (will be populated after users load below)
     } finally {
       setLoading(false);
     }
@@ -250,6 +294,8 @@ export default function SuperAdminPortal() {
     { id: 'institutions', label: 'Institutions', icon: Building2 },
     { id: 'users', label: 'All Users', icon: Users },
     { id: 'billing', label: 'Billing', icon: CreditCard },
+    { id: 'analytics', label: 'Analytics', icon: BarChart2 },
+    { id: 'alerts', label: 'Alerts', icon: Bell, badge: errorLogs.filter(e => !e.resolved_at).length },
     { id: 'stealth', label: 'Stealth Log', icon: Eye },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -283,7 +329,7 @@ export default function SuperAdminPortal() {
           {navItems.map(item => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id as any)}
+              onClick={() => { setActiveTab(item.id as any); try { localStorage.setItem('ct_tab_superadmin', item.id); } catch {} }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-jakarta font-600 transition-all text-left ${
                 activeTab === item.id
                   ? 'bg-primary-container text-primary font-700'
@@ -291,7 +337,10 @@ export default function SuperAdminPortal() {
               }`}
             >
               <item.icon size={16} className="shrink-0" />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {(item as any).badge > 0 && (
+                <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-jakarta font-900">{(item as any).badge}</span>
+              )}
             </button>
           ))}
         </nav>
@@ -634,6 +683,151 @@ export default function SuperAdminPortal() {
                     <div className="py-8 text-center text-gray-400 text-sm">No stealth sessions logged</div>
                   )}
                 </div>
+              </div>
+            </>
+          )}
+
+          {/* Analytics Tab */}
+          {activeTab === 'analytics' && (
+            <>
+              <h1 className="text-xl font-lexend font-900 text-gray-900 dark:text-white">Platform Analytics</h1>
+              {/* User growth chart */}
+              <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-5">
+                <h3 className="font-jakarta font-800 text-gray-900 dark:text-white mb-4">User Growth — Last 30 Days</h3>
+                {userGrowth.length === 0 ? (
+                  <p className="text-sm text-gray-500">No new users in the past 30 days.</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <AreaChart data={userGrowth}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="count" stroke="#0047AB" fill="#0047AB20" strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+              {/* Feature usage */}
+              <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-5">
+                <h3 className="font-jakarta font-800 text-gray-900 dark:text-white mb-4">Feature Usage</h3>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={[
+                    { feature: 'Events', count: usageSummary.events },
+                    { feature: 'Clubs', count: usageSummary.clubs },
+                    { feature: 'Leagues', count: usageSummary.leagues },
+                    { feature: 'Surveys', count: usageSummary.surveys },
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="feature" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#0047AB" radius={[4,4,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              {/* Role distribution */}
+              <div className="grid lg:grid-cols-2 gap-6">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-5">
+                  <h3 className="font-jakarta font-800 text-gray-900 dark:text-white mb-4">Role Distribution</h3>
+                  {roleDist.length === 0 ? <p className="text-sm text-gray-500">No data.</p> : (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <PieChart>
+                        <Pie data={roleDist} dataKey="count" nameKey="role" cx="50%" cy="50%" outerRadius={80} label={({ role }) => role}>
+                          {roleDist.map((_, i) => (
+                            <Cell key={i} fill={['#0047AB','#1a5fc9','#3A6FD0','#6B9FE8','#A8C5F5','#C8DDF9','#E0ECFF','#4CAF50','#FFC107','#FF5722'][i % 10]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-5">
+                  <h3 className="font-jakarta font-800 text-gray-900 dark:text-white mb-4">Top 5 Institutions by Users</h3>
+                  {topInstitutions.length === 0 ? <p className="text-sm text-gray-500">No data.</p> : (
+                    <div className="space-y-3">
+                      {topInstitutions.map((inst, i) => (
+                        <div key={inst.name} className="flex items-center gap-3">
+                          <span className="text-xs font-jakarta font-900 text-gray-400 w-4">{i + 1}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-jakarta font-700 text-gray-900 dark:text-white truncate">{inst.name}</p>
+                            <div className="h-1.5 bg-gray-100 rounded-full mt-1">
+                              <div className="h-1.5 bg-primary rounded-full" style={{ width: `${(inst.count / (topInstitutions[0]?.count || 1)) * 100}%` }} />
+                            </div>
+                          </div>
+                          <span className="text-sm font-jakarta font-900 text-primary">{inst.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Alerts Tab */}
+          {activeTab === 'alerts' && (
+            <>
+              <div className="flex items-center justify-between">
+                <h1 className="text-xl font-lexend font-900 text-gray-900 dark:text-white">System Alerts</h1>
+                <div className="flex gap-2">
+                  {(['all','error','warning','info'] as const).map(lvl => (
+                    <button
+                      key={lvl}
+                      onClick={() => setAlertLevelFilter(lvl)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-jakarta font-700 transition-all ${alertLevelFilter === lvl ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300'}`}
+                    >
+                      {lvl.charAt(0).toUpperCase() + lvl.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden">
+                {errorLogs.filter(e => alertLevelFilter === 'all' || e.level === alertLevelFilter).length === 0 ? (
+                  <div className="py-12 text-center text-gray-400 text-sm">No alerts found.</div>
+                ) : (
+                  <table className="w-full">
+                    <thead className="bg-gray-50 dark:bg-slate-700">
+                      <tr>
+                        {['Level','Message','Created','Resolved','Action'].map(h => (
+                          <th key={h} className="px-4 py-3 text-left font-jakarta text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
+                      {errorLogs
+                        .filter(e => alertLevelFilter === 'all' || e.level === alertLevelFilter)
+                        .map(e => (
+                          <tr key={e.id} className={e.resolved_at ? 'opacity-50' : ''}>
+                            <td className="px-4 py-3">
+                              <span className={`inline-block text-xs font-jakarta font-700 px-2 py-0.5 rounded-full ${
+                                e.level === 'error' ? 'bg-red-100 text-red-700' :
+                                e.level === 'warning' ? 'bg-amber-100 text-amber-700' :
+                                'bg-blue-100 text-blue-700'
+                              }`}>{e.level}</span>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-white max-w-xs truncate">{e.message}</td>
+                            <td className="px-4 py-3 text-xs text-gray-500">{new Date(e.created_at).toLocaleDateString()}</td>
+                            <td className="px-4 py-3 text-xs text-gray-500">{e.resolved_at ? new Date(e.resolved_at).toLocaleDateString() : '—'}</td>
+                            <td className="px-4 py-3">
+                              {!e.resolved_at && (
+                                <button
+                                  onClick={async () => {
+                                    await supabase.from('ct_error_logs').update({ resolved_at: new Date().toISOString(), resolved_by: user?.id }).eq('id', e.id);
+                                    setErrorLogs(prev => prev.map(x => x.id === e.id ? { ...x, resolved_at: new Date().toISOString() } : x));
+                                  }}
+                                  className="text-xs font-jakarta font-700 text-primary hover:underline"
+                                >
+                                  Resolve
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </>
           )}

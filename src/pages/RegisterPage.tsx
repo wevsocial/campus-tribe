@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { getRoleDashboardPath, persistPendingSignup, useAuth } from '../context/AuthContext';
@@ -91,8 +91,16 @@ const RegisterPage: React.FC = () => {
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [institutionName, setInstitutionName] = useState('');
   const [inviteCode, setInviteCode]     = useState('');
+  const [selectedInstitutionId, setSelectedInstitutionId] = useState('');
+  const [institutionList, setInstitutionList] = useState<{ id: string; name: string }[]>([]);
   const [submitting, setSubmitting]     = useState(false);
   const [error, setError]               = useState('');
+
+  useEffect(() => {
+    supabase.from('ct_institutions').select('id,name').order('name').then(({ data }) => {
+      setInstitutionList(data ?? []);
+    });
+  }, []);
 
   const roles = ROLES[platformType] ?? [];
 
@@ -135,14 +143,14 @@ const RegisterPage: React.FC = () => {
     if (!email.trim())    { setError('Email is required.'); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     if (password !== confirmPassword) { setError('Passwords do not match.'); return; }
-    if (!institutionName.trim() && !inviteCode.trim()) { setError('Enter your institution name (new) or an invite code (join existing).'); return; }
+    if (!institutionName.trim() && !inviteCode.trim() && !selectedInstitutionId) { setError('Select or enter your institution.'); return; }
 
     setSubmitting(true);
     try {
       persistPendingSignup({ email, full_name: fullName, role: role as any, platform_type: platformType as any, institution_name: institutionName.trim() || undefined, invite_code: inviteCode.trim().toLowerCase() || undefined });
       const { data, error: signUpError } = await supabase.auth.signUp({
         email, password,
-        options: { data: { email, full_name: fullName, role, platform_type: platformType, institution_name: institutionName.trim() || undefined, invite_code: inviteCode.trim().toLowerCase() || undefined }, emailRedirectTo: `${window.location.origin}/auth/callback` },
+        options: { data: { email, full_name: fullName, role, platform_type: platformType, institution_name: institutionName.trim() || undefined, invite_code: inviteCode.trim().toLowerCase() || undefined, institution_id: selectedInstitutionId || undefined }, emailRedirectTo: `${window.location.origin}/auth/callback` },
       });
       if (signUpError) {
         if (/already registered|already exists/i.test(signUpError.message)) {
@@ -359,6 +367,19 @@ const RegisterPage: React.FC = () => {
                   <p className="text-xs text-red-500 font-jakarta mt-1">Passwords do not match.</p>
                 )}
                 <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="relative">
+                    <Building2 size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <select
+                      value={selectedInstitutionId}
+                      onChange={e => setSelectedInstitutionId(e.target.value)}
+                      className={inputCls}
+                    >
+                      <option value="">Join existing institution</option>
+                      {institutionList.map(inst => (
+                        <option key={inst.id} value={inst.id}>{inst.name}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="relative">
                     <Building2 size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input type="text" value={institutionName} onChange={e => setInstitutionName(e.target.value)}
