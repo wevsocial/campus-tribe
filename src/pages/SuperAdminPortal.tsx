@@ -121,7 +121,7 @@ export default function SuperAdminPortal() {
       // Load all users
       const { data: users } = await supabase
         .from('ct_users')
-        .select('id, email, full_name, role, payment_status, institution_id, created_at, ct_institutions(name)')
+        .select('id, email, full_name, role, payment_status, institution_id, created_at')
         .order('created_at', { ascending: false })
         .limit(200);
       setAllUsers(users || []);
@@ -156,7 +156,7 @@ export default function SuperAdminPortal() {
       // Load all invoices
       const { data: invoices } = await supabase
         .from('ct_billing_invoices')
-        .select('*, ct_institutions(name)')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
       setAllInvoices(invoices || []);
