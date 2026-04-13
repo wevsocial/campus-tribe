@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+import {
   LayoutDashboard, Users, Award, Calendar, MapPin, Trophy, ClipboardList,
   Megaphone, BarChart2, Key, History, Puzzle, Settings, User, LogOut, Menu,
-  Plus, Search, Loader2, CheckCircle, XCircle, CreditCard, Building2
+  Plus, Search, Loader2, CheckCircle, XCircle, CreditCard, Building2, Ticket
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -16,6 +17,7 @@ import PaywallGate from '../../components/billing/PaywallGate';
 import StealthBanner from '../../components/layout/StealthBanner';
 import InstitutionRibbon from '../../components/InstitutionRibbon';
 import EmailVerificationGate from '../../components/EmailVerificationGate';
+import TicketingSystem from '../../components/tickets/TicketingSystem';
 
 export default function AdminITPlatform() {
   const { profile, user, institutionId, effectiveInstitutionId, institution, role, signOut, needsPayment } = useAuth();
@@ -40,6 +42,7 @@ export default function AdminITPlatform() {
     { id: 'api-keys', label: 'API Keys', icon: <Key size={18} /> },
     { id: 'audit', label: 'Audit Log', icon: <History size={18} /> },
     { id: 'integrations', label: 'Integrations', icon: <Puzzle size={18} /> },
+    { id: 'tickets', label: 'Tickets', icon: <Ticket size={18} /> },
     { id: 'billing', label: 'Bills & Payments', icon: <CreditCard size={18} /> },
     { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
     { id: 'profile', label: 'Profile', icon: <User size={18} /> },
@@ -133,6 +136,14 @@ export default function AdminITPlatform() {
               {activeSection === 'api-keys' && <ApiKeysSection institutionId={effectiveInstitutionId ?? institutionId} />}
               {activeSection === 'audit' && <AuditSection institutionId={effectiveInstitutionId ?? institutionId} />}
               {activeSection === 'integrations' && <IntegrationsSection institutionId={effectiveInstitutionId ?? institutionId} />}
+              {activeSection === 'tickets' && (
+                <TicketingSystem
+                  ticketType="admin"
+                  institutionId={effectiveInstitutionId ?? institutionId}
+                  userId={user?.id}
+                  userRole={isIT ? 'it_director' : 'admin'}
+                />
+              )}
               {activeSection === 'settings' && <SettingsSection institutionId={effectiveInstitutionId ?? institutionId} />}
               {activeSection === 'profile' && <ProfileSection profile={profile as Record<string, unknown> | null} userId={user?.id} institutionId={effectiveInstitutionId ?? institutionId} />}
             </PaywallGate>

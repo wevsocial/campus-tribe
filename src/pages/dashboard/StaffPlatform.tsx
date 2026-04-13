@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Bell, Calendar, MapPin, Megaphone, User, LogOut, Menu, Plus, Loader2, Settings, CreditCard } from 'lucide-react';
+import { LayoutDashboard, FileText, Bell, Calendar, MapPin, Megaphone, User, LogOut, Menu, Plus, Loader2, Settings, CreditCard, Ticket } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import NotificationCenter from '../../components/ui/NotificationCenter';
@@ -9,6 +9,7 @@ import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 import BillingSection from '../../components/billing/BillingSection';
 import PaywallGate from '../../components/billing/PaywallGate';
 import StealthBanner from '../../components/layout/StealthBanner';
+import TicketingSystem from '../../components/tickets/TicketingSystem';
 
 export default function StaffPlatform() {
   const { profile, user, institutionId, effectiveInstitutionId, institution, signOut } = useAuth();
@@ -24,6 +25,7 @@ export default function StaffPlatform() {
     { id: 'events', label: 'Events', icon: <Calendar size={18} /> },
     { id: 'venues', label: 'Venues', icon: <MapPin size={18} /> },
     { id: 'announcements', label: 'Announcements', icon: <Megaphone size={18} /> },
+    { id: 'tickets', label: 'Tickets', icon: <Ticket size={18} /> },
     { id: 'billing', label: 'Bills & Payments', icon: <CreditCard size={18} /> },
     { id: 'profile', label: 'Profile', icon: <User size={18} /> },
     { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
@@ -108,6 +110,14 @@ export default function StaffPlatform() {
               {activeSection === 'events' && <EventsSection institutionId={effectiveInstitutionId ?? institutionId} />}
               {activeSection === 'venues' && <VenueQueueSection institutionId={effectiveInstitutionId ?? institutionId} />}
               {activeSection === 'announcements' && <AnnouncementsSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
+              {activeSection === 'tickets' && (
+                <TicketingSystem
+                  ticketType="ops"
+                  institutionId={effectiveInstitutionId ?? institutionId}
+                  userId={user?.id}
+                  userRole="staff"
+                />
+              )}
               {activeSection === 'profile' && <ProfileSection profile={profile as Record<string, unknown> | null} userId={user?.id} institutionId={effectiveInstitutionId ?? institutionId} />}
               {activeSection === 'settings' && <ProfileSection profile={profile as Record<string, unknown> | null} userId={user?.id} institutionId={effectiveInstitutionId ?? institutionId} />}
             </PaywallGate>

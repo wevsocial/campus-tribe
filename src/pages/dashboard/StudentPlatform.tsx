@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import {
   Home, Calendar, Users, MapPin, Megaphone, Wallet, Trophy, Heart,
   ClipboardList, User, LogOut, Menu, X, Plus, ChevronRight, Loader2,
-  Bell, CheckCircle, BookOpen, Settings, Download, Upload
+  Bell, CheckCircle, BookOpen, Settings, Download, Upload, Ticket
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import NotificationCenter from '../../components/ui/NotificationCenter';
 import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
 import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
+import TicketingSystem from '../../components/tickets/TicketingSystem';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Event { id: string; title: string; event_date: string; location: string | null; description: string | null; }
@@ -43,6 +44,7 @@ export default function StudentPlatform() {
     { id: 'directory', label: 'Directory', icon: <Users size={18} /> },
     { id: 'wellness', label: 'Wellness', icon: <Heart size={18} /> },
     { id: 'surveys', label: 'Surveys', icon: <ClipboardList size={18} /> },
+    { id: 'tickets', label: 'My Tickets', icon: <Ticket size={18} /> },
     { id: 'courses', label: 'My Courses', icon: <BookOpen size={18} /> },
     { id: 'grades', label: 'My Grades', icon: <ClipboardList size={18} /> },
     ...(isLeader ? [{ id: 'myclubs', label: 'My Clubs', icon: <Users size={18} /> }] : []),
@@ -157,6 +159,14 @@ export default function StudentPlatform() {
           {activeSection === 'directory' && <DirectorySection institutionId={effectiveInstitutionId ?? institutionId} />}
           {activeSection === 'wellness' && <WellnessSection userId={user?.id} institutionId={effectiveInstitutionId ?? institutionId} />}
           {activeSection === 'surveys' && <SurveysSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
+          {activeSection === 'tickets' && (
+            <TicketingSystem
+              ticketType="general"
+              institutionId={effectiveInstitutionId ?? institutionId}
+              userId={user?.id}
+              userRole="student"
+            />
+          )}
           {activeSection === 'grades' && <GradesSection userId={user?.id} />}
           {activeSection === 'courses' && <CoursesSection userId={user?.id} />}
           {activeSection === 'myclubs' && isLeader && <MyClubsSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
