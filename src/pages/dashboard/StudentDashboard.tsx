@@ -213,7 +213,7 @@ export default function StudentDashboard() {
     const { error } = await supabase
       .from('ct_wellbeing_checks')
       .upsert(
-        { user_id: user.id, date: today, mood: moodNum, mood_score: moodNum, energy: moodNum, energy_level: moodNum, stress: 6 - moodNum, stress_level: 6 - moodNum, notes: '' },
+        { user_id: user.id, date: today, mood: moodNum, energy: moodNum, stress: 6 - moodNum, notes: '' },
         { onConflict: 'user_id,date' }
       );
     if (!error) {
