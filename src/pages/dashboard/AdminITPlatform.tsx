@@ -14,6 +14,8 @@ import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 import BillingSection from '../../components/billing/BillingSection';
 import PaywallGate from '../../components/billing/PaywallGate';
 import StealthBanner from '../../components/layout/StealthBanner';
+import InstitutionRibbon from '../../components/InstitutionRibbon';
+import EmailVerificationGate from '../../components/EmailVerificationGate';
 
 export default function AdminITPlatform() {
   const { profile, user, institutionId, effectiveInstitutionId, institution, role, signOut, needsPayment } = useAuth();
@@ -95,6 +97,7 @@ export default function AdminITPlatform() {
   );
 
   return (
+    <EmailVerificationGate>
     <div className="min-h-screen flex bg-surface">
       <aside className="hidden lg:flex flex-col w-64 fixed top-0 left-0 h-full z-30 bg-surface-lowest shadow-float"><SidebarContent /></aside>
       <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-surface-lowest border-b border-outline-variant/30 flex items-center gap-3 px-4 py-3">
@@ -138,6 +141,7 @@ export default function AdminITPlatform() {
       </main>
       <StealthBanner />
     </div>
+    </EmailVerificationGate>
   );
 }
 

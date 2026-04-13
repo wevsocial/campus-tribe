@@ -13,6 +13,8 @@ import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 import BillingSection from '../../components/billing/BillingSection';
 import PaywallGate from '../../components/billing/PaywallGate';
 import StealthBanner from '../../components/layout/StealthBanner';
+import InstitutionRibbon from '../../components/InstitutionRibbon';
+import EmailVerificationGate from '../../components/EmailVerificationGate';
 
 interface Course { id: string; name: string; code: string; description: string | null; credits: number | null; }
 interface Assignment {
@@ -101,6 +103,7 @@ export default function TeacherPlatform() {
   );
 
   return (
+    <EmailVerificationGate>
     <div className="min-h-screen flex bg-surface">
       <aside className="hidden lg:flex flex-col w-64 fixed top-0 left-0 h-full z-30 bg-surface-lowest shadow-float">
         <SidebarContent />
@@ -145,6 +148,7 @@ export default function TeacherPlatform() {
       </main>
       <StealthBanner />
     </div>
+    </EmailVerificationGate>
   );
 }
 

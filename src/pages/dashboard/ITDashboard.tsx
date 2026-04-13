@@ -11,6 +11,9 @@ import { supabase } from '../../lib/supabase';
 import { apiReference } from '../../data/apiReference';
 import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
 import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
+import InstitutionRibbon from '../../components/InstitutionRibbon';
+import EmailVerificationGate from '../../components/EmailVerificationGate';
+import BillingSection from '../../components/billing/BillingSection';
 
 const tabs = [
   { label: 'Users', hash: 'users' },
@@ -18,6 +21,7 @@ const tabs = [
   { label: 'API Docs', hash: 'api-docs' },
   { label: 'Audit Log', hash: 'audit' },
   { label: 'Integrations', hash: 'integrations' },
+  { label: 'Billing', hash: 'billing' },
   { label: 'Settings', hash: 'settings' },
 ];
 
@@ -212,9 +216,11 @@ export default function ITDashboard() {
   };
 
   return (
+    <EmailVerificationGate>
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="rounded-[1.5rem] bg-primary p-8 text-white">
+        <div className="rounded-[1.5rem] bg-primary p-8 text-white relative">
+          <div className="absolute top-4 right-4"><InstitutionRibbon /></div>
           <h1 className="font-lexend text-3xl font-900">IT Admin Workspace</h1>
           <p className="mt-2 text-white/80">Review users, govern API access, inspect audit activity, and prepare institutional integrations from a real admin console.</p>
         </div>
@@ -438,6 +444,12 @@ export default function ITDashboard() {
           </div>
         )}
 
+        {activeTab === 'Billing' && (
+          <div id="billing" className="space-y-6">
+            <BillingSection isAdmin={false} />
+          </div>
+        )}
+
         {activeTab === 'Settings' && (
           <div id="settings" className="space-y-6">
             <Card>
@@ -494,5 +506,6 @@ export default function ITDashboard() {
         )}
       </div>
     </DashboardLayout>
+    </EmailVerificationGate>
   );
 }

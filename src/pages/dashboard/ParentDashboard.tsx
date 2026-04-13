@@ -9,6 +9,7 @@ import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
 import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
 import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
+import InstitutionRibbon from '../../components/InstitutionRibbon';
 
 type Child = { id: string; full_name: string; room: string | null; teacher_id: string | null; parent_id: string | null; allergies?: string | null };
 type Survey = { id: string; title: string; description: string | null; target_roles?: string[] | null; status?: string | null; is_active?: boolean | null };
@@ -166,7 +167,8 @@ React.useEffect(() => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="rounded-[1.5rem] bg-primary p-8 text-white">
+        <div className="rounded-[1.5rem] bg-primary p-8 text-white relative">
+          <div className="absolute top-4 right-4"><InstitutionRibbon /></div>
           <h1 className="font-lexend text-3xl font-900">Parent Workspace</h1>
           <p className="mt-2 text-white/80">Link children, read richer daily reports, keep a parent-teacher note trail, and answer published surveys.</p>
         </div>

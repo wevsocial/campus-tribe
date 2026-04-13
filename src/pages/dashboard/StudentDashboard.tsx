@@ -8,6 +8,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
 import { SmilePlus, Smile, Meh, Frown, Trophy, Calendar, Megaphone, ClipboardList, User, CheckCircle, BookOpen, Users, Dumbbell, Camera, Gamepad2, Rocket, Globe, Leaf, ChefHat, Mic2, GraduationCap, Star, Building2 } from 'lucide-react';
+import InstitutionRibbon from '../../components/InstitutionRibbon';
+import SportsHub from '../../components/student/SportsHub';
 
 type SurveyQuestion = { id: string; survey_id: string; prompt: string; question_type: string; options?: string[] | null; required?: boolean; position: number };
 type ActiveSurvey = { id: string; title: string; description: string | null; anonymous?: boolean | null; is_anonymous?: boolean | null; status?: string | null };
@@ -310,6 +312,7 @@ React.useEffect(() => {
       <div className="space-y-6">
         {/* Hero header */}
         <section id="overview" className="scroll-mt-24 rounded-[1.5rem] bg-primary p-8 text-white relative overflow-hidden">
+          <div className="absolute top-4 right-4 z-10"><InstitutionRibbon /></div>
           <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/4" />
           <h1 className="font-lexend text-3xl font-900">
             Hey {profile?.full_name?.split(' ')[0] || 'there'} 👋
@@ -478,9 +481,15 @@ React.useEffect(() => {
             )}
           </Card>
         </div>
-        {/* Sports & Leagues */}
-        <div className="grid lg:grid-cols-2 gap-6">
-          <Card id="sports" className="scroll-mt-24">
+        {/* Sports Hub */}
+        <Card id="sports" className="scroll-mt-24">
+          <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Sports Hub</h2>
+          <SportsHub />
+        </Card>
+
+        {/* Legacy Sports & Leagues grid */}
+        <div className="grid lg:grid-cols-2 gap-6" style={{display:'none'}}>
+          <Card className="scroll-mt-24">
             <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Sports & Leagues</h2>
             {(data.leagues as SportsLeague[]).length === 0 ? (
               <p className="text-sm text-on-surface-variant">No active leagues yet.</p>

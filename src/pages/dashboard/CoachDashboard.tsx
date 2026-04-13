@@ -10,6 +10,10 @@ import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
 import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
 import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
+import InstitutionRibbon from '../../components/InstitutionRibbon';
+import EmailVerificationGate from '../../components/EmailVerificationGate';
+import PaywallOverlay from '../../components/billing/PaywallOverlay';
+import BillingSection from '../../components/billing/BillingSection';
 
 type League = { id: string; name: string; sport: string | null; season: string | null; format: string | null; status: string | null; created_by: string | null; institution_id: string | null };
 type Team = { id: string; name: string; league_id: string | null; institution_id: string | null; wins: number; losses: number; draws: number; points: number };
@@ -37,13 +41,14 @@ export default function CoachDashboard() {
   }, [userId, institutionId]);
 
   const { data, setData } = useDashboardData(async ({ userId, institutionId }) => {
-    const [leaguesRes, teamsRes, gamesRes, participantsRes, trainingRes, usersRes] = await Promise.all([
+    const [leaguesRes, teamsRes, gamesRes, participantsRes, trainingRes, usersRes, myAthletesRes] = await Promise.all([
       supabase.from('ct_sports_leagues').select('*').eq('institution_id', institutionId).order('created_at', { ascending: false }),
       supabase.from('ct_sports_teams').select('*').eq('institution_id', institutionId).order('points', { ascending: false }),
       supabase.from('ct_sports_games').select('*').eq('institution_id', institutionId).order('scheduled_at', { ascending: false }).limit(60),
       supabase.from('ct_sport_participants').select('*').eq('institution_id', institutionId).order('joined_at', { ascending: false }),
       supabase.from('ct_training_sessions').select('*').order('scheduled_at', { ascending: false }).limit(30),
       supabase.from('ct_users').select('id, full_name, email').eq('institution_id', institutionId).in('role', ['student', 'student_rep']).order('full_name'),
+      supabase.from('ct_users').select('id, full_name, email, athlete_team_id').eq('athlete_coach_id', userId).eq('is_athlete', true),
     ]);
     return {
       leagues: (leaguesRes.data ?? []) as League[],
@@ -52,8 +57,9 @@ export default function CoachDashboard() {
       participants: (participantsRes.data ?? []) as Participant[],
       training: (trainingRes.data ?? []) as TrainingSession[],
       users: (usersRes.data ?? []) as AppUser[],
+      myAthletes: (myAthletesRes.data ?? []) as AppUser[],
     };
-  }, { leagues: [], teams: [], games: [], participants: [], training: [], users: [] }, { requireInstitution: true });
+  }, { leagues: [], teams: [], games: [], participants: [], training: [], users: [], myAthletes: [] }, { requireInstitution: true });
 
   // League form
   const [leagueName, setLeagueName] = useState('');
@@ -249,9 +255,11 @@ React.useEffect(() => {
 }, []);
 
   return (
+    <EmailVerificationGate>
     <DashboardLayout>
       <div className="space-y-6">
         <div className="rounded-[1.5rem] bg-primary p-8 text-white relative overflow-hidden">
+          <div className="absolute top-4 right-4"><InstitutionRibbon /></div>
           <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/4" />
           <h1 className="font-lexend text-3xl font-900">Coach Workspace</h1>
           <p className="mt-2 text-white/80">Manage leagues, teams, game schedules, scores, athletes, and training sessions.</p>
@@ -345,7 +353,16 @@ React.useEffect(() => {
             <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Register Athlete</h2>
             <div className="space-y-3">
               <div>
-                <label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Student</label>
+                <label className="block text-sm font-jakarta font-700 text-on-surface mb-1">Search Student</label>
+                <Input placeholder="Type name to filter..." value={athleteUserId ? (data.users.find(u => u.id === athleteUserId)?.full_name || '') : ''} onChange={(e) => {
+                  const q = e.target.value.toLowerCase();
+                  if (!q) setAthleteUserId('');
+                  else {
+                    const found = data.users.find(u => (u.full_name || u.email || '').toLowerCase().includes(q));
+                    if (found) setAthleteUserId(found.id);
+                  }
+                }} />
+                <label className="block text-sm font-jakarta font-700 text-on-surface mb-1 mt-2">Or select:</label>
                 <select value={athleteUserId} onChange={(e) => setAthleteUserId(e.target.value)} className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm">
                   <option value="">Select student</option>
                   {data.users.map((u) => <option key={u.id} value={u.id}>{u.full_name || u.email}</option>)}
@@ -466,6 +483,26 @@ React.useEffect(() => {
           </Card>
         </div>
 
+        {/* My Roster */}
+        {(data.myAthletes as AppUser[]).length > 0 && (
+          <Card>
+            <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">My Roster ({(data.myAthletes as AppUser[]).length} athletes)</h2>
+            <div className="space-y-2">
+              {(data.myAthletes as any[]).map((a: any) => (
+                <div key={a.id} className="rounded-[1rem] bg-surface p-3 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+                    {(a.full_name || a.email || '?').charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-jakarta font-700 text-sm text-on-surface">{a.full_name || a.email}</p>
+                    {a.athlete_team_id && <p className="text-xs text-on-surface-variant">Team: {teamMap[a.athlete_team_id]?.name || a.athlete_team_id}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
         {/* Games */}
         <Card>
           <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Games & Scores</h2>
@@ -557,6 +594,11 @@ React.useEffect(() => {
           )}
         </Card>
 
+        {/* Billing */}
+        <div id="billing" className="scroll-mt-24">
+          <BillingSection isAdmin={false} />
+        </div>
+
         {/* Settings */}
         <Card id="settings">
           <h2 className="mb-4 font-lexend text-lg font-800 text-on-surface">Settings</h2>
@@ -567,5 +609,6 @@ React.useEffect(() => {
         </Card>
       </div>
     </DashboardLayout>
+    </EmailVerificationGate>
   );
 }
