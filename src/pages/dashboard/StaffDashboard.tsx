@@ -8,6 +8,7 @@ import { StatCard } from '../../components/ui/StatCard';
 import { useAuth } from '../../context/AuthContext';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { supabase } from '../../lib/supabase';
+import TicketingSystem from '../../components/tickets/TicketingSystem';
 import { findVenueConflicts, normalizeRelation } from '../../lib/dashboardData';
 
 type Child = { id: string; full_name: string; parent_id: string | null; room: string | null };
@@ -231,7 +232,18 @@ React.useEffect(() => {
             );})}
           </Card>
         </div>
+
+        {/* Ops Tickets */}
+        <div id="tickets" className="scroll-mt-24">
+          <TicketingSystem
+            ticketType="ops"
+            institutionId={institutionId}
+            userId={user?.id}
+            userRole="staff"
+          />
+        </div>
       </div>
     </DashboardLayout>
   );
 }
+

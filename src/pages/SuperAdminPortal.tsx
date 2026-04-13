@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import CampusTribeLogo from '../components/ui/CampusTribeLogo';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
+import TicketingSystem from '../components/tickets/TicketingSystem';
 
 interface Institution {
   id: string;
@@ -53,7 +54,7 @@ const SUPERADMIN_EMAILS = [
 export default function SuperAdminPortal() {
   const { user, signOut, isSuperAdmin } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'institutions' | 'users' | 'billing' | 'stealth' | 'analytics' | 'alerts' | 'settings'>(() => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'institutions' | 'users' | 'billing' | 'stealth' | 'analytics' | 'alerts' | 'tickets' | 'settings'>(() => {
     try { return (localStorage.getItem('ct_tab_superadmin') as any) || 'overview'; } catch { return 'overview'; }
   });
   const [institutions, setInstitutions] = useState<Institution[]>([]);
@@ -296,6 +297,7 @@ export default function SuperAdminPortal() {
     { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'analytics', label: 'Analytics', icon: BarChart2 },
     { id: 'alerts', label: 'Alerts', icon: Bell, badge: errorLogs.filter(e => !e.resolved_at).length },
+    { id: 'tickets', label: 'Tickets', icon: Bell },
     { id: 'stealth', label: 'Stealth Log', icon: Eye },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -653,6 +655,14 @@ export default function SuperAdminPortal() {
                 </div>
               </div>
             </>
+          )}
+
+          {/* Tickets Tab */}
+          {activeTab === 'tickets' && (
+            <div className="space-y-6">
+              <h2 className="font-lexend font-800 text-on-surface text-xl">All Tickets</h2>
+              <TicketingSystem ticketType="general" institutionId={null} userId={user?.id} userRole="admin" />
+            </div>
           )}
 
           {/* Stealth Log Tab */}

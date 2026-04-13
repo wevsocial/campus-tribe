@@ -10,6 +10,7 @@ import { supabase } from '../../lib/supabase';
 import { SmilePlus, Smile, Meh, Frown, Trophy, Calendar, Megaphone, ClipboardList, User, CheckCircle, BookOpen, Users, Dumbbell, Camera, Gamepad2, Rocket, Globe, Leaf, ChefHat, Mic2, GraduationCap, Star, Building2 } from 'lucide-react';
 import InstitutionRibbon from '../../components/InstitutionRibbon';
 import SportsHub from '../../components/student/SportsHub';
+import TicketingSystem from '../../components/tickets/TicketingSystem';
 
 type SurveyQuestion = { id: string; survey_id: string; prompt: string; question_type: string; options?: string[] | null; required?: boolean; position: number };
 type ActiveSurvey = { id: string; title: string; description: string | null; anonymous?: boolean | null; is_anonymous?: boolean | null; status?: string | null };
@@ -212,7 +213,7 @@ export default function StudentDashboard() {
     const { error } = await supabase
       .from('ct_wellbeing_checks')
       .upsert(
-        { user_id: user.id, date: today, mood: moodNum, energy: moodNum, stress: 6 - moodNum, notes: '' },
+        { user_id: user.id, date: today, mood: moodNum, mood_score: moodNum, energy: moodNum, energy_level: moodNum, stress: 6 - moodNum, stress_level: 6 - moodNum, notes: '' },
         { onConflict: 'user_id,date' }
       );
     if (!error) {
@@ -569,6 +570,16 @@ React.useEffect(() => {
           </div>
         </Card>
 
+        {/* Tickets Section */}
+        <div id="tickets" className="scroll-mt-24">
+          <TicketingSystem
+            ticketType="general"
+            institutionId={institutionId}
+            userId={user?.id}
+            userRole="student"
+          />
+        </div>
+
         {/* Survey Modal */}
         {surveyModal && (
           <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
@@ -638,8 +649,7 @@ React.useEffect(() => {
         )}
 
         {/* My Performance Notes */}
-        {myNotes.length > 0 && (
-          <div id="notes" className="scroll-mt-24">
+        {myNotes.length > 0 && (          <div id="notes" className="scroll-mt-24">
             <h2 className="font-lexend text-xl font-900 text-on-surface mb-4">My Performance Notes</h2>
             <div className="space-y-3">
               {myNotes.map((note) => (

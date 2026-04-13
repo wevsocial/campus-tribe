@@ -3,7 +3,8 @@ import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { Card } from '../../components/ui/Card';
-import { Search, Users } from 'lucide-react';
+import { Button } from '../../components/ui/Button';
+import { Search, Users, X, Send, Ticket } from 'lucide-react';
 
 interface DirUser {
   id: string;
@@ -22,12 +23,25 @@ const ROLE_TABS = [
 ];
 
 export default function DirectoryPage() {
-  const { institutionId, role } = useAuth();
+  const { institutionId, user, role } = useAuth();
   const canSeeEmail = role === 'admin' || role === 'it_director';
   const [activeRoleTab, setActiveRoleTab] = useState(ROLE_TABS[0].id);
   const [search, setSearch] = useState('');
   const [users, setUsers] = useState<DirUser[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // DM modal
+  const [dmTarget, setDmTarget] = useState<DirUser | null>(null);
+  const [dmText, setDmText] = useState('');
+  const [dmSending, setDmSending] = useState(false);
+  const [dmFlash, setDmFlash] = useState('');
+
+  // Ticket modal
+  const [ticketTarget, setTicketTarget] = useState<DirUser | null>(null);
+  const [ticketTitle, setTicketTitle] = useState('');
+  const [ticketDesc, setTicketDesc] = useState('');
+  const [ticketSending, setTicketSending] = useState(false);
+  const [ticketFlash, setTicketFlash] = useState('');
 
   useEffect(() => {
     if (!institutionId) return;
@@ -52,6 +66,45 @@ export default function DirectoryPage() {
 
   const initials = (name: string | null, email: string) =>
     (name || email).split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase();
+
+  const sendDM = async () => {
+    if (!user?.id || !institutionId || !dmTarget || !dmText.trim()) return;
+    setDmSending(true);
+    const { error } = await supabase.from('ct_direct_messages').insert({
+      institution_id: institutionId,
+      sender_id: user.id,
+      recipient_id: dmTarget.id,
+      message: dmText.trim(),
+    });
+    setDmSending(false);
+    if (!error) {
+      setDmFlash('Message sent!');
+      setTimeout(() => { setDmFlash(''); setDmTarget(null); setDmText(''); }, 1500);
+    }
+  };
+
+  const submitTicket = async () => {
+    if (!user?.id || !institutionId || !ticketTarget || !ticketTitle.trim()) return;
+    setTicketSending(true);
+    const ticketType = ticketTarget.role === 'it_director' || ticketTarget.role === 'it_admin' ? 'it' : 'ops';
+    const { error } = await supabase.from('ct_tickets').insert({
+      institution_id: institutionId,
+      created_by: user.id,
+      assigned_to: ticketTarget.id,
+      ticket_type: ticketType,
+      title: ticketTitle.trim(),
+      description: ticketDesc.trim() || null,
+      priority: 'medium',
+      status: 'open',
+    });
+    setTicketSending(false);
+    if (!error) {
+      setTicketFlash('Ticket created!');
+      setTimeout(() => { setTicketFlash(''); setTicketTarget(null); setTicketTitle(''); setTicketDesc(''); }, 1500);
+    }
+  };
+
+  const isOpsIT = (r: string) => r === 'it_director' || r === 'it_admin' || r === 'staff';
 
   return (
     <DashboardLayout>
@@ -112,11 +165,86 @@ export default function DirectoryPage() {
                     {u.role.replace('_', ' ')}
                   </span>
                 </div>
+                {user && u.id !== user.id && (
+                  <div className="flex gap-1 w-full mt-1">
+                    {isOpsIT(u.role) ? (
+                      <button
+                        onClick={() => setTicketTarget(u)}
+                        className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-full bg-secondary/10 text-secondary text-xs font-jakarta font-700 hover:bg-secondary/20 transition-all"
+                      >
+                        <Ticket size={11} /> Ticket
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setDmTarget(u)}
+                        className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-jakarta font-700 hover:bg-primary/20 transition-all"
+                      >
+                        <Send size={11} /> Message
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* DM Modal */}
+      {dmTarget && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-surface-container-lowest rounded-[2rem] p-6 w-full max-w-sm shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-lexend font-800 text-on-surface">Message {dmTarget.full_name || dmTarget.email}</h3>
+              <button onClick={() => setDmTarget(null)}><X size={18} /></button>
+            </div>
+            {dmFlash && <p className="text-sm text-primary mb-3">{dmFlash}</p>}
+            <textarea
+              value={dmText}
+              onChange={e => setDmText(e.target.value)}
+              rows={4}
+              placeholder="Type your message..."
+              className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-3 text-sm mb-3"
+            />
+            <div className="flex gap-2">
+              <Button onClick={sendDM} disabled={dmSending || !dmText.trim()} className="flex-1 rounded-full">Send</Button>
+              <Button variant="outline" onClick={() => setDmTarget(null)} className="rounded-full">Cancel</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ticket Modal */}
+      {ticketTarget && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-surface-container-lowest rounded-[2rem] p-6 w-full max-w-sm shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-lexend font-800 text-on-surface">Open Ticket with {ticketTarget.full_name || ticketTarget.email}</h3>
+              <button onClick={() => setTicketTarget(null)}><X size={18} /></button>
+            </div>
+            {ticketFlash && <p className="text-sm text-primary mb-3">{ticketFlash}</p>}
+            <div className="space-y-3">
+              <input
+                value={ticketTitle}
+                onChange={e => setTicketTitle(e.target.value)}
+                placeholder="Ticket title"
+                className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-2.5 text-sm"
+              />
+              <textarea
+                value={ticketDesc}
+                onChange={e => setTicketDesc(e.target.value)}
+                rows={3}
+                placeholder="Description (optional)"
+                className="w-full rounded-xl border border-outline-variant bg-surface-lowest px-4 py-3 text-sm"
+              />
+            </div>
+            <div className="flex gap-2 mt-3">
+              <Button onClick={submitTicket} disabled={ticketSending || !ticketTitle.trim()} className="flex-1 rounded-full">Submit</Button>
+              <Button variant="outline" onClick={() => setTicketTarget(null)} className="rounded-full">Cancel</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

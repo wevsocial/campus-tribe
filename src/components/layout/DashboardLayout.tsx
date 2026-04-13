@@ -5,7 +5,7 @@ import type { UserRole } from '../../types';
 import {
   LayoutDashboard, Compass, Calendar, Users, Trophy, Heart, User,
   BarChart2, Building2, Settings, Flag, List, Wallet, LogOut,
-  BookOpen, Menu, X, Bell, CreditCard, ShieldCheck, BookUser,
+  BookOpen, Menu, X, Bell, CreditCard, ShieldCheck, BookUser, Ticket,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from '../dashboard/NotificationBell';
@@ -22,6 +22,7 @@ const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; has
     { label: 'Sports', icon: <Trophy size={18} />, hash: 'sports' },
     { label: 'Wellness', icon: <Heart size={18} />, hash: 'wellness' },
     { label: 'Surveys', icon: <List size={18} />, hash: 'surveys' },
+    { label: 'My Tickets', icon: <Ticket size={18} />, hash: 'tickets' },
   ],
   student_rep: [
     { label: 'Overview', icon: <LayoutDashboard size={18} />, hash: '' },
@@ -61,6 +62,7 @@ const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; has
     { label: 'Daily Reports', icon: <Flag size={18} />, hash: 'reports' },
     { label: 'Parent Updates', icon: <Bell size={18} />, hash: 'updates' },
     { label: 'Classes', icon: <BookOpen size={18} />, hash: 'classes' },
+    { label: 'Tickets', icon: <Ticket size={18} />, hash: 'tickets' },
   ],
   it_director: [
     { label: 'Overview', icon: <LayoutDashboard size={18} />, hash: '' },
@@ -68,6 +70,7 @@ const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; has
     { label: 'API Keys', icon: <Settings size={18} />, hash: 'api-keys' },
     { label: 'Audit Log', icon: <List size={18} />, hash: 'audit' },
     { label: 'Integrations', icon: <BarChart2 size={18} />, hash: 'integrations' },
+    { label: 'IT Tickets', icon: <Ticket size={18} />, hash: 'tickets' },
     { label: 'Settings', icon: <Settings size={18} />, hash: 'settings' },
   ],
   teacher: [

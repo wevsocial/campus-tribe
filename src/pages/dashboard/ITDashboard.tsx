@@ -14,6 +14,7 @@ import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 import InstitutionRibbon from '../../components/InstitutionRibbon';
 import EmailVerificationGate from '../../components/EmailVerificationGate';
 import BillingSection from '../../components/billing/BillingSection';
+import TicketingSystem from '../../components/tickets/TicketingSystem';
 
 const tabs = [
   { label: 'Users', hash: 'users' },
@@ -21,6 +22,7 @@ const tabs = [
   { label: 'API Docs', hash: 'api-docs' },
   { label: 'Audit Log', hash: 'audit' },
   { label: 'Integrations', hash: 'integrations' },
+  { label: 'Tickets', hash: 'tickets' },
   { label: 'Billing', hash: 'billing' },
   { label: 'Settings', hash: 'settings' },
 ];
@@ -57,6 +59,7 @@ export default function ITDashboard() {
       'api-docs': 'API Docs',
       'audit': 'Audit Log',
       'integrations': 'Integrations',
+      'tickets': 'Tickets',
       'settings': 'Settings',
     };
     if (hash && tabMap[hash]) {
@@ -441,6 +444,17 @@ export default function ITDashboard() {
                 </Card>
               ))}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'Tickets' && (
+          <div id="tickets" className="space-y-6 scroll-mt-24">
+            <TicketingSystem
+              ticketType="it"
+              institutionId={institutionId}
+              userId={user?.id}
+              userRole="it_director"
+            />
           </div>
         )}
 
