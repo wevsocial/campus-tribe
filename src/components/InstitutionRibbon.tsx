@@ -17,12 +17,12 @@ export default function InstitutionRibbon() {
       .then(({ data }) => setName(data?.name ?? null));
   }, [institutionId]);
 
-  if (!name) return null;
+  if (!institutionId) return null;
 
   return (
     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 text-xs font-semibold shadow-sm">
       <School size={13} />
-      <span>{name}</span>
+      <span>{name || 'Your Institution'}</span>
     </div>
   );
 }

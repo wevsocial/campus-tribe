@@ -15,6 +15,7 @@ import PaywallGate from '../../components/billing/PaywallGate';
 import StealthBanner from '../../components/layout/StealthBanner';
 import InstitutionRibbon from '../../components/InstitutionRibbon';
 import EmailVerificationGate from '../../components/EmailVerificationGate';
+import DirectoryEmbed from '../../components/directory/DirectoryEmbed';
 
 interface Course { id: string; name: string; code: string; description: string | null; credits: number | null; }
 interface Assignment {
@@ -45,6 +46,7 @@ export default function TeacherPlatform() {
     { id: 'students', label: 'Students', icon: <Users size={18} /> },
     { id: 'notes', label: 'Performance Notes', icon: <ClipboardList size={18} /> },
     { id: 'announcements', label: 'Announcements', icon: <Megaphone size={18} /> },
+    { id: 'directory', label: 'Directory', icon: <Users size={18} /> },
     { id: 'billing', label: 'Bills & Payments', icon: <CreditCard size={18} /> },
     { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
   ];
@@ -141,6 +143,7 @@ export default function TeacherPlatform() {
               {activeSection === 'students' && <StudentsSection institutionId={effectiveInstitutionId ?? institutionId} />}
               {activeSection === 'notes' && <PerformanceNotesSection institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
               {activeSection === 'announcements' && <TeacherAnnouncements institutionId={effectiveInstitutionId ?? institutionId} userId={user?.id} />}
+              {activeSection === 'directory' && <DirectoryEmbed />}
               {activeSection === 'settings' && <SettingsSection profile={profile as unknown as Record<string, unknown> | null} userId={user?.id} institutionId={effectiveInstitutionId ?? institutionId} />}
             </PaywallGate>
           )}

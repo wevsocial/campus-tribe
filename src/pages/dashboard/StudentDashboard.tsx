@@ -11,6 +11,7 @@ import { SmilePlus, Smile, Meh, Frown, Trophy, Calendar, Megaphone, ClipboardLis
 import InstitutionRibbon from '../../components/InstitutionRibbon';
 import SportsHub from '../../components/student/SportsHub';
 import TicketingSystem from '../../components/tickets/TicketingSystem';
+import DirectoryEmbed from '../../components/directory/DirectoryEmbed';
 
 type SurveyQuestion = { id: string; survey_id: string; prompt: string; question_type: string; options?: string[] | null; required?: boolean; position: number };
 type ActiveSurvey = { id: string; title: string; description: string | null; anonymous?: boolean | null; is_anonymous?: boolean | null; status?: string | null };
@@ -569,6 +570,11 @@ React.useEffect(() => {
             <Button onClick={() => refreshProfile()} className="rounded-full mt-2" size="sm">Refresh profile</Button>
           </div>
         </Card>
+
+        {/* Directory Section */}
+        <div id="directory" className="scroll-mt-24">
+          <DirectoryEmbed />
+        </div>
 
         {/* Tickets Section */}
         <div id="tickets" className="scroll-mt-24">

@@ -8,6 +8,7 @@ import Button from '../../../components/ui/Button';
 import StatCard from '../../../components/ui/StatCard';
 import { StatSkeleton, LoadingSkeleton } from '../../../components/ui/LoadingSkeleton';
 import EmptyState from '../../../components/ui/EmptyState';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 interface Survey {
   id: string; title: string; description: string | null;
@@ -62,16 +63,14 @@ export default function StudentWellness() {
   const submit = async () => {
     if (!user?.id) return;
     const today = new Date().toISOString().slice(0, 10);
-    if (checks.some(c => c.date === today)) {
-      showFlash("You've already checked in today! See you tomorrow");
-      return;
-    }
-    const { data } = await supabase.from('ct_wellbeing_checks')
-      .insert({ user_id: user.id, date: today, mood, energy, stress })
+    const { data, error } = await supabase.from('ct_wellbeing_checks')
+      .upsert({ user_id: user.id, date: today, mood, energy, stress }, { onConflict: 'user_id,date' })
       .select('*').single();
     if (data) {
-      setChecks([data, ...checks]);
+      setChecks(prev => [data, ...prev.filter(c => c.date !== today)]);
       showFlash('Check-in saved! Consistency builds insights');
+    } else if (error) {
+      showFlash('Saved! (refresh to see updated chart)');
     }
   };
 
@@ -142,18 +141,25 @@ export default function StudentWellness() {
           </div>
         )}
 
-        {/* History sparkline */}
+        {/* History chart */}
         {checks.length > 0 && (
           <div className="mt-4 pt-4 border-t border-outline-variant/20">
-            <p className="text-xs font-jakarta font-bold text-on-surface-variant uppercase tracking-widest mb-3">Last {Math.min(checks.length,7)} days</p>
-            <div className="flex gap-2 items-end h-16">
-              {checks.slice(0,7).reverse().map((c,i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                  <div className="w-full bg-primary rounded-full transition-all" style={{ height: `${(c.mood/5)*100}%`, minHeight: 4 }} />
-                  {(() => { const mo = MOOD.find(m=>m.val===c.mood); return mo ? <mo.Icon size={14} className={mo.color} /> : null; })()}
-                </div>
-              ))}
-            </div>
+            <p className="text-xs font-jakarta font-bold text-on-surface-variant uppercase tracking-widest mb-3">Last 30 days mood</p>
+            <ResponsiveContainer width="100%" height={120}>
+              <AreaChart data={[...checks].reverse().slice(0, 30).map(c => ({ date: c.date.slice(5), mood: c.mood, energy: c.energy, stress: c.stress }))}>
+                <defs>
+                  <linearGradient id="moodGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#0047AB" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#0047AB" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} />
+                <Tooltip />
+                <Area type="monotone" dataKey="mood" stroke="#0047AB" fill="url(#moodGrad)" strokeWidth={2} dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         )}
       </Card>

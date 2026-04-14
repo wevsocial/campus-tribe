@@ -21,6 +21,7 @@ const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; has
     { label: 'My Clubs', icon: <Users size={18} />, hash: 'clubs' },
     { label: 'Sports', icon: <Trophy size={18} />, hash: 'sports' },
     { label: 'Wellness', icon: <Heart size={18} />, hash: 'wellness' },
+    { label: 'Directory', icon: <BookUser size={18} />, hash: 'directory' },
     { label: 'Surveys', icon: <List size={18} />, hash: 'surveys' },
     { label: 'My Tickets', icon: <Ticket size={18} />, hash: 'tickets' },
   ],
@@ -56,6 +57,7 @@ const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; has
     { label: 'Schedule', icon: <Calendar size={18} />, hash: 'schedule' },
     { label: 'Athletes', icon: <User size={18} />, hash: 'athletes' },
     { label: 'Training', icon: <List size={18} />, hash: 'training' },
+    { label: 'Directory', icon: <BookUser size={18} />, hash: 'directory' },
   ],
   staff: [
     { label: 'Overview', icon: <LayoutDashboard size={18} />, hash: '' },
@@ -70,6 +72,7 @@ const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; has
     { label: 'API Keys', icon: <Settings size={18} />, hash: 'api-keys' },
     { label: 'Audit Log', icon: <List size={18} />, hash: 'audit' },
     { label: 'Integrations', icon: <BarChart2 size={18} />, hash: 'integrations' },
+    { label: 'Directory', icon: <BookUser size={18} />, hash: 'directory' },
     { label: 'IT Tickets', icon: <Ticket size={18} />, hash: 'tickets' },
     { label: 'Settings', icon: <Settings size={18} />, hash: 'settings' },
   ],
@@ -78,6 +81,7 @@ const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; has
     { label: 'Courses', icon: <BookOpen size={18} />, hash: 'courses' },
     { label: 'Assignments', icon: <List size={18} />, hash: 'assignments' },
     { label: 'Surveys', icon: <Flag size={18} />, hash: 'surveys' },
+    { label: 'Directory', icon: <BookUser size={18} />, hash: 'directory' },
     { label: 'Analytics', icon: <BarChart2 size={18} />, hash: 'analytics' },
   ],
   parent: [
@@ -86,6 +90,7 @@ const roleNavItems: Record<UserRole, { label: string; icon: React.ReactNode; has
     { label: 'Daily Reports', icon: <Flag size={18} />, hash: 'reports' },
     { label: 'Messages', icon: <Bell size={18} />, hash: 'messages' },
     { label: 'Events', icon: <Calendar size={18} />, hash: 'events' },
+    { label: 'Directory', icon: <BookUser size={18} />, hash: 'directory' },
   ],
   athlete: [
     { label: 'Overview', icon: <LayoutDashboard size={18} />, hash: '' },

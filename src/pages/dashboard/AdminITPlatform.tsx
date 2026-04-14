@@ -17,6 +17,7 @@ import StealthBanner from '../../components/layout/StealthBanner';
 import InstitutionRibbon from '../../components/InstitutionRibbon';
 import EmailVerificationGate from '../../components/EmailVerificationGate';
 import TicketingSystem from '../../components/tickets/TicketingSystem';
+import DirectoryEmbed from '../../components/directory/DirectoryEmbed';
 
 export default function AdminITPlatform() {
   const { profile, user, institutionId, effectiveInstitutionId, institution, role, signOut, needsPayment } = useAuth();
@@ -42,6 +43,7 @@ export default function AdminITPlatform() {
     { id: 'audit', label: 'Audit Log', icon: <History size={18} /> },
     { id: 'integrations', label: 'Integrations', icon: <Puzzle size={18} /> },
     { id: 'tickets', label: 'Tickets', icon: <Ticket size={18} /> },
+    { id: 'directory', label: 'Directory', icon: <Users size={18} /> },
     { id: 'billing', label: 'Bills & Payments', icon: <CreditCard size={18} /> },
     { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
     { id: 'profile', label: 'Profile', icon: <User size={18} /> },
@@ -143,6 +145,7 @@ export default function AdminITPlatform() {
                   userRole={isIT ? 'it_director' : 'admin'}
                 />
               )}
+              {activeSection === 'directory' && <DirectoryEmbed />}
               {activeSection === 'settings' && <SettingsSection institutionId={effectiveInstitutionId ?? institutionId} />}
               {activeSection === 'profile' && <ProfileSection profile={profile as Record<string, unknown> | null} userId={user?.id} institutionId={effectiveInstitutionId ?? institutionId} />}
             </PaywallGate>

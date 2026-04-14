@@ -119,10 +119,10 @@ export default function SuperAdminPortal() {
         setStats(s);
       }
 
-      // Load all users
+      // Load all users with institution name join
       const { data: users } = await supabase
         .from('ct_users')
-        .select('id, email, full_name, role, payment_status, institution_id, created_at')
+        .select('id, email, full_name, role, payment_status, institution_id, created_at, ct_institutions(name)')
         .order('created_at', { ascending: false })
         .limit(200);
       setAllUsers(users || []);
@@ -148,9 +148,10 @@ export default function SuperAdminPortal() {
       // Top institutions by user count
       const instCounts: Record<string, { name: string; count: number }> = {};
       (users || []).forEach((u: any) => {
-        const instName = (u.ct_institutions as any)?.name || u.institution_id || 'Unknown';
-        if (!instCounts[instName]) instCounts[instName] = { name: instName, count: 0 };
-        instCounts[instName].count += 1;
+        const instName = (u.ct_institutions as any)?.name || institutions.find(i => i.id === u.institution_id)?.name || 'Unknown';
+        const key = u.institution_id || 'unknown';
+        if (!instCounts[key]) instCounts[key] = { name: instName, count: 0 };
+        instCounts[key].count += 1;
       });
       setTopInstitutions(Object.values(instCounts).sort((a, b) => b.count - a.count).slice(0, 5));
 

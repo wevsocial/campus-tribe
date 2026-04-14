@@ -10,6 +10,7 @@ import { supabase } from '../../lib/supabase';
 import ProfilePhotoUpload from '../../components/ui/ProfilePhotoUpload';
 import NotificationPrefsPanel from '../../components/ui/NotificationPrefsPanel';
 import InstitutionRibbon from '../../components/InstitutionRibbon';
+import DirectoryEmbed from '../../components/directory/DirectoryEmbed';
 
 type Child = { id: string; full_name: string; room: string | null; teacher_id: string | null; parent_id: string | null; allergies?: string | null };
 type Survey = { id: string; title: string; description: string | null; target_roles?: string[] | null; status?: string | null; is_active?: boolean | null };
@@ -314,6 +315,11 @@ React.useEffect(() => {
         </div>
 
       </div>
+      {/* Directory */}
+      <div id="directory" className="scroll-mt-24 mt-6">
+        <DirectoryEmbed />
+      </div>
+
     </DashboardLayout>
   );
 }

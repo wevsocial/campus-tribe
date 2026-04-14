@@ -14,6 +14,7 @@ import InstitutionRibbon from '../../components/InstitutionRibbon';
 import EmailVerificationGate from '../../components/EmailVerificationGate';
 import PaywallOverlay from '../../components/billing/PaywallOverlay';
 import BillingSection from '../../components/billing/BillingSection';
+import DirectoryEmbed from '../../components/directory/DirectoryEmbed';
 
 type League = { id: string; name: string; sport: string | null; season: string | null; format: string | null; status: string | null; created_by: string | null; institution_id: string | null };
 type Team = { id: string; name: string; league_id: string | null; institution_id: string | null; wins: number; losses: number; draws: number; points: number };
@@ -593,6 +594,11 @@ React.useEffect(() => {
             </div>
           )}
         </Card>
+
+        {/* Directory */}
+        <div id="directory" className="scroll-mt-24">
+          <DirectoryEmbed />
+        </div>
 
         {/* Billing */}
         <div id="billing" className="scroll-mt-24">

@@ -15,6 +15,7 @@ import InstitutionRibbon from '../../components/InstitutionRibbon';
 import EmailVerificationGate from '../../components/EmailVerificationGate';
 import BillingSection from '../../components/billing/BillingSection';
 import TicketingSystem from '../../components/tickets/TicketingSystem';
+import DirectoryEmbed from '../../components/directory/DirectoryEmbed';
 
 const tabs = [
   { label: 'Users', hash: 'users' },
@@ -23,6 +24,7 @@ const tabs = [
   { label: 'Audit Log', hash: 'audit' },
   { label: 'Integrations', hash: 'integrations' },
   { label: 'Tickets', hash: 'tickets' },
+  { label: 'Directory', hash: 'directory' },
   { label: 'Billing', hash: 'billing' },
   { label: 'Settings', hash: 'settings' },
 ];
@@ -60,6 +62,7 @@ export default function ITDashboard() {
       'audit': 'Audit Log',
       'integrations': 'Integrations',
       'tickets': 'Tickets',
+      'directory': 'Directory',
       'settings': 'Settings',
     };
     if (hash && tabMap[hash]) {
@@ -455,6 +458,12 @@ export default function ITDashboard() {
               userId={user?.id}
               userRole="it_director"
             />
+          </div>
+        )}
+
+        {activeTab === 'Directory' && (
+          <div id="directory" className="space-y-6">
+            <DirectoryEmbed />
           </div>
         )}
 
