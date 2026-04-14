@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTabPersistence } from '../../hooks/useTabPersistence';
 import {
   Home, Calendar, Users, MapPin, Megaphone, Wallet, Trophy, Heart,
   ClipboardList, User, LogOut, Menu, X, Plus, ChevronRight, Loader2,
@@ -674,7 +675,7 @@ function SportsSection({ institutionId, userId }: { institutionId: string | null
   const [joinedLeagueIds, setJoinedLeagueIds] = useState<string[]>([]);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [rankings, setRankings] = useState<SportRanking[]>([]);
-  const [activeSportsTab, setActiveSportsTab] = useState<'leagues'|'matches'|'challenges'|'rankings'>('leagues');
+  const [activeSportsTab, setActiveSportsTab] = useTabPersistence('sports-section', 'leagues') as [string, (t: string) => void];
   const [showCreate, setShowCreate] = useState(false);
   const [challengeForm, setChallengeForm] = useState({ title: '', description: '', sport: 'Basketball', scheduled_at: '' });
   const [postScore, setPostScore] = useState<{ id: string; myScore: string; oppScore: string } | null>(null);
