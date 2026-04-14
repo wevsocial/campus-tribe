@@ -952,8 +952,12 @@ function SportsSection({ institutionId, userId }: { institutionId: string | null
 
 // ─── Directory Section ─────────────────────────────────────────────────────────
 function DirectorySection({ institutionId }: { institutionId: string | null }) {
+  const { user, role } = useAuth();
   const [active, setActive] = useState<'students'|'teachers'|'coaches'|'admin'|'ops_it'>('students');
   const [rows, setRows] = useState<Array<{ id:string; full_name:string|null; email:string; role:string }>>([]);
+  const [dmTarget, setDmTarget] = useState<{id:string;full_name:string|null;role:string}|null>(null);
+  const [dmText, setDmText] = useState('');
+  const [dmFlash, setDmFlash] = useState('');
 
   const roleFilter: Record<string, string[]> = {
     students: ['student','student_rep','athlete','club_leader'],
@@ -973,6 +977,18 @@ function DirectorySection({ institutionId }: { institutionId: string | null }) {
       .order('full_name')
       .then(({ data }) => setRows((data || []) as any));
   }, [institutionId, active]);
+
+  const sendMessage = async () => {
+    if (!dmTarget || !dmText.trim() || !user?.id || !institutionId) return;
+    const isIT = ['it_director','staff'].includes(dmTarget.role);
+    if (isIT) {
+      await supabase.from('ct_tickets').insert({ from_user_id: user.id, to_user_id: dmTarget.id, institution_id: institutionId, subject: 'Message', message: dmText.trim(), status: 'open' });
+    } else {
+      await supabase.from('ct_direct_messages').insert({ from_user_id: user.id, to_user_id: dmTarget.id, institution_id: institutionId, message: dmText.trim() });
+    }
+    setDmFlash(isIT ? 'Ticket created!' : 'Sent!');
+    setTimeout(() => { setDmTarget(null); setDmText(''); setDmFlash(''); }, 1500);
+  };
 
   return (
     <div className="space-y-4">
@@ -1000,11 +1016,35 @@ function DirectorySection({ institutionId }: { institutionId: string | null }) {
               <p className="font-jakarta font-700 text-on-surface text-sm truncate">{r.full_name || r.email}</p>
               <p className="text-xs text-on-surface-variant truncate">{r.email}</p>
             </div>
-            <span className="text-xs px-2 py-1 rounded-full bg-surface-low text-on-surface-variant capitalize">{r.role.replace('_',' ')}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs px-2 py-1 rounded-full bg-surface-low text-on-surface-variant capitalize">{r.role.replace('_',' ')}</span>
+              {r.id !== user?.id && (
+                <button onClick={() => setDmTarget(r)} className="text-xs px-3 py-1 rounded-full bg-primary-container text-primary hover:bg-primary hover:text-white transition-all font-jakarta font-700">
+                  Message
+                </button>
+              )}
+            </div>
           </div>
         ))}
         {rows.length === 0 && <div className="px-4 py-8 text-center text-sm text-on-surface-variant">No directory entries in this category.</div>}
       </div>
+
+      {dmTarget && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-surface-lowest rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="font-lexend font-bold mb-3">Message {dmTarget.full_name}</h3>
+            {dmFlash ? <p className="text-green-600 font-bold text-center py-4">{dmFlash}</p> : (
+              <>
+                <textarea rows={4} value={dmText} onChange={e => setDmText(e.target.value)} className="w-full rounded-xl border border-outline-variant p-3 text-sm mb-4" placeholder="Write your message..." />
+                <div className="flex gap-3">
+                  <button onClick={sendMessage} disabled={!dmText.trim()} className="flex-1 bg-primary text-white rounded-full py-2.5 font-jakarta font-700 text-sm">Send</button>
+                  <button onClick={() => setDmTarget(null)} className="flex-1 border border-outline-variant rounded-full py-2.5 font-jakarta font-700 text-sm">Cancel</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
