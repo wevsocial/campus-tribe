@@ -60,6 +60,7 @@ const navConfig: Record<Role, NavItem[]> = {
     { label: 'Schedule', path: '/dashboard/coach/schedule', icon: <CalendarDays size={18} /> },
     { label: 'Athletes', path: '/dashboard/coach/athletes', icon: <User size={18} /> },
     { label: 'Training', path: '/dashboard/coach/training', icon: <LayoutDashboard size={18} /> },
+    { label: 'Directory', path: '/directory', icon: <Users size={18} /> },
     { label: 'Settings', path: '/dashboard/coach/settings', icon: <Settings size={18} /> },
   ],
   teacher: [
@@ -84,6 +85,7 @@ const navConfig: Record<Role, NavItem[]> = {
     { label: 'Children', path: '/dashboard/parent/children', icon: <Baby size={18} /> },
     { label: 'Reports', path: '/dashboard/parent/reports', icon: <FileText size={18} /> },
     { label: 'Messages', path: '/dashboard/parent/messages', icon: <MessageSquare size={18} /> },
+    { label: 'Directory', path: '/directory', icon: <Users size={18} /> },
   ],
   staff: [
     { label: 'Overview', path: '/dashboard/staff/overview', icon: <LayoutDashboard size={18} /> },
