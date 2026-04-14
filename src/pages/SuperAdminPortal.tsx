@@ -119,12 +119,8 @@ export default function SuperAdminPortal() {
         setStats(s);
       }
 
-      // Load all users with institution name join
-      const { data: users, error: usersErr } = await supabase
-        .from('ct_users')
-        .select('id, email, full_name, role, payment_status, institution_id, created_at')
-        .order('created_at', { ascending: false })
-        .limit(200);
+      // Load all users via superadmin RPC (bypasses institution-scoped RLS)
+      const { data: users, error: usersErr } = await supabase.rpc('admin_get_all_users');
       if (usersErr) console.warn('Users load error:', usersErr);
       setAllUsers(users || []);
       
@@ -134,6 +130,9 @@ export default function SuperAdminPortal() {
         const id = i.institution_id || i.id;
         const name = i.institution_name || i.name;
         if (id) instMap[id] = name;
+      });
+      (users || []).forEach((u: any) => {
+        if (u.institution_id && u.institution_name) instMap[u.institution_id] = u.institution_name;
       });
 
       // Compute role distribution
