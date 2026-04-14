@@ -5,6 +5,7 @@ import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Trophy, Swords, Star } from 'lucide-react';
+import { useTabPersistence } from '../../hooks/useTabPersistence';
 
 type League = { id: string; name: string; sport: string | null; format: string | null; status: string | null; season: string | null };
 type Challenge = { id: string; title: string | null; sport: string; institution_id: string | null; is_open: boolean | null; status: string; created_at: string };
@@ -20,7 +21,7 @@ const TABS = [
 
 export default function SportsHub() {
   const { user, institutionId } = useAuth();
-  const [tab, setTab] = useState('leagues');
+  const [tab, setTab] = useTabPersistence('sports-hub', 'leagues');
   const [leagues, setLeagues] = useState<League[]>([]);
   const [myParticipations, setMyParticipations] = useState<Participant[]>([]);
   const [challenges, setChallenges] = useState<Challenge[]>([]);

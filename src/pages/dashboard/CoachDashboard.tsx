@@ -37,7 +37,7 @@ export default function CoachDashboard() {
       supabase.from('ct_users').select('full_name,avatar_url').eq('id', userId).maybeSingle().then(({ data }) => setProfile(data));
     }
     if (institutionId) {
-      supabase.from('ct_sport_rankings').select('*').eq('institution_id', institutionId).order('points', { ascending: false }).limit(50).then(({ data }) => setRankings(data || []));
+      supabase.from('ct_sport_rankings').select('*, ct_users!user_id(full_name, email)').eq('institution_id', institutionId).order('points', { ascending: false }).limit(50).then(({ data }) => setRankings(data || []));
     }
   }, [userId, institutionId]);
 
@@ -589,7 +589,7 @@ React.useEffect(() => {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead><tr className="border-b border-outline-variant">{['Rank','User','Sport','W','L','Points'].map(h => <th key={h} className="py-2 px-3 text-left font-jakarta font-700 text-on-surface-variant">{h}</th>)}</tr></thead>
-                <tbody>{rankings.map((r, i) => <tr key={r.id || i} className="border-b border-outline-variant/40"><td className="py-2 px-3 font-lexend font-700 text-primary">{i+1}</td><td className="py-2 px-3 text-on-surface font-jakarta">{r.user_id?.slice(0,8)}…</td><td className="py-2 px-3 text-on-surface-variant">{r.sport}</td><td className="py-2 px-3 text-green-600 font-700">{r.wins}</td><td className="py-2 px-3 text-red-500 font-700">{r.losses}</td><td className="py-2 px-3 font-lexend font-900 text-on-surface">{r.points}</td></tr>)}</tbody>
+                <tbody>{rankings.map((r, i) => <tr key={r.id || i} className="border-b border-outline-variant/40"><td className="py-2 px-3 font-lexend font-700 text-primary">{i+1}</td><td className="py-2 px-3 text-on-surface font-jakarta">{(r as any).ct_users?.full_name || r.user_id?.slice(0,8)}</td><td className="py-2 px-3 text-on-surface-variant">{r.sport}</td><td className="py-2 px-3 text-green-600 font-700">{r.wins}</td><td className="py-2 px-3 text-red-500 font-700">{r.losses}</td><td className="py-2 px-3 font-lexend font-900 text-on-surface">{r.points}</td></tr>)}</tbody>
               </table>
             </div>
           )}
