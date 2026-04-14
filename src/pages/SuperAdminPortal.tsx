@@ -120,12 +120,21 @@ export default function SuperAdminPortal() {
       }
 
       // Load all users with institution name join
-      const { data: users } = await supabase
+      const { data: users, error: usersErr } = await supabase
         .from('ct_users')
-        .select('id, email, full_name, role, payment_status, institution_id, created_at, ct_institutions(name)')
+        .select('id, email, full_name, role, payment_status, institution_id, created_at')
         .order('created_at', { ascending: false })
         .limit(200);
+      if (usersErr) console.warn('Users load error:', usersErr);
       setAllUsers(users || []);
+      
+      // Load institution map for name lookups
+      const instMap: Record<string, string> = {};
+      (analytics || []).forEach((i: any) => {
+        const id = i.institution_id || i.id;
+        const name = i.institution_name || i.name;
+        if (id) instMap[id] = name;
+      });
 
       // Compute role distribution
       const roleCounts: Record<string, number> = {};
@@ -148,8 +157,8 @@ export default function SuperAdminPortal() {
       // Top institutions by user count
       const instCounts: Record<string, { name: string; count: number }> = {};
       (users || []).forEach((u: any) => {
-        const instName = (u.ct_institutions as any)?.name || institutions.find(i => i.id === u.institution_id)?.name || 'Unknown';
         const key = u.institution_id || 'unknown';
+        const instName = instMap[key] || key.slice(0, 8) + '…';
         if (!instCounts[key]) instCounts[key] = { name: instName, count: 0 };
         instCounts[key].count += 1;
       });
