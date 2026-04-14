@@ -1070,29 +1070,14 @@ function WellnessSection({ userId, institutionId }: { userId?: string; instituti
     if (!userId) return;
     setSaving(true);
     const today = new Date().toISOString().split('T')[0];
-    const { data: existing } = await supabase
-      .from('ct_wellbeing_checks')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('date', today)
-      .maybeSingle();
-
-    if (existing?.id) {
-      await supabase.from('ct_wellbeing_checks').update({
-        happiness_score: happinessScore,
-        stress_score: stressScore,
-        notes,
-        updated_at: new Date().toISOString(),
-      }).eq('id', existing.id);
-    } else {
-      await supabase.from('ct_wellbeing_checks').insert({
-        user_id: userId,
-        happiness_score: happinessScore,
-        stress_score: stressScore,
-        notes,
-        date: today,
-      });
-    }
+    await supabase.from('ct_wellbeing_checks').upsert({
+      user_id: userId,
+      happiness_score: happinessScore,
+      stress_score: stressScore,
+      notes,
+      date: today,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id,date' });
 
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const { data: trendData } = await supabase
